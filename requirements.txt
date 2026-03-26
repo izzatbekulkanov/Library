@@ -2,6 +2,7 @@ fastapi
 uvicorn[standard]
 gunicorn
 uvicorn-worker
+itsdangerous
 jinja2
 sqlalchemy
 pydantic-settings
