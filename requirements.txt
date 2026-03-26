@@ -3,6 +3,7 @@ uvicorn[standard]
 gunicorn
 uvicorn-worker
 itsdangerous
+httpx
 jinja2
 sqlalchemy
 pydantic-settings
