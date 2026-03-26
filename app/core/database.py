@@ -149,49 +149,6 @@ def _create_engine_from_config(cfg: dict[str, Any]) -> Engine:
     return sqlite_engine
 
 
-def _quote_pg_identifier(value: str) -> str:
-    return '"' + value.replace('"', '""') + '"'
-
-
-def _is_missing_postgresql_database_error(exc: Exception) -> bool:
-    message = str(exc).lower()
-    return "database" in message and "does not exist" in message
-
-
-def _ensure_postgresql_database(cfg: dict[str, Any]) -> bool:
-    pg = cfg.get("postgresql", {}) if isinstance(cfg.get("postgresql"), dict) else {}
-    target_db = str(pg.get("database") or "").strip()
-    if not target_db:
-        raise ValueError("PostgreSQL database nomi bo'sh bo'lishi mumkin emas.")
-
-    admin_cfg = _normalize_database_config(cfg)
-    admin_pg = admin_cfg["postgresql"]
-    admin_database = str(pg.get("admin_database") or "postgres").strip() or "postgres"
-    admin_pg["database"] = admin_database
-
-    admin_engine = _create_engine_from_config(admin_cfg)
-    try:
-        with admin_engine.connect() as conn:
-            exists = conn.execute(
-                text("SELECT 1 FROM pg_database WHERE datname = :database_name"),
-                {"database_name": target_db},
-            ).scalar()
-            if exists:
-                return False
-
-        with admin_engine.connect() as conn:
-            conn = conn.execution_options(isolation_level="AUTOCOMMIT")
-            conn.execute(text(f"CREATE DATABASE {_quote_pg_identifier(target_db)}"))
-            return True
-    except OperationalError as exc:
-        raise RuntimeError(
-            f"PostgreSQL bazasi '{target_db}' yaratilmadi. "
-            f"'{admin_database}' ga ulanib yaratish huquqi kerak bo'lishi mumkin: {exc}"
-        ) from exc
-    finally:
-        admin_engine.dispose()
-
-
 def _read_database_config_file() -> dict[str, Any]:
     try:
         if os.path.isfile(DB_CONFIG_PATH):
@@ -301,23 +258,17 @@ def build_database_config_from_payload(
 
 def test_database_config(cfg: dict[str, Any]) -> None:
     normalized = _normalize_database_config(cfg)
-    db_type = _normalize_db_type(normalized.get("db_type"))
     test_engine = _create_engine_from_config(normalized)
     try:
         with test_engine.connect() as conn:
             conn.execute(text("SELECT 1"))
-        return
     except OperationalError as exc:
-        if db_type == "postgresql" and _is_missing_postgresql_database_error(exc):
-            _ensure_postgresql_database(normalized)
-            retry_engine = _create_engine_from_config(normalized)
-            try:
-                with retry_engine.connect() as conn:
-                    conn.execute(text("SELECT 1"))
-            finally:
-                retry_engine.dispose()
-            return
-        raise
+        raise RuntimeError(
+            "PostgreSQL ulanishini tekshirishda xatolik. "
+            "Host, port, database nomi, username, password va "
+            "CONNECT ruxsatlarini tekshiring. "
+            f"Asl xato: {exc}"
+        ) from exc
     finally:
         test_engine.dispose()
 
