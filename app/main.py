@@ -10,7 +10,7 @@ from app.api.routes import router
 from app.api.endpoints.external_books import shutdown_import_workers, startup_import_workers
 from app.core.auth import get_session_user
 from app.core.config import settings
-from app.core.database import SessionLocal, engine, ensure_book_copy_print_columns, ensure_user_menu_permissions_column
+from app.core.database import SessionLocal, bootstrap_database_runtime
 from app.core.i18n import I18nJinja2Templates as Jinja2Templates
 from app.core.system_settings import get_system_settings
 from app.models import user
@@ -18,9 +18,7 @@ from app.models.user import User
 from app.models import library  # noqa: F401 — jadvallar create_all uchun
 
 # Barcha jadvallarni yaratish (allaqachon bor bo'lsa o'tkazib yuboradi)
-user.Base.metadata.create_all(bind=engine)
-ensure_book_copy_print_columns()
-ensure_user_menu_permissions_column()
+bootstrap_database_runtime()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

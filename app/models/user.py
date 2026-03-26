@@ -58,7 +58,7 @@ class User(Base):
     # Tahsil / Yosh / Aloqa
     year_of_enter = Column(String(255), nullable=True)
     age = Column(Integer, nullable=True)
-    phone_number = Column(String(15), nullable=True)
+    phone_number = Column(String(32), nullable=True)
     
     # Hisob qaydnomasi bazaviy malumotlari
     username = Column(String(255), unique=True, index=True, nullable=True)

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import threading
 from typing import Any
 from urllib.parse import quote_plus
 
@@ -11,6 +12,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 DB_CONFIG_PATH = os.getenv("APP_DB_CONFIG_PATH", os.path.join("app", "core", "db_config.json"))
+_DB_RUNTIME_LOCK = threading.RLock()
 
 
 def _default_database_config() -> dict[str, Any]:
@@ -149,27 +151,38 @@ def _create_engine_from_config(cfg: dict[str, Any]) -> Engine:
     return sqlite_engine
 
 
-def _read_database_config_file() -> dict[str, Any]:
+def _read_database_config_file() -> dict[str, Any] | None:
     try:
-        if os.path.isfile(DB_CONFIG_PATH):
-            with open(DB_CONFIG_PATH, "r", encoding="utf-8") as fh:
-                parsed = json.load(fh)
-                if isinstance(parsed, dict):
-                    return parsed
+        if not os.path.isfile(DB_CONFIG_PATH):
+            return {}
+        with open(DB_CONFIG_PATH, "r", encoding="utf-8") as fh:
+            parsed = json.load(fh)
+            if isinstance(parsed, dict):
+                return parsed
     except Exception:
-        pass
-    return {}
+        return None
+    return None
+
+
+def _get_database_config_mtime() -> float | None:
+    try:
+        return os.path.getmtime(DB_CONFIG_PATH)
+    except OSError:
+        return None
 
 
 def _write_database_config_file(cfg: dict[str, Any]) -> None:
     cfg_dir = os.path.dirname(DB_CONFIG_PATH)
     if cfg_dir:
         os.makedirs(cfg_dir, exist_ok=True)
-    with open(DB_CONFIG_PATH, "w", encoding="utf-8") as fh:
+    tmp_path = f"{DB_CONFIG_PATH}.tmp"
+    with open(tmp_path, "w", encoding="utf-8") as fh:
         json.dump(cfg, fh, ensure_ascii=False, indent=2)
+    os.replace(tmp_path, DB_CONFIG_PATH)
 
 
 def get_database_config(mask_password: bool = True) -> dict[str, Any]:
+    refresh_database_runtime_if_needed()
     pg = ACTIVE_DB_CONFIG.get("postgresql", {}) if isinstance(ACTIVE_DB_CONFIG.get("postgresql"), dict) else {}
     password = str(pg.get("password") or "")
     return {
@@ -273,11 +286,13 @@ def test_database_config(cfg: dict[str, Any]) -> None:
         test_engine.dispose()
 
 
-def apply_database_config(cfg: dict[str, Any], *, persist: bool = True) -> dict[str, Any]:
-    global ACTIVE_DB_CONFIG, SQLALCHEMY_DATABASE_URL, engine
-    normalized = _normalize_database_config(cfg)
-    test_database_config(normalized)
-
+def _apply_database_runtime(
+    normalized: dict[str, Any],
+    *,
+    persist: bool = False,
+    config_mtime: float | None = None,
+) -> dict[str, Any]:
+    global ACTIVE_DB_CONFIG, SQLALCHEMY_DATABASE_URL, engine, ACTIVE_DB_CONFIG_MTIME
     new_url = _build_database_url(normalized)
     new_engine = _create_engine_from_config(normalized)
     with new_engine.connect() as conn:
@@ -291,6 +306,10 @@ def apply_database_config(cfg: dict[str, Any], *, persist: bool = True) -> dict[
 
     if persist:
         _write_database_config_file(normalized)
+        config_mtime = _get_database_config_mtime()
+
+    ACTIVE_DB_CONFIG_MTIME = config_mtime
+    bootstrap_database_runtime()
 
     try:
         old_engine.dispose()
@@ -300,9 +319,36 @@ def apply_database_config(cfg: dict[str, Any], *, persist: bool = True) -> dict[
     return get_database_config(mask_password=True)
 
 
-ACTIVE_DB_CONFIG = _normalize_database_config(_read_database_config_file())
+def refresh_database_runtime_if_needed(force: bool = False) -> bool:
+    with _DB_RUNTIME_LOCK:
+        current_mtime = _get_database_config_mtime()
+        if not force and current_mtime == ACTIVE_DB_CONFIG_MTIME:
+            return False
+
+        loaded = _read_database_config_file()
+        if loaded is None:
+            return False
+        normalized = _normalize_database_config(loaded)
+        new_url = _build_database_url(normalized)
+        if not force and normalized == ACTIVE_DB_CONFIG and new_url == SQLALCHEMY_DATABASE_URL:
+            globals()["ACTIVE_DB_CONFIG_MTIME"] = current_mtime
+            return False
+
+        _apply_database_runtime(normalized, persist=False, config_mtime=current_mtime)
+        return True
+
+
+def apply_database_config(cfg: dict[str, Any], *, persist: bool = True) -> dict[str, Any]:
+    normalized = _normalize_database_config(cfg)
+    test_database_config(normalized)
+    with _DB_RUNTIME_LOCK:
+        return _apply_database_runtime(normalized, persist=persist)
+
+
+ACTIVE_DB_CONFIG = _normalize_database_config(_read_database_config_file() or {})
 SQLALCHEMY_DATABASE_URL = _build_database_url(ACTIVE_DB_CONFIG)
 engine = _create_engine_from_config(ACTIVE_DB_CONFIG)
+ACTIVE_DB_CONFIG_MTIME = _get_database_config_mtime()
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -334,7 +380,30 @@ def ensure_user_menu_permissions_column() -> None:
             # duplicate column yoki jadval yo'qligi holatlari
             pass
 
+
+def ensure_user_phone_number_column_capacity() -> None:
+    """PostgreSQL uchun users.phone_number ustunini amaldagi forma qiymatlariga mos kengaytiradi."""
+    if _normalize_db_type(ACTIVE_DB_CONFIG.get("db_type")) != "postgresql":
+        return
+    with engine.begin() as conn:
+        try:
+            conn.execute(text("ALTER TABLE users ALTER COLUMN phone_number TYPE VARCHAR(32)"))
+        except Exception:
+            # jadval yo'qligi yoki ustun bo'lmagani holatlari
+            pass
+
+
+def bootstrap_database_runtime() -> None:
+    from app.models import user as user_models  # noqa: WPS433
+    from app.models import library as library_models  # noqa: F401,WPS433
+
+    user_models.Base.metadata.create_all(bind=engine)
+    ensure_book_copy_print_columns()
+    ensure_user_menu_permissions_column()
+    ensure_user_phone_number_column_capacity()
+
 def get_db():
+    refresh_database_runtime_if_needed()
     db = SessionLocal()
     try:
         yield db
