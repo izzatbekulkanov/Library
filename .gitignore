@@ -22,6 +22,7 @@ npm-debug.log*
 # Env and logs
 .env
 .env.*
+!.env.example
 *.log
 app_log.txt
 
