@@ -1,21 +1,38 @@
-.venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
+*.pyd
+*.so
+
+# Virtual env
+.venv/
+venv/
+env/
+ENV/
+
+# Node
 node_modules/
 npm-debug.log*
+
+# IDE
 .idea/
 .qodo/
+
+# Env and logs
 .env
 .env.*
 *.log
-app/core/db_config.json
-app/core/system_settings.json
-app/static/uploads/system/
-app/static/uploads/
+app_log.txt
+
+# Runtime DB/files
 *.db
 *.db-*
-app_log.txt
+app/core/db_config.json
+app/core/system_settings.json
+app/static/uploads/
+
+# Temp/debug scripts
 debug_*.py
 fix_*.py
 tmp_*.js
