@@ -1,0 +1,161 @@
+<aside class="w-64 flex flex-col transition-all duration-300 overflow-y-auto z-20 absolute inset-y-0 left-0 lg:static lg:translate-x-0 -translate-x-full border-r border-white/20 glass-panel" id="sidebar">
+    {% set u = session_user|default({}) %}
+    {% set display_name = u.get('full_name') or u.get('username') or 'User' %}
+    {% set display_role = u.get('role_label') or 'User' %}
+    {% set avatar_src = u.get('image') or '' %}
+    {% set allowed_menus = u.get('menu_permissions') or [] %}
+    {% set is_admin = u.get('is_staff') or u.get('is_verified') %}
+    {% set has_library_block = ('libraries' in allowed_menus) or ('book_types' in allowed_menus) or ('authors' in allowed_menus) or ('publishers' in allowed_menus) or ('books' in allowed_menus) or ('online_books' in allowed_menus) %}
+
+    <div class="h-16 flex items-center justify-between px-4 border-b border-white/10 glass-header">
+        <div class="flex items-center" id="logo-container">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
+                <img src="{{ system_logo_small }}" alt="{{ system_name }}" class="w-full h-full object-contain">
+            </div>
+            <span class="text-lg font-bold tracking-wider text-slate-800 dark:text-white ml-3 logo-text transition-opacity duration-300">{{ system_name }}</span>
+        </div>
+
+        <button onclick="toggleSidebarCollapse()" class="hidden lg:flex items-center justify-center w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all backdrop-blur-md border border-white/10">
+            <i class="fa-solid fa-angle-left transition-transform duration-300" id="collapseIcon"></i>
+        </button>
+    </div>
+
+    <nav class="flex-1 px-3 py-6 space-y-1.5 overflow-x-hidden">
+        {% if 'dashboard' in allowed_menus %}
+        <p class="px-3 text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3 menu-label transition-opacity duration-300">{{ _('Asosiy') }}</p>
+        <a href="/" onclick="showLoader(event, '/')" class="flex items-center gap-3 px-4 py-3 rounded-xl {% if active_menu == 'dashboard' %}bg-white/15 shadow-[0_4px_10px_rgba(0,0,0,0.1)] text-white border border-white/20 backdrop-blur-md relative{% else %}text-white/70 hover:text-white hover:bg-white/10 transition-colors{% endif %} group">
+            {% if active_menu == 'dashboard' %}<div class="absolute inset-y-0 left-0 w-1 bg-blue-400 rounded-l-xl"></div>{% endif %}
+            <i class="fa-solid fa-house w-5 text-center {% if active_menu == 'dashboard' %}text-blue-300{% endif %} group-hover:scale-110 transition-transform"></i>
+            <span class="font-medium whitespace-nowrap transition-all duration-300 sidebar-text">{{ _('Dashboard') }}</span>
+        </a>
+        {% endif %}
+
+        {% if 'users' in allowed_menus and is_admin %}
+        <p class="px-3 text-[10px] font-bold text-white/40 uppercase tracking-widest mt-8 mb-3 menu-label transition-opacity duration-300">{{ _('Boshqaruv') }}</p>
+        <a href="/users" onclick="showLoader(event, '/users')" class="flex items-center gap-3 px-4 py-3 rounded-xl {% if active_menu == 'users' %}bg-white/15 shadow-[0_4px_10px_rgba(0,0,0,0.1)] text-white border border-white/20 backdrop-blur-md relative{% else %}text-white/70 hover:text-white hover:bg-white/10 transition-colors{% endif %} group">
+            {% if active_menu == 'users' %}<div class="absolute inset-y-0 left-0 w-1 bg-blue-400 rounded-l-xl"></div>{% endif %}
+            <i class="fa-solid fa-users w-5 text-center {% if active_menu == 'users' %}text-blue-300{% endif %} group-hover:scale-110 transition-transform"></i>
+            <span class="font-medium whitespace-nowrap transition-all duration-300 sidebar-text">{{ _('Foydalanuvchilar') }}</span>
+        </a>
+        {% endif %}
+
+        {% if has_library_block %}
+        <p class="px-3 text-[10px] font-bold text-white/40 uppercase tracking-widest mt-8 mb-3 menu-label transition-opacity duration-300">{{ _('Kutubxona') }}</p>
+
+        {% if 'libraries' in allowed_menus %}
+        <a href="/libraries" onclick="showLoader(event, '/libraries')" class="flex items-center gap-3 px-4 py-3 rounded-xl {% if active_menu == 'libraries' %}bg-white/15 shadow-[0_4px_10px_rgba(0,0,0,0.1)] text-white border border-white/20 backdrop-blur-md relative{% else %}text-white/70 hover:text-white hover:bg-white/10 transition-colors{% endif %} group">
+            {% if active_menu == 'libraries' %}<div class="absolute inset-y-0 left-0 w-1 bg-blue-400 rounded-l-xl"></div>{% endif %}
+            <i class="fa-solid fa-building w-5 text-center {% if active_menu == 'libraries' %}text-blue-300{% endif %} group-hover:scale-110 transition-transform"></i>
+            <span class="font-medium whitespace-nowrap transition-all duration-300 sidebar-text">{{ _('Kutubxonalar') }}</span>
+        </a>
+        {% endif %}
+
+        {% if 'book_types' in allowed_menus %}
+        <a href="/book_types" onclick="showLoader(event, '/book_types')" class="flex items-center gap-3 px-4 py-3 rounded-xl {% if active_menu == 'book_types' %}bg-white/15 shadow-[0_4px_10px_rgba(0,0,0,0.1)] text-white border border-white/20 backdrop-blur-md relative{% else %}text-white/70 hover:text-white hover:bg-white/10 transition-colors{% endif %} group">
+            {% if active_menu == 'book_types' %}<div class="absolute inset-y-0 left-0 w-1 bg-blue-400 rounded-l-xl"></div>{% endif %}
+            <i class="fa-solid fa-book-open w-5 text-center {% if active_menu == 'book_types' %}text-blue-300{% endif %} group-hover:scale-110 transition-transform"></i>
+            <span class="font-medium whitespace-nowrap transition-all duration-300 sidebar-text">{{ _('Kitob turlari') }}</span>
+        </a>
+        {% endif %}
+
+        {% if 'authors' in allowed_menus %}
+        <a href="/authors" onclick="showLoader(event, '/authors')" class="flex items-center gap-3 px-4 py-3 rounded-xl {% if active_menu == 'authors' %}bg-white/15 shadow-[0_4px_10px_rgba(0,0,0,0.1)] text-white border border-white/20 backdrop-blur-md relative{% else %}text-white/70 hover:text-white hover:bg-white/10 transition-colors{% endif %} group">
+            {% if active_menu == 'authors' %}<div class="absolute inset-y-0 left-0 w-1 bg-blue-400 rounded-l-xl"></div>{% endif %}
+            <i class="fa-solid fa-feather-pointed w-5 text-center {% if active_menu == 'authors' %}text-blue-300{% endif %} group-hover:scale-110 transition-transform"></i>
+            <span class="font-medium whitespace-nowrap transition-all duration-300 sidebar-text">{{ _('Mualliflar') }}</span>
+        </a>
+        {% endif %}
+
+        {% if 'publishers' in allowed_menus %}
+        <a href="/publishers" onclick="showLoader(event, '/publishers')" class="flex items-center gap-3 px-4 py-3 rounded-xl {% if active_menu == 'publishers' %}bg-white/15 shadow-[0_4px_10px_rgba(0,0,0,0.1)] text-white border border-white/20 backdrop-blur-md relative{% else %}text-white/70 hover:text-white hover:bg-white/10 transition-colors{% endif %} group">
+            {% if active_menu == 'publishers' %}<div class="absolute inset-y-0 left-0 w-1 bg-blue-400 rounded-l-xl"></div>{% endif %}
+            <i class="fa-solid fa-print w-5 text-center {% if active_menu == 'publishers' %}text-blue-300{% endif %} group-hover:scale-110 transition-transform"></i>
+            <span class="font-medium whitespace-nowrap transition-all duration-300 sidebar-text">{{ _('Nashriyotlar') }}</span>
+        </a>
+        {% endif %}
+
+        {% if 'books' in allowed_menus %}
+        <a href="/books" onclick="showLoader(event, '/books')" class="flex items-center gap-3 px-4 py-3 rounded-xl {% if active_menu == 'books' %}bg-white/15 shadow-[0_4px_10px_rgba(0,0,0,0.1)] text-white border border-white/20 backdrop-blur-md relative{% else %}text-white/70 hover:text-white hover:bg-white/10 transition-colors{% endif %} group">
+            {% if active_menu == 'books' %}<div class="absolute inset-y-0 left-0 w-1 bg-blue-400 rounded-l-xl"></div>{% endif %}
+            <i class="fa-solid fa-book w-5 text-center {% if active_menu == 'books' %}text-blue-300{% endif %} group-hover:scale-110 transition-transform"></i>
+            <span class="font-medium whitespace-nowrap transition-all duration-300 sidebar-text">{{ _('Kitoblar') }}</span>
+        </a>
+        {% endif %}
+
+        {% if 'online_books' in allowed_menus %}
+        <a href="/online-books" onclick="showLoader(event, '/online-books')" class="flex items-center gap-3 px-4 py-3 rounded-xl {% if active_menu == 'online_books' %}bg-white/15 shadow-[0_4px_10px_rgba(0,0,0,0.1)] text-white border border-white/20 backdrop-blur-md relative{% else %}text-white/70 hover:text-white hover:bg-white/10 transition-colors{% endif %} group">
+            {% if active_menu == 'online_books' %}<div class="absolute inset-y-0 left-0 w-1 bg-blue-400 rounded-l-xl"></div>{% endif %}
+            <i class="fa-solid fa-tablet-screen-button w-5 text-center {% if active_menu == 'online_books' %}text-blue-300{% endif %} group-hover:scale-110 transition-transform"></i>
+            <span class="font-medium whitespace-nowrap transition-all duration-300 sidebar-text">{{ _('Online kitoblar') }}</span>
+        </a>
+        {% endif %}
+
+        {% if 'external_books' in allowed_menus %}
+        <a href="/external-books" onclick="showLoader(event, '/external-books')" class="flex items-center gap-3 px-4 py-3 rounded-xl {% if active_menu == 'external_books' %}bg-white/15 shadow-[0_4px_10px_rgba(0,0,0,0.1)] text-white border border-white/20 backdrop-blur-md relative{% else %}text-white/70 hover:text-white hover:bg-white/10 transition-colors{% endif %} group">
+            {% if active_menu == 'external_books' %}<div class="absolute inset-y-0 left-0 w-1 bg-blue-400 rounded-l-xl"></div>{% endif %}
+            <i class="fa-solid fa-cloud-arrow-down w-5 text-center {% if active_menu == 'external_books' %}text-blue-300{% endif %} group-hover:scale-110 transition-transform"></i>
+            <span class="font-medium whitespace-nowrap transition-all duration-300 sidebar-text">{{ _('Tashqi baza') }}</span>
+        </a>
+        {% endif %}
+        {% endif %}
+
+        {% if 'reports' in allowed_menus %}
+        <p class="px-3 text-[10px] font-bold text-white/40 uppercase tracking-widest mt-8 mb-3 menu-label transition-opacity duration-300">{{ _('Hisobot') }}</p>
+        <a href="/reports" onclick="showLoader(event, '/reports')" class="flex items-center gap-3 px-4 py-3 rounded-xl {% if active_menu == 'reports' %}bg-white/15 shadow-[0_4px_10px_rgba(0,0,0,0.1)] text-white border border-white/20 backdrop-blur-md relative{% else %}text-white/70 hover:text-white hover:bg-white/10 transition-colors{% endif %} group">
+            {% if active_menu == 'reports' %}<div class="absolute inset-y-0 left-0 w-1 bg-blue-400 rounded-l-xl"></div>{% endif %}
+            <i class="fa-solid fa-chart-column w-5 text-center {% if active_menu == 'reports' %}text-blue-300{% endif %} group-hover:scale-110 transition-transform"></i>
+            <span class="font-medium whitespace-nowrap transition-all duration-300 sidebar-text">{{ _('Hisobotlar') }}</span>
+        </a>
+        {% endif %}
+
+        {% if 'about' in allowed_menus %}
+        <p class="px-3 text-[10px] font-bold text-white/40 uppercase tracking-widest mt-8 mb-3 menu-label transition-opacity duration-300">{{ _('Tizim') }}</p>
+        <a href="/about" onclick="showLoader(event, '/about')" class="flex items-center gap-3 px-4 py-3 rounded-xl {% if active_menu == 'about' %}bg-white/15 shadow-[0_4px_10px_rgba(0,0,0,0.1)] text-white border border-white/20 backdrop-blur-md relative{% else %}text-white/70 hover:text-white hover:bg-white/10 transition-colors{% endif %} group">
+            {% if active_menu == 'about' %}<div class="absolute inset-y-0 left-0 w-1 bg-blue-400 rounded-l-xl"></div>{% endif %}
+            <i class="fa-solid fa-circle-info w-5 text-center {% if active_menu == 'about' %}text-blue-300{% endif %} group-hover:scale-110 transition-transform"></i>
+            <span class="font-medium whitespace-nowrap transition-all duration-300 sidebar-text">{{ _('Men haqimda') }}</span>
+        </a>
+        {% endif %}
+
+        {% if 'sozlamalar' in allowed_menus and is_admin %}
+        <a href="/sozlamalar" onclick="showLoader(event, '/sozlamalar')" class="flex items-center gap-3 px-4 py-3 rounded-xl {% if active_menu == 'sozlamalar' %}bg-white/15 shadow-[0_4px_10px_rgba(0,0,0,0.1)] text-white border border-white/20 backdrop-blur-md relative{% else %}text-white/70 hover:text-white hover:bg-white/10 transition-colors{% endif %} group">
+            {% if active_menu == 'sozlamalar' %}<div class="absolute inset-y-0 left-0 w-1 bg-rose-400 rounded-l-xl"></div>{% endif %}
+            <i class="fa-solid fa-gear w-5 text-center {% if active_menu == 'sozlamalar' %}text-rose-300{% endif %} group-hover:scale-110 transition-transform"></i>
+            <span class="font-medium whitespace-nowrap transition-all duration-300 sidebar-text">{{ _('Sozlamalar') }}</span>
+        </a>
+        {% endif %}
+    </nav>
+
+    <div class="p-4 border-t border-white/10 glass-footer">
+        <div class="relative" id="userProfileWrap">
+            <button type="button" id="userProfileBtn" aria-expanded="false" class="w-full text-left bg-white/5 p-2 rounded-xl border border-white/10 hover:bg-white/10 transition-colors">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white font-bold shadow-md shrink-0 overflow-hidden">
+                        {% if avatar_src %}
+                        <img src="{{ avatar_src }}" alt="{{ display_name }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <span class="w-full h-full items-center justify-center" style="display:none;">{{ display_name[0] | upper }}</span>
+                        {% else %}
+                        {{ display_name[0] | upper }}
+                        {% endif %}
+                    </div>
+                    <div class="ml-3 overflow-hidden user-info transition-opacity duration-300">
+                        <p class="text-sm font-semibold text-white truncate">{{ display_name }}</p>
+                        <span class="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">
+                            {{ _(display_role) }} • {{ _('Hozir faol') }}
+                        </span>
+                    </div>
+                    <i id="userProfileChevron" class="fa-solid fa-chevron-down text-[11px] text-white/50 ml-auto mr-1 user-info transition-transform duration-200"></i>
+                </div>
+            </button>
+            {% if 'about' in allowed_menus %}
+            <div id="userProfileMenu" class="hidden mt-2 user-info transition-opacity duration-300 space-y-1 rounded-xl glass-card border border-white/10 p-2 shadow-xl">
+                <a href="/about" onclick="showLoader(event, '/about')" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-white/50 hover:text-white hover:bg-white/10 transition-colors">
+                    <i class="fa-regular fa-address-card"></i> {{ _('Men haqimda') }}
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</aside>
+
+<div class="fixed inset-0 bg-black/40 z-10 hidden lg:hidden backdrop-blur-sm transition-opacity" id="sidebarOverlay" onclick="toggleSidebarMenu()"></div>

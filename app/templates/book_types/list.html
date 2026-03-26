@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+
+{% block title %}Kitob Turlari va BBK | Glass Pro{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10 w-full" id="headerSection">
+    <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white mb-1 flex items-center gap-2">
+            <i class="fa-solid fa-layer-group text-blue-400"></i> Kitob Klassifikatsiyasi
+        </h1>
+        <p class="text-[0.8rem] text-white/50 tracking-wide">Tizimdagi barcha kitob turlari va BBK kategoriyalari</p>
+    </div>
+    
+    <div class="flex items-center gap-4 w-full sm:w-auto mt-3 sm:mt-0">
+        <div class="pro-input-wrap w-full sm:w-[320px]">
+            <span class="pro-icon"><i class="fa-solid fa-search text-[0.85rem]"></i></span>
+            <input type="text" id="searchInput" placeholder="Qidirish..." class="pro-input pr-16" style="padding-top: 0.65rem; padding-bottom: 0.65rem;">
+        </div>
+
+        <!-- BookType uchun qo'shish tugmasi -->
+        <button id="addBookTypeBtn" onclick="openBookTypeModal()" 
+           class="action-btn shrink-0 relative overflow-hidden flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_25px_rgba(59,130,246,0.5)] transition-all transform hover:-translate-y-0.5 font-medium text-[0.85rem] border border-blue-400/30 group">
+            <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out"></div>
+            <i class="fa-solid fa-plus relative z-10 text-[0.8rem] transition-transform group-hover:scale-110 duration-300"></i> 
+            <span class="relative z-10 tracking-wide">Yangi Tur</span>
+        </button>
+
+        <!-- BBK uchun qo'shish tugmasi -->
+        <button id="addBbkBtn" onclick="openBbkModal()" 
+            style="display:none; position:relative; align-items:center; gap:0.5rem; padding:0.625rem 1.25rem; background:linear-gradient(to right, #14b8a6, #10b981); color:white; border-radius:0.75rem; font-size:0.875rem; font-weight:500; border:1px solid rgba(20,184,166,0.3); cursor:pointer; white-space:nowrap; flex-shrink:0; transition:all 0.2s;"
+            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 0 20px rgba(20,184,166,0.4)'" 
+            onmouseout="this.style.transform=''; this.style.boxShadow=''"
+        >
+            <i class="fa-solid fa-plus" style="font-size:0.8rem;"></i>
+            <span>Yangi BBK</span>
+        </button>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="flex gap-1 mb-6 border-b border-white/10 pb-[1px]">
+    <button onclick="switchTab('book_types')" id="tab-book_types" class="relative px-6 py-3 text-sm font-medium rounded-t-xl transition-all whitespace-nowrap cursor-pointer text-white/40 hover:bg-white/10 hover:text-white">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-book-open"></i> Kitob Turlari
+        </div>
+        <div id="tab-book_types-indicator" class="absolute bottom-0 left-0 w-full h-[2px] bg-blue-500 opacity-0 transition-opacity duration-200"></div>
+    </button>
+    <button onclick="switchTab('bbk')" id="tab-bbk" class="relative px-6 py-3 text-sm font-medium rounded-t-xl transition-all whitespace-nowrap cursor-pointer text-white/40 hover:bg-white/10 hover:text-white">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-list-ol"></i> BBK Kategoriyalari
+        </div>
+        <div id="tab-bbk-indicator" class="absolute bottom-0 left-0 w-full h-[2px] bg-teal-500 opacity-0 transition-opacity duration-200"></div>
+    </button>
+</div>
+
+<!-- Kitob Turlari Ro'yxati Kartasi -->
+<div id="content-book_types" class="tab-content glass-card rounded-2xl border border-white/10 overflow-hidden shadow-2xl relative w-full mb-8" style="display: none;">
+    <div class="overflow-x-auto overflow-y-clip relative w-full rounded-2xl">
+        <table class="w-full text-left border-collapse custom-scrollbar min-w-[600px] dataTable">
+            <thead>
+                <tr class="border-b border-white/10 bg-white/5">
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest w-12 text-center">T/r</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest w-16">Muqova</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest w-1/3">Nomi</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-center">Holat</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-right w-24">Amallar</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 text-sm tableBody">
+                {% for item in book_types %}
+                <tr class="hover:bg-white/[0.03] transition-colors group">
+                    <td class="py-4 px-5 text-center text-white/40 font-mono text-xs">{{ loop.index }}</td>
+                    <td class="py-3 px-5">
+                        <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center">
+                            {% if item.image %}
+                                <img src="{{ item.image }}" alt="{{ item.name }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <i class="fa-solid fa-book-open text-white/20 text-lg"></i>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="py-4 px-5 font-semibold text-white">{{ item.name }}</td>
+                    <td class="py-4 px-5 text-center">
+                        {% if item.is_active %}
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[0.65rem] font-semibold tracking-wider bg-green-500/10 text-green-400 border border-green-500/20">Faol</span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[0.65rem] font-semibold tracking-wider bg-white/5 text-white/40 border border-white/10">Nofaol</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-5 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <button onclick='openBookTypeModal({{ item.id }}, {{ item.name|tojson }}, {{ "true" if item.is_active else "false" }})' tooltip="Tahrirlash" class="w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center transition-colors border border-blue-500/0 hover:border-blue-500/30">
+                                <i class="fa-solid fa-pen-to-square text-xs"></i>
+                            </button>
+                            <button onclick="confirmDelete('{{ item.name }}', '/book_types/delete/{{ item.id }}')" tooltip="O'chirish" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition-colors border border-red-500/0 hover:border-red-500/30">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="py-12 text-center text-white/40">Kitob turlari topilmadi</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="p-4 border-t border-white/10 bg-black/10 text-xs text-white/40">
+        Jami: <span class="font-medium text-white/70">{{ book_types|length }}</span> ta tur
+    </div>
+</div>
+
+<!-- BBK Ro'yxati Kartasi -->
+<div id="content-bbk" class="tab-content glass-card rounded-2xl border border-white/10 overflow-hidden shadow-2xl relative w-full mb-8" style="display: none;">
+    <div class="overflow-x-auto overflow-y-clip relative w-full rounded-2xl">
+        <table class="w-full text-left border-collapse custom-scrollbar min-w-[600px] dataTable">
+            <thead>
+                <tr class="border-b border-white/10 bg-white/5">
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest w-12 text-center">T/r</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest w-1/4">Kodi</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest w-1/3">Nomi</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-center">Holat</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-right w-24">Amallar</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 text-sm tableBody">
+                {% for item in bbks %}
+                <tr class="hover:bg-white/[0.03] transition-colors group">
+                    <td class="py-4 px-5 text-center text-white/40 font-mono text-xs">{{ loop.index }}</td>
+                    <td class="py-4 px-5 font-mono text-teal-400 bg-teal-400/5 px-3 py-1 rounded inline-block mt-3">{{ item.code }}</td>
+                    <td class="py-4 px-5 font-semibold text-white">{{ item.name }}</td>
+                    <td class="py-4 px-5 text-center">
+                        {% if item.is_active %}
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[0.65rem] font-semibold tracking-wider bg-green-500/10 text-green-400 border border-green-500/20">Faol</span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[0.65rem] font-semibold tracking-wider bg-white/5 text-white/40 border border-white/10">Nofaol</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-5 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <button onclick='openBbkModal({{ item.id }}, {{ item.name|tojson }}, {{ item.code|tojson }}, {{ "true" if item.is_active else "false" }})' tooltip="Tahrirlash" class="w-8 h-8 rounded-lg bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 flex items-center justify-center transition-colors border border-teal-500/0 hover:border-teal-500/30">
+                                <i class="fa-solid fa-pen-to-square text-xs"></i>
+                            </button>
+                            <button onclick="confirmDelete('{{ item.name }}', '/book_types/bbk/delete/{{ item.id }}')" tooltip="O'chirish" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition-colors border border-red-500/0 hover:border-red-500/30">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="py-12 text-center text-white/40">BBK kategoriyalari topilmadi</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="p-4 border-t border-white/10 bg-black/10 text-xs text-white/40">
+        Jami: <span class="font-medium text-white/70">{{ bbks|length }}</span> ta kategoriya
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- MODALS -->
+<!-- ============================================== -->
+
+<!-- 1. Kitob Turi qo'shish/tahrirlash modali -->
+<div id="bookTypeModal" onclick="handleModalBackdrop(event, 'bookTypeModal')" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.65); backdrop-filter:blur(8px); padding: 1.5rem; overflow-y:auto;">
+    <div class="glass-card max-w-[520px] w-full mx-auto rounded-3xl border border-white/10 shadow-2xl overflow-hidden relative" onclick="event.stopPropagation()">
+        
+        <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-slate-50/50 dark:bg-white/[0.02] transition-colors">
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2 transition-colors" id="btModalTitle">
+                <i class="fa-solid fa-layer-group text-blue-500"></i> Kitob turi qo'shish
+            </h3>
+            <button onclick="closeModals()" class="text-slate-500 hover:text-slate-800 dark:text-white/50 dark:hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-white/10">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        
+        <form id="bookTypeForm" action="/book_types/add" method="POST" enctype="multipart/form-data" class="p-6" onsubmit="showLoader(event)">
+            <div class="space-y-5">
+                <div class="pro-input-wrap">
+                    <label class="pro-label">Nomi <span class="text-red-400">*</span></label>
+                    <span class="pro-icon"><i class="fa-solid fa-book text-blue-500/70"></i></span>
+                    <input type="text" name="name" id="bt_name" class="pro-input focus:ring-2 focus:ring-blue-500" placeholder="Masalan: Roman" required>
+                </div>
+                
+                <div>
+                    <label class="pro-label block mb-2">Rasm yuklash (Ixtiyoriy)</label>
+                    <div class="relative w-full h-32 rounded-2xl border-2 border-dashed border-slate-300 dark:border-white/20 bg-slate-50 dark:bg-white/5 flex flex-col items-center justify-center hover:bg-slate-100 dark:hover:bg-white/10 hover:border-blue-400 dark:hover:border-blue-500/50 transition-all cursor-pointer group" onclick="document.getElementById('bt_image').click()">
+                        <input type="file" name="image" id="bt_image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10" onchange="previewBtImage(this)">
+                        
+                        <div id="bt_image_preview" class="absolute inset-0 w-full h-full bg-contain bg-no-repeat bg-center rounded-2xl hidden z-20 pointer-events-none border border-black/10 dark:border-white/10"></div>
+                        
+                        <div id="bt_upload_content" class="flex flex-col items-center pointer-events-none transition-all group-hover:scale-105">
+                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-blue-500 mb-2"></i>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-white/80 transition-colors">Qurilmadan rasm tanlash</span>
+                            <span class="text-xs text-slate-400 dark:text-white/40 mt-1 transition-colors">PNG, JPG, JPEG (Maks. 5MB)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <label class="block text-[0.7rem] font-bold text-slate-500 dark:text-white/60 uppercase tracking-widest mb-2 transition-colors">Holat</label>
+                    <div class="flex items-center justify-between bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 transition-colors">
+                        <span id="bt_toggle_label" class="text-sm font-semibold text-slate-700 dark:text-white/80 transition-colors">Tizimda faol</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="active" id="bt_active" class="sr-only peer" value="true" checked onchange="document.getElementById('bt_toggle_label').textContent = this.checked ? 'Tizimda faol' : 'Nofaol'">
+                            <div class="w-11 h-6 bg-slate-300 dark:bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 flex justify-end gap-3">
+                <button type="button" onclick="closeModals()" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-white/70 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 transition-colors">Yopish</button>
+                <button type="submit" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 border border-blue-500/50 shadow-lg shadow-blue-500/30 transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-save"></i> Saqlash
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 2. BBK qo'shish/tahrirlash modali -->
+<div id="bbkModal" onclick="handleModalBackdrop(event, 'bbkModal')" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.65); backdrop-filter:blur(8px); padding: 1.5rem; overflow-y:auto;">
+    <div class="glass-card max-w-[520px] w-full mx-auto rounded-3xl border border-white/10 shadow-2xl overflow-hidden relative" onclick="event.stopPropagation()">
+        
+        <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-slate-50/50 dark:bg-white/[0.02] transition-colors">
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2 transition-colors" id="bbkModalTitle">
+                <i class="fa-solid fa-list-ol text-teal-500"></i> BBK qo'shish
+            </h3>
+            <button onclick="closeModals()" class="text-slate-500 hover:text-slate-800 dark:text-white/50 dark:hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-white/10">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        
+        <form id="bbkForm" action="/book_types/bbk/add" method="POST" class="p-6" onsubmit="showLoader(event)">
+            <div class="space-y-5">
+                
+                <div class="pro-input-wrap">
+                    <label class="pro-label">BBK Kodi <span class="text-red-400">*</span></label>
+                    <span class="pro-icon"><i class="fa-solid fa-barcode text-teal-500/70"></i></span>
+                    <input type="text" name="code" id="bbk_code" class="pro-input focus:ring-2 focus:ring-teal-500" placeholder="Masalan: 84(5O'zb)" required>
+                </div>
+                
+                <div class="pro-input-wrap">
+                    <label class="pro-label">Nomi <span class="text-red-400">*</span></label>
+                    <span class="pro-icon"><i class="fa-solid fa-text-width text-teal-500/70"></i></span>
+                    <input type="text" name="name" id="bbk_name" class="pro-input focus:ring-2 focus:ring-teal-500" placeholder="Masalan: O'zbek adabiyoti" required>
+                </div>
+
+                <div class="mb-5">
+                    <label class="block text-[0.7rem] font-bold text-slate-500 dark:text-white/60 uppercase tracking-widest mb-2 transition-colors">Holat</label>
+                    <div class="flex items-center justify-between bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 transition-colors">
+                        <span id="bbk_toggle_label" class="text-sm font-semibold text-slate-700 dark:text-white/80 transition-colors">Tizimda faol</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="active" id="bbk_active" class="sr-only peer" value="true" checked onchange="document.getElementById('bbk_toggle_label').textContent = this.checked ? 'Tizimda faol' : 'Nofaol'">
+                            <div class="w-11 h-6 bg-slate-300 dark:bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-teal-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-500"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 flex justify-end gap-3">
+                <button type="button" onclick="closeModals()" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-white/70 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 transition-colors">Yopish</button>
+                <button type="submit" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-teal-600 hover:bg-teal-500 border border-teal-500/50 shadow-lg shadow-teal-500/30 transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-save"></i> Saqlash
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // URL orqali oldingi tabni ochish (masalan form submitdan keyin)
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialTab = urlParams.get('tab') || 'book_types';
+    
+    // Tablarni boshqarish
+    function switchTab(tabId) {
+        // Kontentlarni yashirish
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+        
+        // Barcha tablarni nofaol holatga qaytarish
+        ['book_types', 'bbk'].forEach(id => {
+            const btn = document.getElementById('tab-' + id);
+            const indicator = document.getElementById('tab-' + id + '-indicator');
+            if(btn) {
+                btn.className = 'relative px-6 py-3 text-sm font-medium rounded-t-xl transition-all whitespace-nowrap cursor-pointer text-white/40 hover:bg-white/10 hover:text-white';
+            }
+            if(indicator) indicator.style.opacity = '0';
+        });
+        
+        // Asosiy harakat tugmalarini boshqarish
+        document.getElementById('addBookTypeBtn').style.display = tabId === 'book_types' ? 'flex' : 'none';
+        document.getElementById('addBbkBtn').style.display = tabId === 'bbk' ? 'flex' : 'none';
+        
+        // Faol kontentni ochish
+        document.getElementById('content-' + tabId).style.display = 'block';
+        
+        // Faol tugmaga stil berish
+        const activeBtn = document.getElementById('tab-' + tabId);
+        const activeIndicator = document.getElementById('tab-' + tabId + '-indicator');
+        if(activeBtn) {
+            activeBtn.className = 'relative px-6 py-3 text-sm font-medium rounded-t-xl transition-all whitespace-nowrap bg-white/5';
+            if(tabId === 'book_types') activeBtn.classList.add('text-blue-400');
+            if(tabId === 'bbk') activeBtn.classList.add('text-teal-400');
+        }
+        if(activeIndicator) activeIndicator.style.opacity = '1';
+        
+        // URL ni tozalash (flash_msg shart emas bo'lsa) pushState orqali
+        history.replaceState(null, null, '?tab=' + tabId);
+    }
+    
+    // Dastlabki tabni ishga tushirish
+    switchTab(initialTab);
+    
+    // Barcha qidiruvlar uchun bitta input
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        let filter = this.value.toLowerCase();
+        let activeContent = document.querySelector('.tab-content[style="display: block;"]') || document.querySelector('.tab-content:not([style="display: none;"])');
+        
+        if (activeContent) {
+            let rows = activeContent.querySelectorAll('.tableBody tr');
+            rows.forEach(row => {
+                if (row.children.length > 2) { 
+                    let text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(filter) ? '' : 'none';
+                }
+            });
+        }
+    });
+
+    // Backdrop bosilsa modaldan yopish
+    function handleModalBackdrop(event, modalId) {
+        if (event.target === document.getElementById(modalId)) {
+            closeModals();
+        }
+    }
+
+    // Modalni yopish
+    function closeModals() {
+        document.getElementById('bookTypeModal').style.display = 'none';
+        document.getElementById('bbkModal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    // BookType Modali
+    function openBookTypeModal(id = null, name = '', active = true) {
+        const modal = document.getElementById('bookTypeModal');
+        const form = document.getElementById('bookTypeForm');
+        const title = document.getElementById('btModalTitle');
+        
+        if (id) {
+            title.innerHTML = '<i class="fa-solid fa-pen-to-square text-blue-400"></i> Kitob turini tahrirlash';
+            form.action = '/book_types/edit/' + id;
+            document.getElementById('bt_name').value = name;
+            document.getElementById('bt_active').checked = active;
+        } else {
+            title.innerHTML = '<i class="fa-solid fa-layer-group text-blue-400"></i> Yangi kitob turi';
+            form.action = '/book_types/add';
+            form.reset();
+            document.getElementById('bt_active').checked = true;
+        }
+
+        const btLabel  = document.getElementById('bt_toggle_label');
+        const isActive = id ? active : true;
+        if(btLabel) btLabel.textContent = isActive ? 'Tizimda faol' : 'Nofaol';
+        
+        const preview = document.getElementById('bt_image_preview');
+        const content = document.getElementById('bt_upload_content');
+        if(preview && content) {
+            preview.style.backgroundImage = 'none';
+            preview.classList.add('hidden');
+            content.style.opacity = '1';
+            document.getElementById('bt_image').value = '';
+        }
+        
+        modal.style.display = 'flex';
+        // body scroll ni bloklash
+        document.body.style.overflow = 'hidden';
+    }
+
+    // BBK Modali
+    function openBbkModal(id = null, name = '', code = '', active = true) {
+        const modal = document.getElementById('bbkModal');
+        const form = document.getElementById('bbkForm');
+        const title = document.getElementById('bbkModalTitle');
+        
+        if (id) {
+            title.innerHTML = '<i class="fa-solid fa-pen-to-square text-teal-400"></i> BBK tahrirlash';
+            form.action = '/book_types/bbk/edit/' + id;
+            document.getElementById('bbk_name').value = name;
+            document.getElementById('bbk_code').value = code;
+            document.getElementById('bbk_active').checked = active;
+        } else {
+            title.innerHTML = '<i class="fa-solid fa-list-ol text-teal-400"></i> Yangi BBK kategoriyasi';
+            form.action = '/book_types/bbk/add';
+            form.reset();
+            document.getElementById('bbk_active').checked = true;
+        }
+        
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+        const label = document.getElementById('bbk_toggle_label');
+        if(label) label.textContent = document.getElementById('bbk_active').checked ? 'Tizimda faol' : 'Nofaol';
+    }
+
+    function previewBtImage(input) {
+        const preview = document.getElementById('bt_image_preview');
+        const content = document.getElementById('bt_upload_content');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.style.backgroundImage = 'url(' + e.target.result + ')';
+                preview.classList.remove('hidden');
+                content.style.opacity = '0';
+            }
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            preview.style.backgroundImage = 'none';
+            preview.classList.add('hidden');
+            content.style.opacity = '1';
+        }
+    }
+</script>
+{% endblock %}

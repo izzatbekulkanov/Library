@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Foydalanuvchilar') }} | Glass Pro{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4 relative z-10 p-4 rounded-2xl glass-card border border-white/10 shadow-2xl">
+    <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white mb-1 flex items-center gap-2">
+            <i class="fa-solid fa-users text-blue-400"></i> {{ _('Foydalanuvchilar') }}
+        </h1>
+        <p class="text-[0.8rem] text-white/50">{{ _('Tizimdagi barcha foydalanuvchilarni boshqarish') }} <br><span class="text-[0.7rem] text-white/30">{{ _('Onlayn = oxirgi 2 daqiqa ichida faol') }}</span></p>
+    </div>
+    
+    <div class="flex items-center flex-nowrap gap-3 mt-3 sm:mt-0">
+        <!-- Qidirish -->
+        <div class="pro-input-wrap flex-1 sm:flex-none sm:w-[280px]" style="margin:0;">
+            <span class="pro-icon"><i class="fa-solid fa-search text-[0.85rem]"></i></span>
+            <input type="text" id="searchInput" placeholder="{{ _('Ism, ruxsat nomi...') }}" class="pro-input w-full" style="padding-top:0.65rem;padding-bottom:0.65rem;" oninput="applyFilter()">
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[0.65rem] text-white/30 hidden sm:inline-block">{{ _('Qidirish') }}</span>
+        </div>
+
+        <!-- Yangi Foydalanuvchi -->
+        <a href="/users/add" onclick="showLoader(event,'/users/add')"
+            class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white whitespace-nowrap transition-all flex-shrink-0"
+            style="background:linear-gradient(135deg,#2563eb,#1d4ed8); border:1px solid rgba(37,99,235,0.4);"
+            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 0 20px rgba(37,99,235,0.4)'"
+            onmouseout="this.style.transform=''; this.style.boxShadow=''">
+            <i class="fa-solid fa-user-plus text-xs"></i> <span>{{ _("Yangi Qo'shish") }}</span>
+        </a>
+    </div>
+</div>
+
+<div class="glass-card rounded-2xl border border-white/10 overflow-hidden shadow-2xl w-full flex flex-col">
+    <div class="overflow-x-auto flex-1">
+        <table class="w-full text-left border-collapse min-w-[900px]" id="usersTable">
+            <thead>
+                <tr class="border-b border-white/10 bg-white/5">
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest w-12 text-center">#</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">{{ _('Foydalanuvchi') }}</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">{{ _('Email') }}</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-center">{{ _('Huquq turi') }}</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-center">{{ _('Faollik') }}</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-right w-28">{{ _('Amallar') }}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 text-sm" id="usersBody">
+                {% for user in users %}
+                <tr class="hover:bg-white/[0.03] transition-colors user-row"
+                    data-name="{{ (user.full_name or '') | lower }}"
+                    data-username="{{ user.username | lower }}"
+                    data-email="{{ (user.email or '') | lower }}">
+                    
+                    <td class="py-4 px-5 text-center text-white/40 font-mono text-xs">{{ loop.index }}</td>
+                    
+                    <td class="py-4 px-5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 shadow-md flex items-center justify-center font-bold text-white bg-gradient-to-br from-blue-500 to-indigo-600 border border-white/10">
+                                {% if user.image %}
+                                <img src="{{ user.image }}" alt="{{ (user.full_name or user.username)[0] | upper }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.parentElement.innerHTML='{{ (user.full_name or user.username)[0] | upper }}';">
+                                {% else %}
+                                {{ (user.full_name or user.username)[0] | upper }}
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-semibold text-white mb-0.5">{{ user.full_name or user.username }}</h4>
+                                <span class="text-[0.7rem] text-white/40">@{{ user.username }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    
+                    <td class="py-4 px-5 text-white/70 text-xs font-mono">{{ user.email or '—' }}</td>
+                    
+                    <td class="py-4 px-5 text-center">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-bold text-[0.65rem] uppercase tracking-wider">
+                            {{ _(user.user_type.value) if user.user_type else _("Noma'lum") }}
+                        </span>
+                        {% if not user.is_active %}
+                        <div class="mt-2">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.65rem] font-bold bg-red-500/10 text-red-500 border border-red-500/20 uppercase tracking-widest"><i class="fa-solid fa-ban"></i> {{ _('Bloklangan') }}</span>
+                        </div>
+                        {% endif %}
+                    </td>
+                    
+                    <td class="py-4 px-5 text-center">
+                        {% if user.is_active %}
+                            {% if user.is_online_now %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.65rem] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-widest shadow-[0_0_10px_rgba(52,211,153,0.15)]"><i class="fa-solid fa-signal"></i> {{ _('Onlayn') }}</span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.65rem] font-bold bg-white/5 text-white/40 border border-white/10 uppercase tracking-widest"><i class="fa-solid fa-clock"></i> {{ _('Offlayn') }}</span>
+                            {% endif %}
+                            <div class="text-[0.65rem] text-white/30 mt-1.5 uppercase tracking-widest">{{ _('Oxirgi:') }} {{ user.last_activity_text or "-" }}</div>
+                        {% else %}
+                            <span class="text-white/20 text-xs">—</span>
+                        {% endif %}
+                    </td>
+                    
+                    <td class="py-4 px-5 text-right">
+                        <div class="inline-flex items-center justify-end gap-2">
+                            <a href="/users/{{ user.id }}/edit" onclick="showLoader(event,'/users/{{ user.id }}/edit')" tooltip="Tahrirlash" class="w-8 h-8 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 flex items-center justify-center transition-colors border border-orange-500/0 hover:border-orange-500/30">
+                                <i class="fa-solid fa-pen text-xs"></i>
+                            </a>
+                            <button onclick="deleteUser({{ user.id }}, '{{ (user.full_name or user.username)|replace('\'', '\\\'') }}')" tooltip="O'chirish" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 flex items-center justify-center transition-colors border border-red-500/0 hover:border-red-500/30">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="py-16 text-center text-white/40">
+                        <i class="fa-solid fa-users text-4xl mb-4 block text-white/20"></i>
+                        {{ _('Hozircha foydalanuvchilar yo\'q.') }} <a href="/users/add" class="text-blue-400 hover:underline">{{ _('Birinchi foydalanuvchini qo\'shing →') }}</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination yordamida table tagi (boshqa sahifalar kabi pastroqda) -->
+    <div class="p-4 border-t border-white/10 bg-black/10 flex flex-col sm:flex-row items-center justify-between gap-4" id="paginationWrap">
+        <div class="text-xs text-white/40" id="paginationInfo">
+            {{ _('Jami:') }} <span class="font-medium text-white/70" id="userCount">{{ users|length }}</span> {{ _('ta foydalanuvchi') }}
+        </div>
+        <div id="paginationBtns" class="flex items-center gap-1.5"></div>
+    </div>
+</div>
+
+<form id="deleteForm" method="POST" style="display:none;"></form>
+
+<script>
+/* ──────────────────────────────
+   Qidirish + Pagination
+─────────────────────────────── */
+const PAGE_SIZE = 10;
+let currentPage = 1;
+let allRows = [];
+let filteredRows = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+    allRows = Array.from(document.querySelectorAll('.user-row'));
+    filteredRows = [...allRows];
+    renderPage(1);
+});
+
+function applyFilter() {
+    const q = document.getElementById('searchInput').value.toLowerCase().trim();
+    filteredRows = allRows.filter(row => {
+        return !q
+            || row.dataset.name.includes(q)
+            || row.dataset.username.includes(q)
+            || row.dataset.email.includes(q);
+    });
+    document.getElementById('userCount').textContent = filteredRows.length;
+    renderPage(1);
+}
+
+function renderPage(page) {
+    currentPage = page;
+    const total = filteredRows.length;
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    currentPage = Math.min(currentPage, totalPages);
+
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const end   = start + PAGE_SIZE;
+
+    allRows.forEach(r => r.style.display = 'none');
+    filteredRows.forEach((r, i) => {
+        r.style.display = (i >= start && i < end) ? '' : 'none';
+    });
+
+    // Info
+    const showing = Math.min(end, total) - start;
+    const pagInfo = document.getElementById('paginationInfo');
+    if(total === 0) {
+        pagInfo.innerHTML = `{{ _('Natija topilmadi') }}`;
+    } else {
+        pagInfo.innerHTML = `{{ _("Ko'rsatilmoqda:") }} <span class="font-medium text-white/70">${start+1}-${start+showing}</span> / {{ _('Jami:') }} <span class="font-medium text-white/70" id="userCount">${total}</span> {{ _('ta') }}`;
+    }
+
+    // Tugmalar
+    const btns = document.getElementById('paginationBtns');
+    btns.innerHTML = '';
+    if (totalPages <= 1) return;
+
+    // Prev
+    const prev = document.createElement('button');
+    prev.type = 'button';
+    prev.title = '{{ _("Oldingi") }}';
+    prev.className = `w-8 h-8 flex items-center justify-center rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 text-[0.65rem] ${currentPage === 1 ? 'bg-white/5 border-white/5 text-white/20 cursor-not-allowed' : 'bg-white/5 hover:bg-white/10 border-white/10 text-white/60 hover:text-white'}`;
+    prev.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+    prev.disabled = currentPage === 1;
+    prev.onclick = () => renderPage(currentPage - 1);
+    btns.appendChild(prev);
+
+    const midSection = document.createElement('div');
+    midSection.className = 'flex items-center px-2';
+    midSection.innerHTML = `
+        <span class="text-xs text-white/70 font-semibold">${currentPage}</span>
+        <span class="text-xs text-white/30 mx-1">/</span>
+        <span class="text-xs text-white/40">${totalPages}</span>
+    `;
+    btns.appendChild(midSection);
+
+    // Next
+    const next = document.createElement('button');
+    next.type = 'button';
+    next.title = '{{ _("Keyingi") }}';
+    next.className = `w-8 h-8 flex items-center justify-center rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 text-[0.65rem] ${currentPage === totalPages ? 'bg-white/5 border-white/5 text-white/20 cursor-not-allowed' : 'bg-white/5 hover:bg-white/10 border-white/10 text-white/60 hover:text-white'}`;
+    next.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+    next.disabled = currentPage === totalPages;
+    next.onclick = () => renderPage(currentPage + 1);
+    btns.appendChild(next);
+}
+
+/* ──────────────────────────────
+   O'chirish
+─────────────────────────────── */
+async function deleteUser(userId, userName) {
+    if (typeof confirmDialog === 'function') {
+        const ok = await confirmDialog({
+            title:       "{{ _("Foydalanuvchini o'chirish") }}",
+            message:     `<strong>${userName}</strong> {{ _('ni tizimdan butunlay ochirmoqchimisiz? Bu amalni bekor qilib bolmaydi.') }}`,
+            confirmText: "{{ _("Ha, o'chirish") }}",
+            type:        'danger'
+        });
+        if (!ok) return;
+    } else {
+        if (!confirm(`{{ _('Rostdan ham') }} "${userName}" {{ _("ni o'chirasizmi?") }}`)) return;
+    }
+    const form = document.getElementById('deleteForm');
+    form.action = `/users/${userId}/delete`;
+    form.submit();
+}
+</script>
+{% endblock %}

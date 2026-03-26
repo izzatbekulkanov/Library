@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if item %}Muallif: {{ item.name }}{% else %}Yangi Muallif Qo'shish{% endif %} | Glass Pro
+{% endblock %}
+
+{% block content %}
+<div class="h-full overflow-y-auto custom-scrollbar relative" style="padding: 1.5rem 2rem;">
+
+    <div style="position:absolute; top:-40px; right:80px; width:260px; height:260px; background:rgba(59,130,246,0.12); border-radius:50%; filter:blur(80px); pointer-events:none; z-index:0;"></div>
+    <div style="position:absolute; bottom:40px; left:40px; width:200px; height:200px; background:rgba(99,102,241,0.12); border-radius:50%; filter:blur(60px); pointer-events:none; z-index:0;"></div>
+
+    <div style="position:relative; z-index:10; width: 100%; display:flex; flex-direction:column; gap:1.25rem;">
+
+        <!-- Breadcrumb -->
+        <nav class="pro-breadcrumb">
+            <a href="/" onclick="showLoader(event,'/')"><i class="fa-solid fa-house" style="font-size:0.7rem;"></i> Bosh sahifa</a>
+            <i class="fa-solid fa-chevron-right sep"></i>
+            <a href="/authors" onclick="showLoader(event,'/authors')">Mualliflar</a>
+            <i class="fa-solid fa-chevron-right sep"></i>
+            <span class="current">{% if item %}Tahrirlash{% else %}Yangi qo'shish{% endif %}</span>
+        </nav>
+
+        <!-- Sarlavha satri -->
+        <div style="display:flex; align-items:center; gap:1rem;">
+            <a href="/authors" onclick="showLoader(event,'/authors')"
+               style="width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.12); color:rgba(148,163,184,0.7); text-decoration:none; transition:all 0.2s; flex-shrink:0;"
+               onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.color='#fff';"
+               onmouseout="this.style.background='transparent'; this.style.color='rgba(148,163,184,0.7)';">
+                <i class="fa-solid fa-arrow-left" style="font-size:0.85rem;"></i>
+            </a>
+            <div>
+                <h1 style="font-size:1.5rem; font-weight:700; color:#f1f5f9; margin:0; letter-spacing:-0.01em;">
+                    {% if item %}Muallifni Tahrirlash{% else %}Yangi Muallif Qo'shish{% endif %}
+                </h1>
+                <p style="font-size:0.82rem; color:rgba(148,163,184,0.6); margin:0.2rem 0 0;">Muallifning to'liq profil ma'lumotlari</p>
+            </div>
+        </div>
+
+        <div class="pro-form-card">
+            <form action="{{ '/authors/edit/' ~ item.id if item else '/authors/add' }}" method="POST" enctype="multipart/form-data" autocomplete="off" onsubmit="showLoader(event)">
+                
+                <div class="pro-section-title">
+                    <i class="fa-regular fa-user" style="color:#60a5fa;"></i>
+                    Asosiy ma'lumotlar
+                </div>
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.75rem;">
+                    
+                    <!-- Muallif Ismi Familiyasi -->
+                    <div style="grid-column: span 2;">
+                        <label class="pro-label required">To'liq Ismi (F.I.SH.)</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-user"></i></span>
+                            <input type="text" name="name" value="{{ item.name if item else '' }}" class="pro-input" placeholder="Abdulla Qodiriy..." required>
+                        </div>
+                    </div>
+
+                    <!-- Muallif Kodi (ixtiyoriy) -->
+                    <div>
+                        <label class="pro-label">Muallif Kodi (Masalan: AQ-001)</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-barcode"></i></span>
+                            <input type="text" name="author_code" value="{{ item.author_code if item else '' }}" class="pro-input" placeholder="Kodni kiriting...">
+                        </div>
+                    </div>
+
+                     <!-- Telefon Raqami -->
+                     <div>
+                        <label class="pro-label">Telefon Raqami</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-phone"></i></span>
+                            <input type="text" name="phone_number" value="{{ item.phone_number if item else '' }}" class="pro-input" placeholder="+998 ...">
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div style="grid-column: span 2;">
+                        <label class="pro-label">Email Manzili</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-envelope"></i></span>
+                            <input type="email" name="email" value="{{ item.email if item else '' }}" class="pro-input" placeholder="muallif@info.uz">
+                        </div>
+                    </div>
+
+                    <!-- Rasm Yuklash -->
+                    <div style="grid-column: span 2;">
+                        <label class="pro-label">Muallif Rasmi (Avatari)</label>
+                        {% if item and item.image %}
+                        <div class="mb-3 flex items-center gap-4">
+                            <div class="w-16 h-16 rounded-full border border-white/20 overflow-hidden bg-black/40">
+                                <img src="{{ item.image }}" class="w-full h-full object-cover">
+                            </div>
+                            <p class="text-[0.7rem] text-white/40">O'zgartirish uchun boshqa rasm faylini tanlang.</p>
+                        </div>
+                        {% endif %}
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-image"></i></span>
+                            <input type="file" name="image" accept="image/*" class="pro-input" style="padding-top:0.6rem; padding-bottom:0.6rem;">
+                        </div>
+                    </div>
+
+                    <!-- Holat -->
+                    <div style="grid-column: span 2;">
+                        <div class="pro-checkbox-area" style="margin-top:0;">
+                            <input type="checkbox" name="is_active" value="true" id="isActiveCheck" {% if not item or item.is_active %}checked{% endif %}
+                                style="width:1.1rem; height:1.1rem; accent-color:#6366f1; flex-shrink:0; cursor:pointer; margin-top:0.2rem;">
+                            <div>
+                                <label for="isActiveCheck">Faol (Active)</label>
+                                <p>Tizimda ushbu muallif faolmi?</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Submit Buttons -->
+                <div style="display:flex; justify-content:flex-end; gap:0.75rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,0.07);">
+                    <a href="/authors" class="pro-btn-cancel">Bekoq qilish</a>
+                    <button type="submit" class="pro-btn-save">
+                        <i class="fa-solid fa-floppy-disk"></i> Saqlash
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

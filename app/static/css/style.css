@@ -1,0 +1,299 @@
+/* Tailwind CSS directives va Default styler ulanishi */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+/* Asosiy Fon - Themega qarab o'zgaradi */
+html.theme-dark body {
+    font-family: 'Outfit', sans-serif;
+    background-color: #0f172a;
+    background-image: 
+        radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(129, 140, 248, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 50% 100%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
+        linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #172554 100%);
+    background-size: cover;
+    background-attachment: fixed;
+    color: #f8fafc;
+    margin: 0;
+}
+
+html.theme-light body {
+    font-family: 'Outfit', sans-serif;
+    background-color: #eef3fa;
+    background-image:
+        radial-gradient(circle at 12% 15%, rgba(59, 130, 246, 0.13) 0%, transparent 42%),
+        radial-gradient(circle at 88% 82%, rgba(6, 182, 212, 0.12) 0%, transparent 42%),
+        linear-gradient(135deg, #f8fafc 0%, #edf2fb 48%, #e6edf8 100%);
+    background-size: cover;
+    background-attachment: fixed;
+    color: #0f172a;
+    margin: 0;
+}
+
+/* Glassmorphism Asosiy Sinf (Blur sezilarli kamaytirildi tezlik oshirish uchun) */
+html.theme-dark .glass-panel {
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+html.theme-light .glass-panel {
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+html.theme-dark .glass-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+html.theme-light .glass-card {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(15, 23, 42, 0.11);
+    box-shadow: 0 7px 24px rgba(15, 23, 42, 0.12);
+}
+
+/* Sahifalar yuklanish Loaderi */
+#pageLoader {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease-in-out;
+}
+#pageLoader.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+html.theme-dark #pageLoader {
+    background: rgba(15, 23, 42, 0.8);
+}
+
+html.theme-light #pageLoader {
+    background: rgba(248, 250, 252, 0.82);
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+html.theme-dark .spinner {
+    border: 3px solid rgba(255,255,255,0.1);
+    border-top-color: #3b82f6;
+}
+
+html.theme-light .spinner {
+    border: 3px solid rgba(15,23,42,0.14);
+    border-top-color: #2563eb;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Scrollbar vizualizatsiyasi */
+::-webkit-scrollbar { 
+    width: 6px; 
+    height: 6px; 
+}
+::-webkit-scrollbar-track { 
+    background: transparent; 
+}
+html.theme-dark ::-webkit-scrollbar-thumb { 
+    background: rgba(255,255,255,0.15); 
+    border-radius: 10px; 
+}
+html.theme-dark ::-webkit-scrollbar-thumb:hover { 
+    background: rgba(255,255,255,0.3); 
+}
+
+html.theme-light ::-webkit-scrollbar-thumb { 
+    background: rgba(15,23,42,0.18); 
+    border-radius: 10px; 
+}
+
+html.theme-light ::-webkit-scrollbar-thumb:hover { 
+    background: rgba(15,23,42,0.28); 
+}
+
+/* Light theme uchun Tailwind utility class'larning asosiy ranglarini moslashtirish */
+html.theme-light body [class*="text-white/"] {
+    color: rgba(30, 41, 59, 0.78) !important;
+}
+
+html.theme-light body .text-white {
+    color: #0f172a !important;
+}
+
+html.theme-light body [class*="bg-white/"] {
+    background-color: rgba(15, 23, 42, 0.045) !important;
+}
+
+html.theme-light body .bg-white {
+    background-color: #ffffff !important;
+}
+
+html.theme-light body [class*="border-white/"] {
+    border-color: rgba(15, 23, 42, 0.13) !important;
+}
+
+html.theme-light body [class*="divide-white/"] > :not([hidden]) ~ :not([hidden]) {
+    border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Gradientli tugmalarda matn oq holatda qoladi */
+html.theme-light body a.text-white[style*="linear-gradient"],
+html.theme-light body button.text-white[style*="linear-gradient"],
+html.theme-light body div.text-white[style*="linear-gradient"],
+html.theme-light body span.text-white[style*="linear-gradient"],
+html.theme-light body a.text-white[class*="bg-gradient-"],
+html.theme-light body button.text-white[class*="bg-gradient-"],
+html.theme-light body div.text-white[class*="bg-gradient-"],
+html.theme-light body span.text-white[class*="bg-gradient-"] {
+    color: #ffffff !important;
+}
+
+html.theme-light body a.text-white[style*="linear-gradient"] i,
+html.theme-light body button.text-white[style*="linear-gradient"] i,
+html.theme-light body div.text-white[style*="linear-gradient"] i,
+html.theme-light body span.text-white[style*="linear-gradient"] i,
+html.theme-light body a.text-white[class*="bg-gradient-"] i,
+html.theme-light body button.text-white[class*="bg-gradient-"] i,
+html.theme-light body div.text-white[class*="bg-gradient-"] i,
+html.theme-light body span.text-white[class*="bg-gradient-"] i {
+    color: #ffffff !important;
+}
+
+/* Kun rejimida ochiq rangli matn/ikonkalarni qoraytirish (Badgelar, statuslar) */
+html.theme-light body [class*="text-blue-300"], html.theme-light body [class*="text-blue-400"] { color: #2563eb !important; }
+html.theme-light body [class*="text-indigo-300"], html.theme-light body [class*="text-indigo-400"] { color: #4f46e5 !important; }
+html.theme-light body [class*="text-emerald-300"], html.theme-light body [class*="text-emerald-400"] { color: #059669 !important; }
+html.theme-light body [class*="text-teal-300"], html.theme-light body [class*="text-teal-400"] { color: #0d9488 !important; }
+html.theme-light body [class*="text-sky-300"], html.theme-light body [class*="text-sky-400"] { color: #0284c7 !important; }
+html.theme-light body [class*="text-red-300"], html.theme-light body [class*="text-red-400"] { color: #dc2626 !important; }
+html.theme-light body [class*="text-orange-300"], html.theme-light body [class*="text-orange-400"] { color: #ea580c !important; }
+html.theme-light body [class*="text-yellow-300"], html.theme-light body [class*="text-yellow-400"] { color: #ca8a04 !important; }
+html.theme-light body [class*="text-gray-300"], html.theme-light body [class*="text-gray-400"] { color: #475569 !important; }
+html.theme-light body [class*="text-slate-300"], html.theme-light body [class*="text-slate-400"] { color: #334155 !important; }
+
+/* Header control elementlari */
+html.theme-light #themeToggleBtn,
+html.theme-light #notifyBtn {
+    color: #334155 !important;
+    background: rgba(15, 23, 42, 0.06) !important;
+    border-color: rgba(15, 23, 42, 0.16) !important;
+}
+
+html.theme-dark #headerLangSwitch option {
+    background-color: #0f172a;
+    color: #e2e8f0;
+}
+
+html.theme-light #headerLangSwitch {
+    color: #334155 !important;
+    background: rgba(15, 23, 42, 0.06) !important;
+    border-color: rgba(15, 23, 42, 0.16) !important;
+}
+
+html.theme-light #headerLangSwitch:hover {
+    color: #0f172a !important;
+    background: rgba(15, 23, 42, 0.11) !important;
+}
+
+html.theme-light #headerLangSwitch option {
+    background-color: #ffffff;
+    color: #0f172a;
+}
+
+html.theme-light #themeToggleBtn:hover,
+html.theme-light #notifyBtn:hover {
+    color: #0f172a !important;
+    background: rgba(15, 23, 42, 0.11) !important;
+}
+
+html.theme-light a[href="/logout"] {
+    color: #0f172a !important;
+    background: rgba(15, 23, 42, 0.06) !important;
+    border-color: rgba(15, 23, 42, 0.16) !important;
+}
+
+html.theme-light a[href="/logout"]:hover {
+    color: #ffffff !important;
+    background: rgba(239, 68, 68, 0.88) !important;
+    border-color: rgba(239, 68, 68, 0.5) !important;
+}
+
+/* Users sahifasi light mode moslashuvi */
+html.theme-light .users-page #usersCard {
+    background: rgba(255, 255, 255, 0.88) !important;
+    border-color: rgba(15, 23, 42, 0.14) !important;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1) !important;
+}
+
+html.theme-light .users-page #usersSearchBar {
+    border-bottom: 1px solid rgba(15, 23, 42, 0.12) !important;
+    background: rgba(248, 250, 252, 0.75) !important;
+}
+
+html.theme-light .users-page #searchInput {
+    background: rgba(255, 255, 255, 0.96) !important;
+    border: 1px solid rgba(15, 23, 42, 0.16) !important;
+    color: #0f172a !important;
+}
+
+html.theme-light .users-page #searchInput::placeholder {
+    color: rgba(71, 85, 105, 0.76) !important;
+}
+
+html.theme-light .users-page #usersTable thead tr {
+    color: rgba(51, 65, 85, 0.88) !important;
+    border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+html.theme-light .users-page #usersBody {
+    color: #334155 !important;
+}
+
+html.theme-light .users-page #usersTable .user-row {
+    border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+html.theme-light .users-page #usersTable .user-row:hover {
+    background: rgba(15, 23, 42, 0.04) !important;
+}
+
+html.theme-light .users-page #paginationWrap {
+    border-top: 1px solid rgba(15, 23, 42, 0.12) !important;
+}
+
+html.theme-light .users-page [style*="color:#e2e8f0"] {
+    color: #1e293b !important;
+}
+
+html.theme-light .users-page [style*="color:rgba(148,163,184,0.75)"] {
+    color: rgba(71, 85, 105, 0.82) !important;
+}
+
+html.theme-light .users-page [style*="color:rgba(148,163,184,0.6)"] {
+    color: rgba(71, 85, 105, 0.74) !important;
+}

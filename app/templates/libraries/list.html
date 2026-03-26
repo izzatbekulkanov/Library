@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Kutubxonalar Ro'yxati | Glass Pro{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10 w-full">
+    <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white mb-1 flex items-center gap-2">
+            <i class="fa-solid fa-building text-blue-400"></i> Kutubxonalar
+        </h1>
+        <p class="text-[0.8rem] text-white/50 tracking-wide">Tizimdagi barcha kutubxonalar ro'yxati va holati</p>
+    </div>
+    
+    <div class="flex items-center gap-4 w-full sm:w-auto mt-3 sm:mt-0">
+        <!-- Qidiruv qutisi (Professional) -->
+        <div class="pro-input-wrap w-full sm:w-[320px]">
+            <span class="pro-icon"><i class="fa-solid fa-search text-[0.85rem]"></i></span>
+            <input type="text" id="searchInput" placeholder="Kutubxonalardan qidirish..." class="pro-input pr-16" style="padding-top: 0.65rem; padding-bottom: 0.65rem;">
+            <!-- Shortcut klaviatura gumbazi kabi dizayn -->
+            <div class="absolute inset-y-0 right-0 w-14 flex items-center justify-center pointer-events-none z-10">
+                <span class="hidden sm:inline-flex items-center justify-center px-1.5 py-0.5 rounded border border-white/10 bg-white/5 text-[0.6rem] font-medium text-white/40 tracking-widest uppercase">
+                    Ctrl K
+                </span>
+            </div>
+        </div>
+
+        <!-- Qo'shish tugmasi (Professional) -->
+        <a href="/libraries/add" onclick="showLoader(event, '/libraries/add')" 
+           class="shrink-0 relative overflow-hidden flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_25px_rgba(59,130,246,0.5)] transition-all transform hover:-translate-y-0.5 font-medium text-[0.85rem] border border-blue-400/30 group">
+            <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out"></div>
+            <i class="fa-solid fa-plus relative z-10 text-[0.8rem] transition-transform group-hover:rotate-90 duration-300"></i> 
+            <span class="relative z-10 tracking-wide">Yangi Kutubxona</span>
+        </a>
+    </div>
+</div>
+
+<!-- Kutubxonalar Ro'yxati Kartasi -->
+<div class="glass-card rounded-2xl border border-white/10 overflow-hidden shadow-2xl relative w-full mb-8">
+    
+    <div class="overflow-x-auto overflow-y-clip relative w-full rounded-2xl">
+        <table class="w-full text-left border-collapse custom-scrollbar min-w-[800px]" id="dataTable">
+            <thead>
+                <tr class="border-b border-white/10 bg-white/5">
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest w-12 text-center">T/r</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest w-1/4">Nomi</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">Manzili / Kontakt</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-center">Holat</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-right w-24">Amallar</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 text-sm" id="tableBody">
+                
+                {% for item in items %}
+                <tr class="hover:bg-white/[0.03] transition-colors group">
+                    <td class="py-4 px-5 text-center text-white/40 font-mono text-xs">{{ loop.index }}</td>
+                    
+                    <td class="py-4 px-5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-blue-500/20 border border-white/10 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-building text-blue-400 text-lg"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-semibold text-white truncate">{{ item.name }}</p>
+                                <p class="text-xs text-blue-200/60 truncate mt-0.5">Raqami: <span class="text-white/70">{{ item.number }}</span></p>
+                            </div>
+                        </div>
+                    </td>
+                    
+                    <td class="py-4 px-5">
+                        <div class="flex items-start gap-2">
+                            <i class="fa-solid fa-location-dot text-white/30 mt-0.5 shrink-0"></i>
+                            <div class="min-w-0">
+                                <p class="text-white/80 text-[0.85rem]">{{ item.address }}</p>
+                                <div class="flex flex-wrap gap-x-4 gap-y-1 mt-1.5">
+                                    {% if item.phone %}
+                                    <p class="text-[0.75rem] text-white/50 flex items-center gap-1">
+                                        <i class="fa-solid fa-phone text-xs text-white/30"></i>
+                                        {{ item.phone }}
+                                    </p>
+                                    {% endif %}
+                                    {% if item.email %}
+                                    <p class="text-[0.75rem] text-white/50 flex items-center gap-1">
+                                        <i class="fa-solid fa-envelope text-xs text-white/30"></i>
+                                        {{ item.email }}
+                                    </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    
+                    <td class="py-4 px-5 text-center">
+                        {% if item.active %}
+                        <span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.25rem 0.75rem;border-radius:999px;font-size:0.65rem;font-weight:700;letter-spacing:0.07em;background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.25);">
+                            <span style="width:6px;height:6px;border-radius:50%;background:#4ade80;animation:pulse 2s infinite;"></span> FAOL
+                        </span>
+                        {% else %}
+                        <span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.25rem 0.75rem;border-radius:999px;font-size:0.65rem;font-weight:700;letter-spacing:0.07em;background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2);">
+                            <span style="width:6px;height:6px;border-radius:50%;background:#f87171;"></span> NOFAOL
+                        </span>
+                        {% endif %}
+                    </td>
+                    
+                    <td class="py-4 px-5 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="/libraries/edit/{{ item.id }}" onclick="showLoader(event, '/libraries/edit/{{ item.id }}')" tooltip="Tahrirlash" class="w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center transition-colors border border-blue-500/0 hover:border-blue-500/30">
+                                <i class="fa-solid fa-pen-to-square text-xs"></i>
+                            </a>
+                            
+                            <button onclick="confirmDelete('{{ item.name }}', '/libraries/delete/{{ item.id }}')" tooltip="O'chirish" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition-colors border border-red-500/0 hover:border-red-500/30">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="py-12 text-center text-white/40">
+                        <div class="flex flex-col items-center justify-center">
+                            <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-3">
+                                <i class="fa-solid fa-building text-2xl text-white/20"></i>
+                            </div>
+                            <p class="text-sm">Hozircha kutubxonalar mavjud emas</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Paginatsiya Card Footer -->
+    <div class="p-4 border-t border-white/10 bg-black/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-xs text-white/40">Jami: <span class="font-medium text-white/70">{{ items|length }}</span> ta kutubxona</p>
+    </div>
+</div>
+
+<script>
+    // Oddiy qidiruv tizimi
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        let filter = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#tableBody tr');
+        
+        rows.forEach(row => {
+            // "Topilmadi" tr bo'lmasligini tekshiramiz
+            if (row.children.length > 2) { 
+                let text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

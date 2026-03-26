@@ -1,0 +1,559 @@
+{% extends "base.html" %}
+{% block title %}Nusxalarni Biriktirish | Kutubxona{% endblock %}
+
+{% block content %}
+<div class="mb-6 relative z-10">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-white mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-arrows-left-right-to-line text-blue-400"></i> Nusxalarni Biriktirish
+            </h1>
+            <p class="text-[0.8rem] text-white/50">Markaziy fond va filiallar o'rtasida bosma kitob nusxalarini biriktirish/ko'chirish</p>
+        </div>
+        <a href="/books" onclick="showLoader(event,'/books')"
+           class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white/80 hover:text-white whitespace-nowrap transition-all bg-white/5 hover:bg-white/10 border border-white/10">
+            <i class="fa-solid fa-arrow-left text-xs"></i> Kitoblar ro'yxati
+        </a>
+    </div>
+</div>
+
+<form id="transferTopFilterForm" method="GET" action="/books/copies/transfer" class="mb-4 relative z-10 p-4 rounded-2xl glass-card border border-white/10 shadow-2xl">
+    <input type="hidden" name="book_type_id" value="{{ book_type_id }}">
+    <input type="hidden" name="bbk_id" value="{{ bbk_id }}">
+    <input type="hidden" name="author_id" value="{{ author_id }}">
+    <input type="hidden" name="book_id" value="{{ book_id }}">
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        <div class="pro-input-wrap min-w-0">
+            <span class="pro-icon"><i class="fa-solid fa-search text-[0.85rem]"></i></span>
+            <input type="text" name="q" value="{{ q }}" placeholder="Kitob nomi yoki inventar raqami..." class="pro-input" style="padding-top:0.65rem;padding-bottom:0.65rem;">
+        </div>
+
+        <div class="pro-input-wrap min-w-0">
+            <span class="pro-icon"><i class="fa-solid fa-building-columns text-[0.85rem]"></i></span>
+            <select name="source_library" class="pro-select" style="padding-top:0.65rem;padding-bottom:0.65rem;">
+                <option value="__unassigned__" {% if source_library == '__unassigned__' %}selected{% endif %}>Markaziy fond (biriktirilmagan)</option>
+                <option value="__all__" {% if source_library == '__all__' %}selected{% endif %}>Barcha kutubxonalar</option>
+                {% for lib in libraries %}
+                <option value="{{ lib.id }}" {% if source_library|string == lib.id|string %}selected{% endif %}>{{ lib.name }}</option>
+                {% endfor %}
+            </select>
+            <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+        </div>
+
+        <div class="inline-flex items-center gap-2">
+            <span class="px-3 py-2 rounded-lg border border-blue-500/20 bg-blue-500/10 text-blue-300 text-xs font-semibold whitespace-nowrap">
+                Biriktirilmagan: {{ unassigned_count }}
+            </span>
+            <span class="px-3 py-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 text-xs font-semibold whitespace-nowrap">
+                Biriktirilgan: {{ assigned_count }}
+            </span>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button type="submit"
+                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white whitespace-nowrap transition-all"
+                    style="background:linear-gradient(135deg,#0891b2,#0e7490); border:1px solid rgba(6,182,212,0.35);">
+                <i class="fa-solid fa-filter text-xs"></i> Filtrlash
+            </button>
+            <a href="/books/copies/transfer"
+               class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white/80 hover:text-white whitespace-nowrap transition-all bg-white/5 hover:bg-white/10 border border-white/10">
+                <i class="fa-solid fa-rotate-left text-xs"></i> Tozalash
+            </a>
+        </div>
+    </div>
+</form>
+
+<form id="copyTransferForm" method="POST" action="/books/copies/transfer" class="relative z-10">
+    <input type="hidden" name="q" value="{{ q }}">
+    <input type="hidden" name="source_library" value="{{ source_library }}">
+    <input type="hidden" name="book_type_id" value="{{ book_type_id }}">
+    <input type="hidden" name="bbk_id" value="{{ bbk_id }}">
+    <input type="hidden" name="author_id" value="{{ author_id }}">
+    <input type="hidden" name="book_id" value="{{ book_id }}">
+    <input type="hidden" name="page" value="{{ page }}">
+
+    <div class="mb-3 p-3 rounded-xl glass-card border border-white/10 shadow-xl flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
+        <div class="text-xs text-white/50">
+            Tanlangan nusxalar: <span id="selectedCopiesCount" class="text-white font-semibold">0</span>
+        </div>
+        <div class="flex-1 pro-input-wrap min-w-0">
+            <span class="pro-icon"><i class="fa-solid fa-building text-[0.85rem]"></i></span>
+            <select id="targetLibrarySelect" name="target_library_id" class="pro-select" required>
+                <option value="">Qaysi kutubxonaga biriktiriladi?</option>
+                {% for lib in libraries %}
+                <option value="{{ lib.id }}">{{ lib.name }}</option>
+                {% endfor %}
+            </select>
+            <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+        </div>
+        <button id="applyTransferBtn" type="submit"
+                class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white whitespace-nowrap transition-all"
+                style="background:linear-gradient(135deg,#2563eb,#1d4ed8); border:1px solid rgba(37,99,235,0.4);">
+            <i class="fa-solid fa-right-left text-xs"></i> Tanlanganlarni biriktirish
+        </button>
+    </div>
+
+    <div id="transferFilterPanel" class="mb-3 p-3 rounded-xl glass-card border border-white/10 shadow-xl">
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+            <div class="pro-input-wrap transfer-filter-dropdown min-w-0" id="bookTypeFilterWrap">
+                <span class="pro-icon"><i class="fa-solid fa-layer-group text-[0.85rem]"></i></span>
+                <input type="text" id="bookTypeFilterText" class="pro-input custom-dropdown-input" value="{{ selected_book_type_label }}" placeholder="Kitob turi bo'yicha qidirish..." autocomplete="off" style="padding-top:0.65rem;padding-bottom:0.65rem;">
+                <input type="hidden" id="bookTypeFilterId" value="{{ book_type_id }}">
+                <div class="custom-dropdown-list">
+                    <div class="custom-dropdown-item" data-val="" data-lbl="">Barcha turlar</div>
+                    {% for bt in book_types %}
+                    <div class="custom-dropdown-item" data-val="{{ bt.id }}" data-lbl="{{ bt.name }}">{{ bt.name }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="pro-input-wrap transfer-filter-dropdown min-w-0" id="bbkFilterWrap">
+                <span class="pro-icon"><i class="fa-solid fa-list-ol text-[0.85rem]"></i></span>
+                <input type="text" id="bbkFilterText" class="pro-input custom-dropdown-input" value="{{ selected_bbk_label }}" placeholder="BBK bo'yicha qidirish..." autocomplete="off" style="padding-top:0.65rem;padding-bottom:0.65rem;">
+                <input type="hidden" id="bbkFilterId" value="{{ bbk_id }}">
+                <div class="custom-dropdown-list">
+                    <div class="custom-dropdown-item" data-val="" data-lbl="">Barcha BBK</div>
+                    {% for b in bbks %}
+                    <div class="custom-dropdown-item" data-val="{{ b.id }}" data-lbl="{{ b.code }} - {{ b.name }}">{{ b.code }} - {{ b.name }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="pro-input-wrap transfer-filter-dropdown min-w-0" id="authorFilterWrap">
+                <span class="pro-icon"><i class="fa-solid fa-user-pen text-[0.85rem]"></i></span>
+                <input type="text" id="authorFilterText" class="pro-input custom-dropdown-input" value="{{ selected_author_label }}" placeholder="Muallif bo'yicha qidirish..." autocomplete="off" style="padding-top:0.65rem;padding-bottom:0.65rem;">
+                <input type="hidden" id="authorFilterId" value="{{ author_id }}">
+                <div class="custom-dropdown-list">
+                    <div class="custom-dropdown-item" data-val="" data-lbl="">Barcha mualliflar</div>
+                    {% for a in authors %}
+                    <div class="custom-dropdown-item" data-val="{{ a.id }}" data-lbl="{{ a.name }}">{{ a.name }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="pro-input-wrap transfer-filter-dropdown min-w-0" id="bookFilterWrap">
+                <span class="pro-icon"><i class="fa-solid fa-book text-[0.85rem]"></i></span>
+                <input type="text" id="bookFilterText" class="pro-input custom-dropdown-input" value="{{ selected_book_label }}" placeholder="Kitob bo'yicha qidirish..." autocomplete="off" style="padding-top:0.65rem;padding-bottom:0.65rem;">
+                <input type="hidden" id="bookFilterId" value="{{ book_id }}">
+                <div class="custom-dropdown-list">
+                    <div class="custom-dropdown-item" data-val="" data-lbl="">Barcha kitoblar</div>
+                    {% for b in books_for_filter %}
+                    <div class="custom-dropdown-item" data-val="{{ b.id }}" data-lbl="{{ b.title }}">{{ b.title }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="mt-3 flex items-center gap-2">
+            <button type="button" id="applyTransferFiltersBtn"
+                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white whitespace-nowrap transition-all"
+                    style="background:linear-gradient(135deg,#1d4ed8,#1e40af); border:1px solid rgba(59,130,246,0.35);">
+                <i class="fa-solid fa-filter text-xs"></i> Filterlarni qo'llash
+            </button>
+            <button type="button" id="clearTransferFiltersBtn"
+                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white/80 hover:text-white whitespace-nowrap transition-all bg-white/5 hover:bg-white/10 border border-white/10">
+                <i class="fa-solid fa-eraser text-xs"></i> Qo'shimcha filterni tozalash
+            </button>
+        </div>
+    </div>
+
+    <div id="transferTableCard" class="glass-card rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse min-w-[980px]">
+                <thead>
+                    <tr class="border-b border-white/10 bg-white/5">
+                        <th class="py-4 px-4 text-center w-12">
+                            <input id="selectAllCopies" type="checkbox" class="w-4 h-4 rounded border-white/30 bg-white/10 text-blue-500 focus:ring-blue-500/40">
+                        </th>
+                        <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest w-20 text-center">ID</th>
+                        <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">Inventar</th>
+                        <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">Kitob</th>
+                        <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">Joriy kutubxona</th>
+                        <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-center">Holat</th>
+                        <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-center">Mavjudlik</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5 text-sm">
+                    {% for copy in copies %}
+                    <tr class="hover:bg-white/[0.03] transition-colors">
+                        <td class="py-3.5 px-4 text-center">
+                            <input type="checkbox" name="copy_ids" value="{{ copy.id }}" class="copy-check w-4 h-4 rounded border-white/30 bg-white/10 text-blue-500 focus:ring-blue-500/40">
+                        </td>
+                        <td class="py-3.5 px-5 text-center text-white/50 font-mono">#{{ copy.id }}</td>
+                        <td class="py-3.5 px-5 text-white/85 font-mono">{{ copy.inventory_number or '-' }}</td>
+                        <td class="py-3.5 px-5">
+                            <a href="/books/{{ copy.original_book_id }}" onclick="showLoader(event,'/books/{{ copy.original_book_id }}')" class="text-blue-300 hover:text-blue-200 transition-colors">
+                                {{ copy.book.title if copy.book else '-' }}
+                            </a>
+                        </td>
+                        <td class="py-3.5 px-5">
+                            {% if copy.library %}
+                            <span class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-500/10 border border-blue-500/25 text-blue-300">
+                                <i class="fa-solid fa-building-columns text-[10px]"></i> {{ copy.library.name }}
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-500/10 border border-blue-500/25 text-blue-300">
+                                <i class="fa-solid fa-warehouse text-[10px]"></i> Markaziy fond
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3.5 px-5 text-center">
+                            {% set status_cls = "bg-white/10 border-white/15 text-white/80" %}
+                            {% if copy.status == 'not_sended' %}
+                                {% set status_cls = "bg-blue-500/10 border-blue-500/25 text-blue-300" %}
+                            {% elif copy.status == 'sent' %}
+                                {% set status_cls = "bg-amber-500/10 border-amber-500/25 text-amber-300" %}
+                            {% elif copy.status == 'accepted' %}
+                                {% set status_cls = "bg-emerald-500/10 border-emerald-500/25 text-emerald-300" %}
+                            {% elif copy.status == 'not_accepted' %}
+                                {% set status_cls = "bg-red-500/10 border-red-500/25 text-red-300" %}
+                            {% elif copy.status == 'active' %}
+                                {% set status_cls = "bg-cyan-500/10 border-cyan-500/25 text-cyan-300" %}
+                            {% elif copy.status == 'lost' %}
+                                {% set status_cls = "bg-red-500/10 border-red-500/25 text-red-300" %}
+                            {% endif %}
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold border {{ status_cls }}">
+                                {{ status_labels.get(copy.status, copy.status or '-') }}
+                            </span>
+                        </td>
+                        <td class="py-3.5 px-5 text-center">
+                            {% set have_cls = "bg-white/10 border-white/15 text-white/80" %}
+                            {% if copy.have_status == 'yes' %}
+                                {% set have_cls = "bg-emerald-500/10 border-emerald-500/25 text-emerald-300" %}
+                            {% elif copy.have_status == 'busy' %}
+                                {% set have_cls = "bg-amber-500/10 border-amber-500/25 text-amber-300" %}
+                            {% elif copy.have_status == 'no' %}
+                                {% set have_cls = "bg-red-500/10 border-red-500/25 text-red-300" %}
+                            {% endif %}
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold border {{ have_cls }}">
+                                {{ have_status_labels.get(copy.have_status, copy.have_status or '-') }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="py-16 text-center text-white/40">
+                            <i class="fa-solid fa-box-open text-4xl mb-4 block text-white/20"></i>
+                            Tanlangan filtr bo'yicha nusxalar topilmadi.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="p-4 border-t border-white/10 bg-black/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="text-xs text-white/40">
+                Jami: <span class="font-medium text-white/70">{{ total_items }}</span> ta nusxa
+            </div>
+
+            {% if total_pages > 1 %}
+            <div class="flex items-center gap-1.5">
+                {% if page > 1 %}
+                <a href="{{ page_url_base }}{{ page - 1 }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white transition-colors" title="Oldingi">
+                    <i class="fa-solid fa-chevron-left text-[0.65rem]"></i>
+                </a>
+                {% else %}
+                <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 border border-white/5 text-white/20 cursor-not-allowed">
+                    <i class="fa-solid fa-chevron-left text-[0.65rem]"></i>
+                </div>
+                {% endif %}
+
+                <div class="flex items-center px-2">
+                    <span class="text-xs text-white/70 font-semibold">{{ page }}</span>
+                    <span class="text-xs text-white/30 mx-1">/</span>
+                    <span class="text-xs text-white/40">{{ total_pages }}</span>
+                </div>
+
+                {% if page < total_pages %}
+                <a href="{{ page_url_base }}{{ page + 1 }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white transition-colors" title="Keyingi">
+                    <i class="fa-solid fa-chevron-right text-[0.65rem]"></i>
+                </a>
+                {% else %}
+                <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 border border-white/5 text-white/20 cursor-not-allowed">
+                    <i class="fa-solid fa-chevron-right text-[0.65rem]"></i>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</form>
+
+<style>
+.transfer-filter-dropdown { position: relative; }
+.transfer-filter-dropdown .custom-dropdown-list {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    max-height: 240px;
+    overflow-y: auto;
+    border-radius: 12px;
+    background: #111827;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.35);
+    z-index: 9999;
+    padding: 6px 0;
+}
+.transfer-filter-dropdown.open .custom-dropdown-list { display: block; }
+.transfer-filter-dropdown .custom-dropdown-item {
+    padding: 9px 12px;
+    font-size: 0.85rem;
+    color: rgba(226, 232, 240, 0.92);
+    cursor: pointer;
+}
+.transfer-filter-dropdown .custom-dropdown-item:hover {
+    background: rgba(59, 130, 246, 0.18);
+    color: #fff;
+}
+html.theme-light .transfer-filter-dropdown .custom-dropdown-list {
+    background: #fff;
+    border-color: rgba(148, 163, 184, 0.4);
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.15);
+}
+html.theme-light .transfer-filter-dropdown .custom-dropdown-item {
+    color: #1f2937;
+}
+html.theme-light .transfer-filter-dropdown .custom-dropdown-item:hover {
+    background: rgba(37, 99, 235, 0.12);
+    color: #111827;
+}
+#transferFilterPanel {
+    position: relative;
+    z-index: 1400;
+    overflow: visible;
+}
+#transferFilterPanel .transfer-filter-dropdown {
+    z-index: 1401;
+}
+#transferTableCard {
+    position: relative;
+    z-index: 1;
+}
+</style>
+
+<script>
+const selectAllEl = document.getElementById('selectAllCopies');
+const copyChecks = Array.from(document.querySelectorAll('.copy-check'));
+const selectedCountEl = document.getElementById('selectedCopiesCount');
+const transferForm = document.getElementById('copyTransferForm');
+const targetLibrarySelect = document.getElementById('targetLibrarySelect');
+const topFilterForm = document.getElementById('transferTopFilterForm');
+const applyTransferFiltersBtn = document.getElementById('applyTransferFiltersBtn');
+const clearTransferFiltersBtn = document.getElementById('clearTransferFiltersBtn');
+let transferSubmitting = false;
+
+function getCheckedCount() {
+    return copyChecks.filter((el) => el.checked).length;
+}
+
+function syncSelectedCount() {
+    const checked = getCheckedCount();
+    if (selectedCountEl) selectedCountEl.textContent = String(checked);
+    if (selectAllEl) {
+        selectAllEl.checked = checked > 0 && checked === copyChecks.length;
+        selectAllEl.indeterminate = checked > 0 && checked < copyChecks.length;
+    }
+}
+
+selectAllEl?.addEventListener('change', () => {
+    copyChecks.forEach((checkbox) => {
+        checkbox.checked = selectAllEl.checked;
+    });
+    syncSelectedCount();
+});
+
+copyChecks.forEach((checkbox) => {
+    checkbox.addEventListener('change', syncSelectedCount);
+});
+syncSelectedCount();
+
+function initTransferFilterDropdown(rootId) {
+    const container = document.getElementById(rootId);
+    if (!container) return null;
+
+    const textInput = container.querySelector('.custom-dropdown-input');
+    const hiddenInput = container.querySelector('input[type="hidden"]');
+    const list = container.querySelector('.custom-dropdown-list');
+    const items = Array.from(container.querySelectorAll('.custom-dropdown-item'));
+    if (!textInput || !hiddenInput || !list || !items.length) return null;
+
+    const normalize = (value) => (value || '').trim().toLowerCase();
+
+    const closeList = () => container.classList.remove('open');
+    const openList = () => container.classList.add('open');
+
+    const restoreFromHidden = () => {
+        const selected = items.find((item) => String(item.dataset.val || '') === String(hiddenInput.value || ''));
+        if (selected) {
+            textInput.value = selected.dataset.lbl || '';
+            return true;
+        }
+        return false;
+    };
+
+    const filterItems = () => {
+        const term = normalize(textInput.value);
+        items.forEach((item) => {
+            const label = normalize(item.dataset.lbl || item.textContent || '');
+            item.style.display = label.includes(term) ? 'block' : 'none';
+        });
+    };
+
+    const applyItem = (item) => {
+        hiddenInput.value = item.dataset.val || '';
+        textInput.value = item.dataset.lbl || '';
+        closeList();
+    };
+
+    list.addEventListener('mousedown', (event) => event.preventDefault());
+    list.addEventListener('click', (event) => {
+        const item = event.target.closest('.custom-dropdown-item');
+        if (!item) return;
+        applyItem(item);
+    });
+
+    textInput.addEventListener('focus', () => {
+        openList();
+        filterItems();
+    });
+
+    textInput.addEventListener('input', () => {
+        openList();
+        filterItems();
+        if (!textInput.value.trim()) hiddenInput.value = '';
+    });
+
+    textInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            applyTransferFilters();
+        }
+    });
+
+    textInput.addEventListener('blur', () => {
+        window.setTimeout(() => {
+            const typed = normalize(textInput.value);
+            if (!typed) {
+                hiddenInput.value = '';
+                textInput.value = '';
+                closeList();
+                return;
+            }
+
+            const exact = items.find(
+                (item) => normalize(item.dataset.lbl || '') === typed && (item.dataset.val || '').trim() !== ''
+            );
+            if (exact) {
+                applyItem(exact);
+                return;
+            }
+
+            if (!restoreFromHidden()) {
+                hiddenInput.value = '';
+                textInput.value = '';
+            }
+            closeList();
+        }, 120);
+    });
+
+    return { container, closeList };
+}
+
+function buildTransferFilterUrl(clearExtra = false) {
+    const params = new URLSearchParams();
+    const qValue = topFilterForm?.querySelector('input[name="q"]')?.value?.trim() || '';
+    const sourceValue = topFilterForm?.querySelector('select[name="source_library"]')?.value || '';
+
+    if (qValue) params.set('q', qValue);
+    if (sourceValue) params.set('source_library', sourceValue);
+
+    if (!clearExtra) {
+        const bookTypeValue = document.getElementById('bookTypeFilterId')?.value || '';
+        const bbkValue = document.getElementById('bbkFilterId')?.value || '';
+        const authorValue = document.getElementById('authorFilterId')?.value || '';
+        const bookValue = document.getElementById('bookFilterId')?.value || '';
+
+        if (bookTypeValue) params.set('book_type_id', bookTypeValue);
+        if (bbkValue) params.set('bbk_id', bbkValue);
+        if (authorValue) params.set('author_id', authorValue);
+        if (bookValue) params.set('book_id', bookValue);
+    }
+
+    const query = params.toString();
+    return query ? `/books/copies/transfer?${query}` : '/books/copies/transfer';
+}
+
+function applyTransferFilters(clearExtra = false) {
+    const loader = document.getElementById('pageLoader');
+    if (loader) loader.classList.add('active');
+    window.location.href = buildTransferFilterUrl(clearExtra);
+}
+
+const transferDropdowns = [
+    initTransferFilterDropdown('bookTypeFilterWrap'),
+    initTransferFilterDropdown('bbkFilterWrap'),
+    initTransferFilterDropdown('authorFilterWrap'),
+    initTransferFilterDropdown('bookFilterWrap'),
+].filter(Boolean);
+
+document.addEventListener('click', (event) => {
+    transferDropdowns.forEach((entry) => {
+        if (!entry.container.contains(event.target)) {
+            entry.closeList();
+        }
+    });
+});
+
+applyTransferFiltersBtn?.addEventListener('click', () => {
+    applyTransferFilters(false);
+});
+
+clearTransferFiltersBtn?.addEventListener('click', () => {
+    applyTransferFilters(true);
+});
+
+transferForm?.addEventListener('submit', async (e) => {
+    if (transferSubmitting) return;
+    e.preventDefault();
+
+    const checkedCount = getCheckedCount();
+    if (checkedCount === 0) {
+        if (typeof showNotification === 'function') {
+            showNotification('Ogohlantirish', "Kamida bitta nusxani tanlang.", 'warning');
+        } else {
+            alert("Kamida bitta nusxani tanlang.");
+        }
+        return;
+    }
+
+    if (!targetLibrarySelect?.value) {
+        if (typeof showNotification === 'function') {
+            showNotification('Ogohlantirish', "Qaysi kutubxonaga biriktirilishini tanlang.", 'warning');
+        } else {
+            alert("Qaysi kutubxonaga biriktirilishini tanlang.");
+        }
+        return;
+    }
+
+    let ok = true;
+    if (typeof confirmDialog === 'function') {
+        ok = await confirmDialog({
+            title: "Biriktirishni tasdiqlang",
+            message: `${checkedCount} ta nusxa tanlandi. Davom etilsinmi?`,
+            confirmText: "Ha, biriktirish",
+            type: "info",
+        });
+    } else {
+        ok = window.confirm(`${checkedCount} ta nusxa biriktirilsinmi?`);
+    }
+    if (!ok) return;
+
+    transferSubmitting = true;
+    const loader = document.getElementById('pageLoader');
+    if (loader) loader.classList.add('active');
+    transferForm.submit();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,651 @@
+{% extends "base.html" %}
+{% block title %}{% if edit_mode %}Online Kitobni Tahrirlash{% else %}Yangi Online Kitob{% endif %} | Glass Pro{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center justify-between gap-4">
+    <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-tablet-screen-button text-cyan-400"></i> {% if edit_mode %}Online Kitobni Tahrirlash{% else %}Yangi Online Kitob{% endif %}
+        </h1>
+        <p class="text-[0.8rem] text-white/50 mt-0.5">{% if edit_mode %}Online kitob ma'lumotlarini yangilang{% else %}Elektron kitob ma'lumotlarini kiriting{% endif %}</p>
+    </div>
+    <a href="/online-books" onclick="showLoader(event,'/online-books')"
+       class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm text-white/70 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-colors whitespace-nowrap">
+        <i class="fa-solid fa-arrow-left text-xs"></i> Orqaga
+    </a>
+</div>
+
+<form id="onlineBookForm" action="{% if edit_mode and item %}/online-books/edit/{{ item.id }}{% else %}/online-books/add{% endif %}" method="POST" enctype="multipart/form-data" onsubmit="return validateSSelects()">
+    <div class="glass-card rounded-2xl border border-white/10 p-6 shadow-xl" style="margin-bottom:2rem;">
+        <div style="display:flex; flex-direction:column; gap:1.25rem;">
+            <div style="display:flex; flex-wrap:wrap; gap:1rem;">
+                <div style="flex:1; min-width:250px;">
+                    <label class="pro-label">Kitob turi <span class="text-red-400">*</span></label>
+                    <div class="pro-input-wrap mt-1 custom-dropdown-container">
+                        <span class="pro-icon"><i class="fa-solid fa-layer-group"></i></span>
+                        <input type="text" class="pro-input custom-dropdown-input" placeholder="Qidirish va tanlash..." autocomplete="off" value="{{ selected_book_type_label }}">
+                        <input type="hidden" name="book_type_id" required value="{{ item.book_type_id if item else '' }}">
+                        <div class="custom-dropdown-list">
+                            {% for bt in book_types %}
+                            <div class="custom-dropdown-item" data-val="{{ bt.id }}" data-lbl="{{ bt.name }}">{{ bt.name }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div style="flex:1; min-width:250px;">
+                    <label class="pro-label">BBK kategoriyasi <span class="text-red-400">*</span></label>
+                    <div class="pro-input-wrap mt-1 custom-dropdown-container">
+                        <span class="pro-icon"><i class="fa-solid fa-list-ol"></i></span>
+                        <input type="text" class="pro-input custom-dropdown-input" placeholder="Qidirish va tanlash..." autocomplete="off" value="{{ selected_bbk_label }}">
+                        <input type="hidden" name="bbk_id" required value="{{ item.bbk_id if item else '' }}">
+                        <div class="custom-dropdown-list">
+                            {% for b in bbks %}
+                            <div class="custom-dropdown-item" data-val="{{ b.id }}" data-lbl="{{ b.code }} - {{ b.name }}">{{ b.code }} - {{ b.name }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="pro-label">Kitob sarlavhasi <span class="text-red-400">*</span></label>
+                <div class="pro-input-wrap mt-1">
+                    <span class="pro-icon"><i class="fa-solid fa-book-open"></i></span>
+                    <input type="text" name="title" class="pro-input" placeholder="Online kitob nomi" required value="{{ item.title if item else '' }}">
+                </div>
+            </div>
+
+            <div>
+                <label class="pro-label">Muallif(lar) <span class="text-red-400">*</span></label>
+                <div style="display:flex; gap:0.5rem; margin-top:0.25rem;">
+                    <div class="custom-dropdown-container" style="flex:1; position: relative; z-index: 50;">
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-magnifying-glass text-xs"></i></span>
+                            <input type="text" id="authorSearchInput" class="pro-input" placeholder="Muallif qidirish..." autocomplete="off">
+                        </div>
+                        <div class="custom-dropdown-list" id="authorSuggestList" style="position:absolute; top:calc(100% + 4px); left:0; right:0; max-height:220px; overflow-y:auto; background:#1e2230; border:1px solid rgba(255,255,255,0.15); border-radius:12px; z-index:9999; display:none; box-shadow:0 10px 30px rgba(0,0,0,0.6); padding:6px 0;">
+                            {% for a in authors %}
+                            <div class="author-suggest-item" data-val="{{ a.id }}" data-lbl="{{ a.name }}" style="padding:10px 16px; cursor:pointer; font-size:13.5px; color:rgba(255,255,255,0.8); transition:background 0.1s;">
+                                <i class="fa-solid fa-pen-nib" style="color:#93c5fd; margin-right:6px;"></i>{{ a.name }}
+                            </div>
+                            {% endfor %}
+                            <div class="empty-msg" style="display:none; padding:8px 12px; color:rgba(255,255,255,0.4); font-size:13px; text-align:center;">Topilmadi</div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="openQuick('author')"
+                        style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:12px; border:none; background:#2563eb; color:white; cursor:pointer; flex-shrink:0;" title="Yangi muallif qo'shish">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </div>
+                <div id="selectedAuthorsBox" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">
+                    {% if item and item.authors %}
+                        {% for a in item.authors %}
+                        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(37,99,235,0.15);border:1px solid rgba(37,99,235,0.3);color:#93c5fd;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:600;">
+                            <i class="fa-solid fa-pen-nib" style="font-size:10px;"></i>{{ a.name }}
+                            <i class="fa-solid fa-xmark" style="cursor:pointer; margin-left:4px; opacity:0.75;" onclick="removeAuthor('{{ a.id }}', this.parentElement)"></i>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div id="authorHiddenInputs">
+                    {% if item and item.authors %}
+                        {% for a in item.authors %}
+                        <input type="hidden" name="author_ids" value="{{ a.id }}" id="hid_auth_{{ a.id }}">
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div style="display:flex; flex-wrap:wrap; gap:1rem;">
+                <div style="flex:1; min-width:180px;">
+                    <label class="pro-label">Til <span class="text-red-400">*</span></label>
+                    <div class="pro-input-wrap mt-1 custom-dropdown-container">
+                        <span class="pro-icon"><i class="fa-solid fa-language"></i></span>
+                        <input type="text" class="pro-input custom-dropdown-input" value="{{ selected_language_name }}" placeholder="Til tanlang" autocomplete="off" required>
+                        <input type="hidden" name="language" value="{{ (item.language if item else 'uz')|lower }}" required>
+                        <div class="custom-dropdown-list">
+                            {% for code, name in languages %}
+                            <div class="custom-dropdown-item" data-val="{{ code }}" data-lbl="{{ name }}" style="display:flex; align-items:center; gap:8px;">
+                                {% if code == 'uz' or code == 'oz' %}
+                                <img src="https://flagcdn.com/w20/uz.png" class="w-5 h-auto rounded-sm" alt="uz">
+                                {% elif code == 'ru' %}
+                                <img src="https://flagcdn.com/w20/ru.png" class="w-5 h-auto rounded-sm" alt="ru">
+                                {% elif code == 'en' %}
+                                <img src="https://flagcdn.com/w20/gb.png" class="w-5 h-auto rounded-sm" alt="en">
+                                {% elif code == 'tr' %}
+                                <img src="https://flagcdn.com/w20/tr.png" class="w-5 h-auto rounded-sm" alt="tr">
+                                {% elif code == 'de' %}
+                                <img src="https://flagcdn.com/w20/de.png" class="w-5 h-auto rounded-sm" alt="de">
+                                {% elif code == 'fr' %}
+                                <img src="https://flagcdn.com/w20/fr.png" class="w-5 h-auto rounded-sm" alt="fr">
+                                {% elif code == 'kk' %}
+                                <img src="https://flagcdn.com/w20/kz.png" class="w-5 h-auto rounded-sm" alt="kz">
+                                {% elif code == 'ky' %}
+                                <img src="https://flagcdn.com/w20/kg.png" class="w-5 h-auto rounded-sm" alt="kg">
+                                {% endif %}
+                                <span>{{ name }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div style="flex:1; min-width:160px;">
+                    <label class="pro-label">Sahifalar soni</label>
+                    <div class="pro-input-wrap mt-1">
+                        <span class="pro-icon"><i class="fa-solid fa-file-lines"></i></span>
+                        <input type="number" name="pages" class="pro-input" placeholder="M: 320" min="1" value="{{ edition.pages if edition and edition.pages is not none else '' }}">
+                    </div>
+                </div>
+
+                <div style="flex:1; min-width:160px;">
+                    <label class="pro-label">Adad</label>
+                    <div class="pro-input-wrap mt-1">
+                        <span class="pro-icon"><i class="fa-solid fa-cubes"></i></span>
+                        <input type="number" name="adad" class="pro-input" placeholder="M: 1" min="0" value="{{ edition.adad if edition and edition.adad is not none else 0 }}">
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; flex-wrap:wrap; gap:1rem;">
+                <div style="flex:1; min-width:220px;">
+                    <label class="pro-label">Nashriyot <span class="text-red-400">*</span></label>
+                    <div style="display:flex; gap:0.5rem; margin-top:0.25rem;">
+                        <div class="pro-input-wrap custom-dropdown-container" style="flex:1;">
+                            <span class="pro-icon"><i class="fa-solid fa-print"></i></span>
+                            <input type="text" class="pro-input custom-dropdown-input" placeholder="Qidirish va tanlash..." autocomplete="off" required value="{{ selected_publisher_label }}">
+                            <input type="hidden" name="publisher_id" id="val_publisher" required value="{{ edition.publisher_id if edition else '' }}">
+                            <div class="custom-dropdown-list" id="list_publisher">
+                                {% for p in publishers %}
+                                <div class="custom-dropdown-item" data-val="{{ p.id }}" data-lbl="{{ p.name }}">{{ p.name }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <button type="button" onclick="openQuick('publisher')"
+                            style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:12px; border:none; background:#7c3aed; color:white; cursor:pointer;" title="Yangi nashriyot qo'shish">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div style="flex:1; min-width:220px;">
+                    <label class="pro-label">Nashr shahri <span class="text-red-400">*</span></label>
+                    <div style="display:flex; gap:0.5rem; margin-top:0.25rem;">
+                        <div class="pro-input-wrap custom-dropdown-container" style="flex:1;">
+                            <span class="pro-icon"><i class="fa-solid fa-city"></i></span>
+                            <input type="text" class="pro-input custom-dropdown-input" placeholder="Qidirish va tanlash..." autocomplete="off" required value="{{ selected_city_label }}">
+                            <input type="hidden" name="published_city_id" id="val_city" required value="{{ edition.published_city_id if edition else '' }}">
+                            <div class="custom-dropdown-list" id="list_city">
+                                {% for c in cities %}
+                                <div class="custom-dropdown-item" data-val="{{ c.id }}" data-lbl="{{ c.name }}">{{ c.name }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <button type="button" onclick="openQuick('city')"
+                            style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:12px; border:none; background:#0891b2; color:white; cursor:pointer;" title="Yangi shahar qo'shish">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div style="flex:1; min-width:180px;">
+                    <label class="pro-label">Nashr yili <span class="text-red-400">*</span></label>
+                    <div style="display:flex; gap:0.5rem; margin-top:0.25rem;">
+                        <div class="pro-input-wrap custom-dropdown-container" style="flex:1;">
+                            <span class="pro-icon"><i class="fa-solid fa-calendar"></i></span>
+                            <input type="text" class="pro-input custom-dropdown-input" placeholder="Tanlash..." autocomplete="off" required value="{{ selected_year_label }}">
+                            <input type="hidden" name="publication_year_id" id="val_year" required value="{{ edition.publication_year_id if edition else '' }}">
+                            <div class="custom-dropdown-list" id="list_year">
+                                {% for y in years %}
+                                <div class="custom-dropdown-item" data-val="{{ y.id }}" data-lbl="{{ y.year }}">{{ y.year }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <button type="button" onclick="openQuick('year')"
+                            style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:12px; border:none; background:#d97706; color:white; cursor:pointer;" title="Yangi yil qo'shish">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; flex-wrap:wrap; gap:1rem;">
+                <div style="flex:1; min-width:240px;">
+                    <label class="pro-label">ISBN</label>
+                    <div class="pro-input-wrap mt-1">
+                        <span class="pro-icon"><i class="fa-solid fa-barcode"></i></span>
+                        <input type="text" name="isbn" class="pro-input" placeholder="ISBN raqami" value="{{ item.isbn if item and item.isbn else '' }}">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="pro-label">Kitob annotatsiyasi</label>
+                <div class="pro-input-wrap mt-1" style="align-items:flex-start;">
+                    <span class="pro-icon" style="margin-top:12px;"><i class="fa-solid fa-align-left"></i></span>
+                    <textarea name="annotation" class="pro-input w-full resize-none" rows="3"
+                              style="min-height:90px; height:auto; padding-top:12px;"
+                              placeholder="Kitob haqida qisqacha ma'lumot...">{{ item.annotation if item and item.annotation else '' }}</textarea>
+                </div>
+            </div>
+
+            <div style="display:flex; flex-wrap:wrap; gap:1.25rem;">
+                <div style="flex:1; min-width:260px;">
+                    <label class="pro-label">Kitob rasmi (ixtiyoriy)</label>
+                    <label for="imageInput" class="block w-full text-center p-6 border-2 border-dashed border-slate-300 dark:border-white/20 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-blue-400 dark:hover:border-blue-500/50 transition-all cursor-pointer group mt-1">
+                        <div id="imagePreview" class="flex flex-col items-center justify-center transition-transform group-hover:scale-105">
+                            {% if edit_mode and edition and edition.image %}
+                            <img src="{{ edition.image }}" style="max-height:100px; border-radius:8px; object-fit:contain; margin: 0 auto 8px auto;">
+                            <p class="text-xs font-semibold text-slate-500 dark:text-white/70 mt-2 transition-colors">Joriy rasm mavjud</p>
+                            {% else %}
+                            <i class="fa-solid fa-image" class="text-[2.5rem] text-purple-500 mb-2"></i>
+                            <p class="text-sm font-semibold text-slate-600 dark:text-white/70 transition-colors">Rasm tanlash yoki tashlang</p>
+                            <p class="text-xs text-slate-400 dark:text-white/40 mt-1 transition-colors">JPG, PNG, WEBP - max 5MB</p>
+                            {% endif %}
+                        </div>
+                        <input type="file" name="image" id="imageInput" accept="image/*" class="hidden" onchange="previewFile(this, 'imagePreview', true)">
+                    </label>
+                </div>
+
+                <div style="flex:1; min-width:260px;">
+                    <label class="pro-label">Kitob fayli (ixtiyoriy)</label>
+                    <label for="fileInput" class="block w-full text-center p-6 border-2 border-dashed border-slate-300 dark:border-white/20 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-blue-400 dark:hover:border-blue-500/50 transition-all cursor-pointer group mt-1">
+                        <div id="filePreview" class="flex flex-col items-center justify-center transition-transform group-hover:scale-105">
+                            {% if edit_mode and edition and edition.file %}
+                            <i class="fa-solid fa-file-circle-check" class="text-[2.3rem] text-emerald-400 mb-2"></i>
+                            <p class="text-xs font-semibold text-slate-600 dark:text-white/80 mt-2 transition-colors">Joriy fayl mavjud</p>
+                            {% else %}
+                            <i class="fa-solid fa-file-arrow-up" class="text-[2.5rem] text-emerald-400 mb-2"></i>
+                            <p class="text-sm font-semibold text-slate-600 dark:text-white/70 transition-colors">Fayl tanlash yoki tashlang</p>
+                            <p class="text-xs text-slate-400 dark:text-white/40 mt-1 transition-colors">PDF, EPUB, DOCX, TXT - max 100MB</p>
+                            {% endif %}
+                        </div>
+                        <input type="file" name="file" id="fileInput" accept=".pdf,.epub,.doc,.docx,.txt" class="hidden" onchange="previewFile(this, 'filePreview', false)">
+                    </label>
+                </div>
+
+                <div style="flex:1; min-width:260px;">
+                    <label class="pro-label">Audio fayl (ixtiyoriy)</label>
+                    <label for="audioInput" class="block w-full text-center p-6 border-2 border-dashed border-slate-300 dark:border-white/20 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-blue-400 dark:hover:border-blue-500/50 transition-all cursor-pointer group mt-1">
+                        <div id="audioPreview" class="flex flex-col items-center justify-center transition-transform group-hover:scale-105">
+                            {% if edit_mode and edition and edition.audio_file %}
+                            <i class="fa-solid fa-microphone-lines" class="text-[2.3rem] text-amber-500 mb-2"></i>
+                            <p class="text-xs font-semibold text-slate-600 dark:text-white/80 mt-2 transition-colors">Joriy audio fayl mavjud</p>
+                            {% else %}
+                            <i class="fa-solid fa-headphones" class="text-[2.5rem] text-amber-500 mb-2"></i>
+                            <p class="text-sm font-semibold text-slate-600 dark:text-white/70 transition-colors">Audio tanlash yoki tashlang</p>
+                            <p class="text-xs text-slate-400 dark:text-white/40 mt-1 transition-colors">MP3, WAV, M4A, OGG - max 200MB</p>
+                            {% endif %}
+                        </div>
+                        <input type="file" name="audio_file" id="audioInput" accept="audio/*" class="hidden" onchange="previewFile(this, 'audioPreview', false)">
+                    </label>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; padding-top:10px;">
+                <button type="submit" class="submit-btn">
+                    <i class="fa-solid fa-floppy-disk" style="font-size:12px;"></i> {% if edit_mode %}O'zgarishlarni saqlash{% else %}Online kitobni saqlash{% endif %}
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div id="realModalOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:99999; justify-content:center; align-items:center;">
+    <div id="realModalBox" style="background:#13151f; border:1px solid rgba(255,255,255,0.1); border-radius:16px; width:100%; max-width:420px; box-shadow:0 25px 50px rgba(0,0,0,0.5); overflow:hidden; transform:scale(0.95); opacity:0; transition:all 0.2s ease;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.05); background:rgba(255,255,255,0.02);">
+            <h3 id="modalTitle" style="color:white; font-size:16px; font-weight:700; display:flex; align-items:center; gap:8px;"></h3>
+            <button type="button" onclick="closeQuick()" style="background:none; border:none; color:rgba(255,255,255,0.5); font-size:18px; cursor:pointer;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div style="padding:20px;">
+            <div class="pro-input-wrap" id="modalTextWrap" style="margin-bottom:15px;">
+                <span class="pro-icon"><i id="modalIcon" class="fa-solid fa-pen"></i></span>
+                <input type="text" id="modalTextInput" class="pro-input" placeholder="Nomi *" onkeydown="if(event.key==='Enter') saveQuick()">
+            </div>
+
+            <div id="modalAuthorExtraFields" style="display:none;">
+                <div class="pro-input-wrap" style="margin-bottom:15px;">
+                    <span class="pro-icon"><i class="fa-solid fa-id-badge"></i></span>
+                    <input type="text" id="modalCodeInput" class="pro-input" placeholder="Muallif kodi (ixtiyoriy)" onkeydown="if(event.key==='Enter') saveQuick()">
+                </div>
+                <div class="pro-input-wrap" style="margin-bottom:15px;">
+                    <span class="pro-icon"><i class="fa-solid fa-phone"></i></span>
+                    <input type="text" id="modalPhoneInput" class="pro-input" placeholder="Telefon raqami (ixtiyoriy)" onkeydown="if(event.key==='Enter') saveQuick()">
+                </div>
+                <div class="pro-input-wrap" style="margin-bottom:15px;">
+                    <span class="pro-icon"><i class="fa-solid fa-envelope"></i></span>
+                    <input type="email" id="modalEmailInput" class="pro-input" placeholder="Email manzili (ixtiyoriy)" onkeydown="if(event.key==='Enter') saveQuick()">
+                </div>
+            </div>
+
+            <div class="pro-input-wrap" id="modalYearWrap" style="display:none; margin-bottom:15px;">
+                <span class="pro-icon"><i class="fa-solid fa-calendar"></i></span>
+                <input type="number" id="modalYearInput" class="pro-input" placeholder="Yil (masalan: 2026) *" onkeydown="if(event.key==='Enter') saveQuick()">
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" onclick="closeQuick()" style="padding:10px 18px; border-radius:10px; background:rgba(255,255,255,0.05); color:white; border:1px solid rgba(255,255,255,0.1); font-size:14px; cursor:pointer;">Bekor qilish</button>
+                <button type="button" id="modalSaveBtn" onclick="saveQuick()" style="padding:10px 20px; border-radius:10px; border:none; color:white; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-check"></i> Qo'shish
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.glass-card { background: rgba(18, 20, 29, 0.7); backdrop-filter: blur(16px); }
+.pro-label { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.8); display: block; margin-bottom: 6px; }
+.custom-dropdown-container { position: relative; }
+.custom-dropdown-list {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    max-height: 220px;
+    overflow-y: auto;
+    background: #1e2230;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    z-index: 9999;
+    display: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    padding: 6px 0;
+}
+.custom-dropdown-input:focus ~ .custom-dropdown-list { display: block; }
+.custom-dropdown-list:hover { display: block; }
+.custom-dropdown-item, .author-suggest-item {
+    padding: 10px 16px;
+    font-size: 13.5px;
+    color: rgba(255,255,255,0.82);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.custom-dropdown-item:hover, .author-suggest-item:hover { background: rgba(255,255,255,0.08); color: white; }
+
+.submit-btn {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    border: 1px solid rgba(22, 163, 74, 0.4);
+    box-shadow: 0 0 20px rgba(22, 163, 74, 0.2);
+    padding: 12px 32px;
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(22, 163, 74, 0.4); }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('realModalOverlay');
+    if (modal) document.body.appendChild(modal);
+});
+
+document.querySelectorAll('.custom-dropdown-container').forEach(container => {
+    const input = container.querySelector('.custom-dropdown-input');
+    const hidden = container.querySelector('input[type="hidden"]');
+    const list = container.querySelector('.custom-dropdown-list');
+    if (!input || !list || input.id === 'authorSearchInput') return;
+
+    list.addEventListener('mousedown', (e) => {
+        const item = e.target.closest('.custom-dropdown-item');
+        if (!item) return;
+        e.preventDefault();
+        input.value = item.dataset.lbl;
+        if (hidden) hidden.value = item.dataset.val;
+        list.style.display = 'none';
+    });
+
+    input.addEventListener('input', (e) => {
+        const q = (e.target.value || '').toLowerCase();
+        list.querySelectorAll('.custom-dropdown-item').forEach((item) => {
+            item.style.display = item.dataset.lbl.toLowerCase().includes(q) ? 'block' : 'none';
+        });
+        if (hidden) hidden.value = '';
+    });
+
+    input.addEventListener('focus', () => {
+        list.style.display = 'block';
+        list.querySelectorAll('.custom-dropdown-item').forEach((item) => item.style.display = 'block');
+    });
+
+    input.addEventListener('blur', () => setTimeout(() => { list.style.display = ''; }, 150));
+});
+
+const authSearch = document.getElementById('authorSearchInput');
+const authList = document.getElementById('authorSuggestList');
+const selectedBox = document.getElementById('selectedAuthorsBox');
+const authHidden = document.getElementById('authorHiddenInputs');
+const selectedAuthorIds = new Set(
+    Array.from(authHidden.querySelectorAll('input[name="author_ids"]')).map((i) => String(i.value))
+);
+
+function filterAuthors() {
+    const q = (authSearch.value || '').toLowerCase();
+    let visible = 0;
+    authList.querySelectorAll('.author-suggest-item').forEach((item) => {
+        if (item.dataset.lbl.toLowerCase().includes(q) && !selectedAuthorIds.has(item.dataset.val)) {
+            item.style.display = 'block';
+            visible += 1;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    const empty = authList.querySelector('.empty-msg');
+    if (empty) empty.style.display = visible ? 'none' : 'block';
+}
+
+authSearch.addEventListener('input', () => { authList.style.display = 'block'; filterAuthors(); });
+authSearch.addEventListener('focus', () => { authList.style.display = 'block'; filterAuthors(); });
+authSearch.addEventListener('click', () => { authList.style.display = 'block'; filterAuthors(); });
+authSearch.addEventListener('blur', () => setTimeout(() => { authList.style.display = ''; }, 200));
+filterAuthors();
+
+authList.addEventListener('mousedown', (e) => {
+    const item = e.target.closest('.author-suggest-item');
+    if (!item) return;
+    e.preventDefault();
+    selectAuthor(item.dataset.val, item.dataset.lbl);
+});
+
+function selectAuthor(id, name) {
+    if (selectedAuthorIds.has(id)) return;
+    selectedAuthorIds.add(id);
+    authSearch.value = '';
+
+    const chip = document.createElement('div');
+    chip.style.cssText = 'display:inline-flex;align-items:center;gap:6px;background:rgba(37,99,235,0.15);border:1px solid rgba(37,99,235,0.3);color:#93c5fd;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:600;';
+    chip.innerHTML = `<i class="fa-solid fa-pen-nib" style="font-size:10px;"></i>${name}<i class="fa-solid fa-xmark" style="cursor:pointer; margin-left:4px; opacity:0.75;"></i>`;
+    chip.querySelector('.fa-xmark').addEventListener('click', () => removeAuthor(id, chip));
+    selectedBox.appendChild(chip);
+
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.name = 'author_ids';
+    hidden.value = id;
+    hidden.id = `hid_auth_${id}`;
+    authHidden.appendChild(hidden);
+
+    authSearch.focus();
+    filterAuthors();
+}
+
+function removeAuthor(id, chipEl) {
+    selectedAuthorIds.delete(id);
+    if (chipEl) chipEl.remove();
+    const hid = document.getElementById(`hid_auth_${id}`);
+    if (hid) hid.remove();
+    filterAuthors();
+}
+
+function addAuthorToList(id, name) {
+    const div = document.createElement('div');
+    div.className = 'author-suggest-item';
+    div.dataset.val = String(id);
+    div.dataset.lbl = name;
+    div.innerHTML = `<i class="fa-solid fa-pen-nib" style="color:#93c5fd; margin-right:6px;"></i>${name}`;
+    authList.insertBefore(div, authList.firstChild);
+}
+
+function previewFile(input, boxId, isImage) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const box = document.getElementById(boxId);
+    if (!box) return;
+    if (isImage && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            box.innerHTML = `<img src="${e.target.result}" style="max-height:100px; border-radius:8px; object-fit:contain;"><p class="text-xs font-semibold text-slate-500 dark:text-white/70 mt-2 transition-colors">${file.name}</p>`;
+        };
+        reader.readAsDataURL(file);
+        return;
+    }
+    box.innerHTML = `<i class="fa-solid fa-file-circle-check" class="text-[2.3rem] text-emerald-400 mb-2"></i><p class="text-xs font-semibold text-slate-600 dark:text-white/80 mt-2 transition-colors">${file.name}</p>`;
+}
+
+let _qType = null;
+const Q_CFG = {
+    publisher: { t: 'Yangi Nashriyot', icon: 'fa-print', clr: '#7c3aed', endpoint: '/publishers/api/publisher', isYear: false, targetList: 'list_publisher', targetVal: 'val_publisher' },
+    city: { t: 'Yangi Shahar', icon: 'fa-city', clr: '#0891b2', endpoint: '/publishers/api/city', isYear: false, targetList: 'list_city', targetVal: 'val_city' },
+    year: { t: 'Yangi Yil', icon: 'fa-calendar', clr: '#d97706', endpoint: '/publishers/api/year', isYear: true, targetList: 'list_year', targetVal: 'val_year' },
+    author: { t: 'Yangi Muallif', icon: 'fa-pen-nib', clr: '#2563eb', endpoint: '/authors/api/quick', isYear: false, targetList: null, targetVal: null },
+};
+
+function openQuick(type) {
+    _qType = type;
+    const cfg = Q_CFG[type];
+    if (!cfg) return;
+
+    document.getElementById('modalTitle').innerHTML = `<i class="fa-solid ${cfg.icon}" style="color:${cfg.clr}"></i> ${cfg.t}`;
+    document.getElementById('modalIcon').className = `fa-solid ${cfg.icon}`;
+    document.getElementById('modalSaveBtn').style.background = cfg.clr;
+    document.getElementById('modalTextWrap').style.display = cfg.isYear ? 'none' : 'block';
+    document.getElementById('modalYearWrap').style.display = cfg.isYear ? 'block' : 'none';
+    document.getElementById('modalAuthorExtraFields').style.display = type === 'author' ? 'block' : 'none';
+
+    document.getElementById('modalTextInput').value = '';
+    document.getElementById('modalYearInput').value = '';
+    document.getElementById('modalCodeInput').value = '';
+    document.getElementById('modalPhoneInput').value = '';
+    document.getElementById('modalEmailInput').value = '';
+
+    const overlay = document.getElementById('realModalOverlay');
+    const box = document.getElementById('realModalBox');
+    overlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => {
+        box.style.transform = 'scale(1)';
+        box.style.opacity = '1';
+    });
+    setTimeout(() => {
+        (cfg.isYear ? document.getElementById('modalYearInput') : document.getElementById('modalTextInput')).focus();
+    }, 120);
+}
+
+function closeQuick() {
+    const overlay = document.getElementById('realModalOverlay');
+    const box = document.getElementById('realModalBox');
+    box.style.transform = 'scale(0.95)';
+    box.style.opacity = '0';
+    setTimeout(() => {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+    }, 180);
+}
+
+async function saveQuick() {
+    const cfg = Q_CFG[_qType];
+    if (!cfg) return;
+
+    const valueInput = cfg.isYear ? document.getElementById('modalYearInput') : document.getElementById('modalTextInput');
+    const value = (valueInput.value || '').trim();
+    if (!value) return;
+
+    const fd = new FormData();
+    fd.append(cfg.isYear ? 'year' : 'name', value);
+
+    if (_qType === 'author') {
+        fd.append('author_code', (document.getElementById('modalCodeInput').value || '').trim());
+        fd.append('phone_number', (document.getElementById('modalPhoneInput').value || '').trim());
+        fd.append('email', (document.getElementById('modalEmailInput').value || '').trim());
+    }
+
+    try {
+        const res = await fetch(cfg.endpoint, { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok || data.error) {
+            alert(data.error || "Saqlashda xatolik.");
+            return;
+        }
+
+        if (_qType === 'author') {
+            addAuthorToList(data.id, data.name);
+            selectAuthor(String(data.id), data.name);
+            closeQuick();
+            return;
+        }
+
+        const list = document.getElementById(cfg.targetList);
+        const hidden = document.getElementById(cfg.targetVal);
+        const label = cfg.isYear ? String(data.year) : data.name;
+        if (!list || !hidden) {
+            closeQuick();
+            return;
+        }
+
+        let existing = Array.from(list.children).find((el) => el.dataset.val === String(data.id));
+        if (!existing) {
+            existing = document.createElement('div');
+            existing.className = 'custom-dropdown-item';
+            existing.dataset.val = String(data.id);
+            existing.dataset.lbl = label;
+            existing.textContent = label;
+            list.insertBefore(existing, list.firstChild);
+        }
+
+        hidden.value = String(data.id);
+        const wrap = list.closest('.custom-dropdown-container');
+        if (wrap) {
+            const input = wrap.querySelector('.custom-dropdown-input');
+            if (input) input.value = label;
+        }
+
+        closeQuick();
+    } catch (err) {
+        alert(`Xatolik: ${err.message}`);
+    }
+}
+
+document.getElementById('realModalOverlay').addEventListener('mousedown', (e) => {
+    if (e.target === e.currentTarget) closeQuick();
+});
+
+function validateSSelects() {
+    let ok = true;
+
+    document.querySelectorAll('.custom-dropdown-container').forEach((container) => {
+        const hidden = container.querySelector('input[type="hidden"]');
+        const textInput = container.querySelector('.custom-dropdown-input');
+        if (hidden && hidden.required && !hidden.value) {
+            ok = false;
+            if (textInput) textInput.style.borderColor = '#f87171';
+        }
+    });
+
+    if (selectedAuthorIds.size === 0) {
+        ok = false;
+        authSearch.style.borderColor = '#f87171';
+    }
+
+    if (!ok) {
+        alert("Iltimos majburiy ro'yxatlarni tanlang va kamida bitta muallif kiriting.");
+    }
+    return ok;
+}
+</script>
+{% endblock %}

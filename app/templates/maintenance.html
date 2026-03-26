@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="{{ current_lang }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ system_name }} | Texnik Ishlar</title>
+    {% set root_path = request.scope.get('root_path', '') %}
+    {% if root_path and root_path.endswith('/') %}{% set root_path = root_path[:-1] %}{% endif %}
+    {% set static_url = (root_path ~ '/static') if root_path else '/static' %}
+    <link href="{{ static_url }}/css/tailwind.css?v=20260326_4" rel="stylesheet">
+    <link href="{{ static_url }}/css/style.css?v=20260326_4" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4">
+    <div class="w-full max-w-xl rounded-3xl border border-white/15 bg-white/5 backdrop-blur-xl p-8 text-center shadow-2xl">
+        <img src="{{ system_logo_small }}" alt="{{ system_name }}" class="w-20 h-20 object-contain mx-auto mb-4">
+        <h1 class="text-2xl font-bold mb-2">Tizim vaqtincha to'xtatilgan</h1>
+        <p class="text-white/70 text-sm mb-6">{{ maintenance_message or "Texnik ishlar sabab tizim vaqtincha yopiq." }}</p>
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/15 border border-amber-400/35 text-amber-200 text-sm">
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+            Maintenance mode yoqilgan
+        </div>
+    </div>
+</body>
+</html>

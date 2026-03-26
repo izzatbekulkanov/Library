@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block title %}Online Kitoblar | Glass Pro{% endblock %}
+
+{% block content %}
+{% set lang = (language or '')|lower %}
+<form method="GET" action="/online-books" id="filterForm" class="mb-6 relative z-10 p-4 rounded-2xl glass-card border border-white/10 shadow-2xl">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-white mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-tablet-screen-button text-cyan-400"></i> Online kitoblar
+            </h1>
+            <p class="text-[0.8rem] text-white/50">Tizimdagi barcha elektron kitoblar ro'yxati</p>
+        </div>
+        <a href="/online-books/add" onclick="showLoader(event,'/online-books/add')"
+           class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white whitespace-nowrap transition-all"
+           style="background:linear-gradient(135deg,#16a34a,#15803d); border:1px solid rgba(22,163,74,0.35);">
+            <i class="fa-solid fa-plus text-xs"></i> Yangi Online Kitob
+        </a>
+    </div>
+
+    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
+        <div class="pro-input-wrap min-w-0">
+            <span class="pro-icon"><i class="fa-solid fa-search text-[0.85rem]"></i></span>
+            <input type="text" name="q" value="{{ q }}" placeholder="Kitob nomi..." class="pro-input" style="padding-top:0.65rem;padding-bottom:0.65rem;">
+        </div>
+
+        <div class="pro-input-wrap min-w-0">
+            <span class="pro-icon"><i class="fa-solid fa-language text-[0.85rem]"></i></span>
+            <select name="language" class="pro-select" style="padding-top:0.65rem;padding-bottom:0.65rem;" onchange="this.form.submit()">
+                <option value="">Barcha tillar</option>
+                {% for item in languages %}
+                <option value="{{ item }}" {% if lang == item %}selected{% endif %}>{{ language_labels.get(item, item | upper) }}</option>
+                {% endfor %}
+            </select>
+            <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+        </div>
+
+        <div class="pro-input-wrap min-w-0">
+            <span class="pro-icon"><i class="fa-solid fa-list text-[0.85rem]"></i></span>
+            <select name="type_id" class="pro-select" style="padding-top:0.65rem;padding-bottom:0.65rem;" onchange="this.form.submit()">
+                <option value="">Barcha turlar</option>
+                {% for t in types %}
+                <option value="{{ t.id }}" {% if type_id|string == t.id|string %}selected{% endif %}>{{ t.name }}</option>
+                {% endfor %}
+            </select>
+            <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+        </div>
+
+        <div class="pro-input-wrap min-w-0">
+            <span class="pro-icon"><i class="fa-solid fa-user-pen text-[0.85rem]"></i></span>
+            <select name="author_id" class="pro-select" style="padding-top:0.65rem;padding-bottom:0.65rem;" onchange="this.form.submit()">
+                <option value="">Barcha mualliflar</option>
+                {% for a in authors %}
+                <option value="{{ a.id }}" {% if author_id|string == a.id|string %}selected{% endif %}>{{ a.name }}</option>
+                {% endfor %}
+            </select>
+            <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+        </div>
+
+        <div class="pro-input-wrap min-w-0">
+            <span class="pro-icon"><i class="fa-solid fa-bookmark text-[0.85rem]"></i></span>
+            <select name="bbk_id" class="pro-select" style="padding-top:0.65rem;padding-bottom:0.65rem;" onchange="this.form.submit()">
+                <option value="">Barcha BBK</option>
+                {% for b in bbks %}
+                <option value="{{ b.id }}" {% if bbk_id|string == b.id|string %}selected{% endif %}>{{ b.code }} ({{ b.name }})</option>
+                {% endfor %}
+            </select>
+            <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+        </div>
+    </div>
+
+    <div class="mt-3 flex flex-wrap items-center gap-2">
+        <button type="submit"
+                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white whitespace-nowrap transition-all"
+                style="background:linear-gradient(135deg,#0891b2,#0e7490); border:1px solid rgba(6,182,212,0.35);">
+            <i class="fa-solid fa-filter text-xs"></i> Filtrlash
+        </button>
+        <a href="/online-books"
+           class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white/80 hover:text-white whitespace-nowrap transition-all bg-white/5 hover:bg-white/10 border border-white/10">
+            <i class="fa-solid fa-rotate-left text-xs"></i> Tozalash
+        </a>
+    </div>
+</form>
+
+<div class="glass-card rounded-2xl border border-white/10 overflow-hidden shadow-2xl w-full">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[1420px]">
+            <thead>
+                <tr class="border-b border-white/10 bg-white/5">
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest w-12 text-center">T/r</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">Kitob nomi</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">Muallif(lar)</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-center">Til</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">ISBN</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-center">Adad</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-center">Rasm</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-center">Kitob fayli</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-center">Audio</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-right">Amallar</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 text-sm">
+                {% for item in items %}
+                {% set item_lang = (item.language or '')|lower %}
+                <tr class="hover:bg-white/[0.03] transition-colors">
+                    <td class="py-4 px-5 text-center text-white/40 font-mono text-xs">{{ ((page - 1) * per_page) + loop.index }}</td>
+                    <td class="py-4 px-5">
+                        <p class="font-semibold text-white text-sm" title="{{ item.title }}">
+                            {% if item.title|length > 80 %}{{ item.title[:80] }}...{% else %}{{ item.title }}{% endif %}
+                        </p>
+                    </td>
+                    <td class="py-4 px-5 text-white/70">{{ item.authors_text }}</td>
+                    <td class="py-4 px-5 text-center text-xs">
+                        {% if item_lang == 'uz' or item_lang == 'oz' %}
+                        <span class="inline-flex items-center gap-2">
+                            <img src="https://flagcdn.com/w20/uz.png" class="w-5 h-auto rounded-[2px] inline-block" alt="uz">
+                            <span class="text-white/70">{{ item.language_name }}</span>
+                        </span>
+                        {% elif item_lang == 'ru' %}
+                        <span class="inline-flex items-center gap-2">
+                            <img src="https://flagcdn.com/w20/ru.png" class="w-5 h-auto rounded-[2px] inline-block" alt="ru">
+                            <span class="text-white/70">{{ item.language_name }}</span>
+                        </span>
+                        {% elif item_lang == 'en' %}
+                        <span class="inline-flex items-center gap-2">
+                            <img src="https://flagcdn.com/w20/gb.png" class="w-5 h-auto rounded-[2px] inline-block" alt="en">
+                            <span class="text-white/70">{{ item.language_name }}</span>
+                        </span>
+                        {% elif item_lang == 'tr' %}
+                        <span class="inline-flex items-center gap-2">
+                            <img src="https://flagcdn.com/w20/tr.png" class="w-5 h-auto rounded-[2px] inline-block" alt="tr">
+                            <span class="text-white/70">{{ item.language_name }}</span>
+                        </span>
+                        {% elif item_lang == 'de' %}
+                        <span class="inline-flex items-center gap-2">
+                            <img src="https://flagcdn.com/w20/de.png" class="w-5 h-auto rounded-[2px] inline-block" alt="de">
+                            <span class="text-white/70">{{ item.language_name }}</span>
+                        </span>
+                        {% elif item_lang == 'fr' %}
+                        <span class="inline-flex items-center gap-2">
+                            <img src="https://flagcdn.com/w20/fr.png" class="w-5 h-auto rounded-[2px] inline-block" alt="fr">
+                            <span class="text-white/70">{{ item.language_name }}</span>
+                        </span>
+                        {% elif item_lang == 'kk' %}
+                        <span class="inline-flex items-center gap-2">
+                            <img src="https://flagcdn.com/w20/kz.png" class="w-5 h-auto rounded-[2px] inline-block" alt="kk">
+                            <span class="text-white/70">{{ item.language_name }}</span>
+                        </span>
+                        {% elif item_lang == 'ky' %}
+                        <span class="inline-flex items-center gap-2">
+                            <img src="https://flagcdn.com/w20/kg.png" class="w-5 h-auto rounded-[2px] inline-block" alt="ky">
+                            <span class="text-white/70">{{ item.language_name }}</span>
+                        </span>
+                        {% elif item_lang == 'zh' %}
+                        <span class="inline-flex items-center gap-2">
+                            <img src="https://flagcdn.com/w20/cn.png" class="w-5 h-auto rounded-[2px] inline-block" alt="zh">
+                            <span class="text-white/70">{{ item.language_name }}</span>
+                        </span>
+                        {% elif item_lang == 'ar' %}
+                        <span class="inline-flex items-center gap-2">
+                            <img src="https://flagcdn.com/w20/sa.png" class="w-5 h-auto rounded-[2px] inline-block" alt="ar">
+                            <span class="text-white/70">{{ item.language_name }}</span>
+                        </span>
+                        {% else %}
+                        <span class="text-white/70">{{ item.language_name }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-5 text-white/60 font-mono text-xs">{{ item.isbn or '-' }}</td>
+                    <td class="py-4 px-5 text-center">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[0.7rem] font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                            <i class="fa-solid fa-cubes text-[0.6rem]"></i> {{ item.adad_value }}
+                        </span>
+                    </td>
+                    <td class="py-4 px-5 text-center">
+                        {% if item.has_image %}
+                        <span class="inline-flex items-center gap-1 text-emerald-300" title="Rasm mavjud">
+                            <i class="fa-solid fa-image"></i>
+                            <i class="fa-solid fa-circle-check text-[0.68rem]"></i>
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1 text-red-300/90" title="Rasm mavjud emas">
+                            <i class="fa-solid fa-image"></i>
+                            <i class="fa-solid fa-circle-xmark text-[0.68rem]"></i>
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-5 text-center">
+                        {% if item.has_file %}
+                        <span class="inline-flex items-center gap-1 text-emerald-300" title="Kitob fayli mavjud">
+                            <i class="fa-solid fa-file-lines"></i>
+                            <i class="fa-solid fa-circle-check text-[0.68rem]"></i>
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1 text-red-300/90" title="Kitob fayli mavjud emas">
+                            <i class="fa-solid fa-file-lines"></i>
+                            <i class="fa-solid fa-circle-xmark text-[0.68rem]"></i>
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-5 text-center">
+                        {% if item.has_audio %}
+                        <span class="inline-flex items-center gap-1 text-emerald-300" title="Audio mavjud">
+                            <i class="fa-solid fa-headphones"></i>
+                            <i class="fa-solid fa-circle-check text-[0.68rem]"></i>
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1 text-red-300/90" title="Audio mavjud emas">
+                            <i class="fa-solid fa-headphones"></i>
+                            <i class="fa-solid fa-circle-xmark text-[0.68rem]"></i>
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-5 text-right">
+                        <div class="inline-flex flex-nowrap items-center justify-end gap-2">
+                            <a href="/online-books/{{ item.id }}" onclick="showLoader(event,'/online-books/{{ item.id }}')" tooltip="Ko'rish"
+                               class="w-8 h-8 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 flex items-center justify-center transition-colors border border-indigo-500/0 hover:border-indigo-500/30">
+                                <i class="fa-regular fa-eye text-[0.85rem]"></i>
+                            </a>
+                            <a href="/online-books/edit/{{ item.id }}" onclick="showLoader(event,'/online-books/edit/{{ item.id }}')" tooltip="Tahrirlash"
+                               class="w-8 h-8 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 flex items-center justify-center transition-colors border border-orange-500/0 hover:border-orange-500/30">
+                                <i class="fa-solid fa-pen text-xs"></i>
+                            </a>
+                            <button type="button" onclick="confirmDelete(`{{ item.title }}`, '/online-books/delete/{{ item.id }}', 'GET')" tooltip="O'chirish"
+                               class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 flex items-center justify-center transition-colors border border-red-500/0 hover:border-red-500/30">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="10" class="py-16 text-center text-white/40">
+                        <i class="fa-solid fa-tablet-screen-button text-4xl mb-4 block text-white/20"></i>
+                        Online kitoblar topilmadi
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="p-4 border-t border-white/10 bg-black/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="text-xs text-white/40">
+            Jami: <span class="font-medium text-white/70">{{ total_items }}</span> ta online kitob
+        </div>
+
+        {% if total_pages > 1 %}
+        <div class="flex items-center gap-1.5">
+            {% if page > 1 %}
+            <a href="{{ page_url_base }}{{ page - 1 }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white transition-colors" title="Oldingi">
+                <i class="fa-solid fa-chevron-left text-[0.65rem]"></i>
+            </a>
+            {% else %}
+            <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 border border-white/5 text-white/20 cursor-not-allowed">
+                <i class="fa-solid fa-chevron-left text-[0.65rem]"></i>
+            </div>
+            {% endif %}
+
+            <div class="flex items-center px-2">
+                <span class="text-xs text-white/70 font-semibold">{{ page }}</span>
+                <span class="text-xs text-white/30 mx-1">/</span>
+                <span class="text-xs text-white/40">{{ total_pages }}</span>
+            </div>
+
+            {% if page < total_pages %}
+            <a href="{{ page_url_base }}{{ page + 1 }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white transition-colors" title="Keyingi">
+                <i class="fa-solid fa-chevron-right text-[0.65rem]"></i>
+            </a>
+            {% else %}
+            <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 border border-white/5 text-white/20 cursor-not-allowed">
+                <i class="fa-solid fa-chevron-right text-[0.65rem]"></i>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

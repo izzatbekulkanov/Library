@@ -1,0 +1,17 @@
+[Unit]
+Description=Library FastAPI Application
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/library
+EnvironmentFile=/opt/library/.env
+ExecStart=/opt/library/scripts/start_prod.sh
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

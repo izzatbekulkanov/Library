@@ -1,0 +1,179 @@
+/* =============================================================
+   notification.css — ProAdmin Panel global toast bildirishnoma
+   ============================================================= */
+
+/* ─── Container ─── */
+#notification-container {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.6rem;
+    pointer-events: none;
+    max-width: 360px;
+    width: calc(100vw - 2rem);
+}
+
+/* ─── Toast ─── */
+.toast {
+    pointer-events: all;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.9rem 1.1rem;
+    border-radius: 0.9rem;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    animation: toast-in 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    position: relative;
+    overflow: hidden;
+    min-width: 260px;
+}
+
+.toast.toast-hiding {
+    animation: toast-out 0.28s ease-in forwards;
+}
+
+/* ─── Shine sweep ─── */
+.toast::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 30%, rgba(255,255,255,0.06) 50%, transparent 70%);
+    background-size: 200% 100%;
+    animation: toast-sweep 2.5s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* ─── Progress bar ─── */
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2.5px;
+    border-radius: 0 0 0.9rem 0.9rem;
+    animation: toast-progress linear forwards;
+}
+
+/* ─── Icon ─── */
+.toast-icon {
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+}
+
+/* ─── Text ─── */
+.toast-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.toast-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin: 0 0 0.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.toast-message {
+    font-size: 0.78rem;
+    color: rgba(148, 163, 184, 0.85);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* ─── Close button ─── */
+.toast-close {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: rgba(148, 163, 184, 0.5);
+    padding: 0;
+    cursor: pointer;
+    font-size: 0.75rem;
+    line-height: 1;
+    transition: color 0.15s;
+    align-self: flex-start;
+    margin-top: 0.05rem;
+}
+
+.toast-close:hover {
+    color: #e2e8f0;
+}
+
+/* ─── TYPE: success ─── */
+.toast-success {
+    background: rgba(16, 30, 22, 0.82);
+    border-color: rgba(34, 197, 94, 0.28);
+}
+.toast-success .toast-icon {
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+}
+.toast-success .toast-progress { background: #22c55e; }
+
+/* ─── TYPE: error ─── */
+.toast-error {
+    background: rgba(30, 15, 15, 0.82);
+    border-color: rgba(239, 68, 68, 0.28);
+}
+.toast-error .toast-icon {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+}
+.toast-error .toast-progress { background: #ef4444; }
+
+/* ─── TYPE: warning ─── */
+.toast-warning {
+    background: rgba(28, 22, 10, 0.82);
+    border-color: rgba(245, 158, 11, 0.28);
+}
+.toast-warning .toast-icon {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+}
+.toast-warning .toast-progress { background: #f59e0b; }
+
+/* ─── TYPE: info ─── */
+.toast-info {
+    background: rgba(10, 18, 32, 0.82);
+    border-color: rgba(59, 130, 246, 0.28);
+}
+.toast-info .toast-icon {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+}
+.toast-info .toast-progress { background: #3b82f6; }
+
+/* ─── Animations ─── */
+@keyframes toast-in {
+    from { opacity: 0; transform: translateX(100%) scale(0.92); }
+    to   { opacity: 1; transform: translateX(0)   scale(1);    }
+}
+
+@keyframes toast-out {
+    from { opacity: 1; transform: translateX(0)    scale(1);   }
+    to   { opacity: 0; transform: translateX(80%)  scale(0.9); }
+}
+
+@keyframes toast-sweep {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+@keyframes toast-progress {
+    from { width: 100%; }
+    to   { width: 0%; }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "library-admin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FastAPI Library Management panel with Tailwind CSS",
+  "scripts": {
+    "tw:build": "tailwindcss -i ./app/static/css/input.css -o ./app/static/css/tailwind.css --minify",
+    "tw:watch": "tailwindcss -i ./app/static/css/input.css -o ./app/static/css/tailwind.css --watch",
+    "dev:api": ".\\.venv\\Scripts\\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload",
+    "dev": "concurrently -k -n api,tw -c cyan,magenta \"npm run dev:api\" \"npm run tw:watch\"",
+    "start": ".\\.venv\\Scripts\\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000",
+    "start:prod:win": "powershell -ExecutionPolicy Bypass -File .\\scripts\\start_prod.ps1",
+    "start:prod:linux": "bash ./scripts/start_prod.sh"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.2.2",
+    "concurrently": "^9.2.1",
+    "tailwindcss": "^4.2.2"
+  }
+}

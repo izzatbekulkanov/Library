@@ -1,0 +1,1170 @@
+{% extends "base.html" %}
+
+{% block title %}Tashqi Baza | Glass Pro{% endblock %}
+
+{% block content %}
+<div class="mb-6 relative z-10 p-4 rounded-2xl glass-card border border-white/10 shadow-2xl">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-white mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-cloud-arrow-down text-cyan-400"></i>
+                Tashqi Baza Sinxronizatsiyasi
+            </h1>
+            <p class="text-[0.8rem] text-white/50">
+                Tashqi API manzilidan kitoblarni oling, tanlang va lokal bazaga saqlang.
+            </p>
+        </div>
+    </div>
+
+    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
+        <div class="min-w-0 sm:col-span-2 lg:col-span-8">
+            <label for="apiUrlInput" class="pro-label">Tashqi API URL manzili</label>
+            <div class="pro-input-wrap min-w-0">
+                <span class="pro-icon"><i class="fa-solid fa-link text-[0.8rem]"></i></span>
+                <input
+                    type="url"
+                    id="apiUrlInput"
+                    placeholder="https://arm.namspi.uz/api/offline?format=json"
+                    class="pro-input"
+                    style="padding-top:0.65rem;padding-bottom:0.65rem;"
+                >
+            </div>
+        </div>
+
+        <div class="min-w-0 lg:col-span-2">
+            <label for="bookTypeSelect" class="pro-label">Kitob turi</label>
+            <div class="pro-input-wrap min-w-0">
+                <span class="pro-icon"><i class="fa-solid fa-list text-[0.8rem]"></i></span>
+                <select id="bookTypeSelect" class="pro-select" style="padding-top:0.65rem;padding-bottom:0.65rem;">
+                    <option value="printed">Bosma kitoblar</option>
+                    <option value="online">Online kitoblar</option>
+                </select>
+                <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+            </div>
+        </div>
+
+        <div class="flex items-end lg:col-span-2">
+            <button
+                id="fetchBtn"
+                type="button"
+                onclick="fetchPage(0)"
+                class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white whitespace-nowrap transition-all"
+                style="background:linear-gradient(135deg,#0891b2,#0e7490); border:1px solid rgba(6,182,212,0.35);"
+            >
+                <i class="fa-solid fa-cloud-arrow-down text-xs"></i>
+                <span id="fetchBtnText">O'qish</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="mt-3 flex flex-wrap items-center gap-2">
+        <button
+            type="button"
+            onclick="setPresetUrl('offline')"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 border border-blue-500 hover:bg-blue-700 transition-colors"
+        >
+            <i class="fa-solid fa-book text-[0.65rem]"></i>
+            Offline preset
+        </button>
+        <button
+            type="button"
+            onclick="setPresetUrl('online')"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 border border-blue-500 hover:bg-blue-700 transition-colors"
+        >
+            <i class="fa-solid fa-tablet-screen-button text-[0.65rem]"></i>
+            Online preset
+        </button>
+    </div>
+
+    <p class="mt-3 text-xs text-white/45">
+        `offset` va `limit` avtomatik beriladi. Bir nechta kitobni tanlab saqlang yoki pastdagi tugma bilan barchasini yuklang.
+    </p>
+</div>
+
+<div id="loadingState" class="hidden mb-6 p-5 rounded-2xl border border-blue-500/20 bg-blue-500/10 glass-card">
+    <div class="flex items-center gap-4">
+        <div class="w-10 h-10 rounded-full border-4 border-blue-400/20 border-t-blue-400 animate-spin"></div>
+        <div>
+            <h3 class="text-base font-bold text-blue-300">Ma'lumotlar yuklanmoqda...</h3>
+            <p class="text-xs text-blue-300 mt-1">Iltimos kuting, tashqi serverdan ma'lumot olinmoqda.</p>
+        </div>
+    </div>
+</div>
+
+<div id="resultsContainer" class="hidden glass-card rounded-2xl border border-white/10 overflow-hidden shadow-2xl w-full">
+    <div class="p-4 border-b border-white/10 bg-white/5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-table-list text-cyan-400 text-sm"></i>
+            Natijalar
+        </h2>
+        <div class="flex flex-wrap items-center gap-2">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/20 border border-white/10">
+                <span class="text-xs text-white/50">Jami:</span>
+                <span id="totalBooksLoaded" class="text-sm font-bold text-blue-300">0</span>
+            </div>
+            <button
+                type="button"
+                onclick="selectAllCurrentPage()"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white/80 bg-white/5 hover:bg-white/10 border border-white/15 transition-colors"
+            >
+                <i class="fa-solid fa-check-double text-[0.65rem]"></i>
+                Sahifadagilarni tanlash
+            </button>
+            <button
+                type="button"
+                onclick="clearSelection()"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white/70 bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+            >
+                <i class="fa-solid fa-eraser text-[0.65rem]"></i>
+                Tanlovni tozalash
+            </button>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[980px]" id="booksTable">
+            <thead class="border-b border-white/10 bg-white/5" id="tableHead"></thead>
+            <tbody class="divide-y divide-white/5 text-sm" id="booksTableBody"></tbody>
+        </table>
+    </div>
+
+    <div class="p-4 border-t border-white/10 bg-black/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="text-xs text-white/45">
+            Ko'rsatilmoqda
+            <span id="pageStart" class="font-semibold text-white/75">0</span>
+            dan
+            <span id="pageEnd" class="font-semibold text-white/75">0</span>
+            gacha
+        </div>
+
+        <div class="flex items-center gap-1.5">
+            <button id="prevBtn" type="button" onclick="fetchPrev()" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Oldingi">
+                <i class="fa-solid fa-chevron-left text-[0.65rem]"></i>
+            </button>
+            <div id="currentPageDisplay" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-blue-300 bg-blue-500/10 border border-blue-500/20">1</div>
+            <button id="nextBtn" type="button" onclick="fetchNext()" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Keyingi">
+                <i class="fa-solid fa-chevron-right text-[0.65rem]"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="importPanel" class="hidden mt-6 glass-card rounded-2xl border border-white/10 p-4 sm:p-5">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+            <p class="text-xs text-white/45 uppercase tracking-wider mb-1">Import holati</p>
+            <h3 id="selectedBookTitle" class="text-base sm:text-lg font-semibold text-white">Kitob tanlanmagan</h3>
+            <p id="selectedBookMeta" class="mt-1 text-xs sm:text-sm text-white/65">Bir nechta kitob tanlang yoki barchasini yuklash tugmasidan foydalaning.</p>
+        </div>
+        <div class="flex flex-col items-start sm:items-end gap-2 w-full lg:w-auto">
+            <button
+                id="saveSelectedBtn"
+                type="button"
+                onclick="saveSelectedBook()"
+                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white whitespace-nowrap transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                style="background:linear-gradient(135deg,#16a34a,#15803d); border:1px solid rgba(22,163,74,0.35);"
+            >
+                <i class="fa-solid fa-floppy-disk text-xs"></i>
+                <span id="saveBtnText">Tanlanganlarni saqlash</span>
+            </button>
+            <button
+                id="saveAllBtn"
+                type="button"
+                onclick="saveAllBooks()"
+                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white whitespace-nowrap transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                style="background:linear-gradient(135deg,#0284c7,#075985); border:1px solid rgba(14,165,233,0.35);"
+            >
+                <i class="fa-solid fa-layer-group text-xs"></i>
+                <span id="saveAllBtnText">Barchasini yuklash</span>
+            </button>
+            <div id="importResult" class="text-xs text-white/70"></div>
+            <div id="importProgressWrap" class="hidden w-full min-w-[260px] max-w-[380px]">
+                <div class="flex items-center justify-between text-[0.68rem] text-white/70 mb-1">
+                    <span id="importProgressLabel">Yuklanmoqda...</span>
+                    <span id="importProgressPercent" class="font-semibold text-cyan-300">0%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+                    <div id="importProgressBar" class="h-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-300" style="width:0%"></div>
+                </div>
+                <div id="importProgressMeta" class="mt-1 text-[0.65rem] text-white/55">0 / 0</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let isFetching = false;
+    let isSaving = false;
+    let saveMode = '';
+    let currentOffset = 0;
+    let currentTotal = 0;
+    let lastPayload = {};
+    let lastBooks = [];
+    let selectedIndexes = new Set();
+    const LIMIT = 50;
+    const IMPORT_ALL_LIMIT = 200;
+
+    const urlInputEl = document.getElementById('apiUrlInput');
+    const typeSelectEl = document.getElementById('bookTypeSelect');
+    const fetchBtnTextEl = document.getElementById('fetchBtnText');
+    const loadingStateEl = document.getElementById('loadingState');
+    const resultsContainerEl = document.getElementById('resultsContainer');
+    const totalBooksLoadedEl = document.getElementById('totalBooksLoaded');
+    const tableHeadEl = document.getElementById('tableHead');
+    const tableBodyEl = document.getElementById('booksTableBody');
+    const pageStartEl = document.getElementById('pageStart');
+    const pageEndEl = document.getElementById('pageEnd');
+    const currentPageDisplayEl = document.getElementById('currentPageDisplay');
+    const prevBtnEl = document.getElementById('prevBtn');
+    const nextBtnEl = document.getElementById('nextBtn');
+    const importPanelEl = document.getElementById('importPanel');
+    const selectedBookTitleEl = document.getElementById('selectedBookTitle');
+    const selectedBookMetaEl = document.getElementById('selectedBookMeta');
+    const saveSelectedBtnEl = document.getElementById('saveSelectedBtn');
+    const saveBtnTextEl = document.getElementById('saveBtnText');
+    const saveAllBtnEl = document.getElementById('saveAllBtn');
+    const saveAllBtnTextEl = document.getElementById('saveAllBtnText');
+    const importResultEl = document.getElementById('importResult');
+    const importProgressWrapEl = document.getElementById('importProgressWrap');
+    const importProgressLabelEl = document.getElementById('importProgressLabel');
+    const importProgressPercentEl = document.getElementById('importProgressPercent');
+    const importProgressBarEl = document.getElementById('importProgressBar');
+    const importProgressMetaEl = document.getElementById('importProgressMeta');
+
+    let activeImportJobId = '';
+    let activeImportJobMeta = null;
+    let activeImportPollToken = 0;
+    let forceImportPanelVisible = false;
+    const IMPORT_TRACKER_KEY = 'external_books_import_tracker_v1';
+
+    function normalizeImportMeta(meta) {
+        const data = (meta && typeof meta === 'object') ? meta : {};
+        const itemCount = Array.isArray(data.items) ? data.items.length : 0;
+        const selectedCountRaw = Math.max(0, toSafeInt(data.selected_count));
+        return {
+            source_url: String(data.source_url || data.sourceUrl || '').trim(),
+            book_type: String(data.book_type || data.bookType || data.external_type || '').trim(),
+            import_all: Boolean(data.import_all ?? data.importAll),
+            selected_count: selectedCountRaw > 0 ? selectedCountRaw : (itemCount > 0 ? itemCount : (data.item ? 1 : 0)),
+        };
+    }
+
+    function saveImportTracker(jobId, meta, successFallbackMessage, allowRedirect) {
+        try {
+            const payload = {
+                job_id: String(jobId || '').trim(),
+                meta: normalizeImportMeta(meta),
+                success_message: String(successFallbackMessage || '').trim(),
+                allow_redirect: Boolean(allowRedirect),
+                updated_at: Date.now(),
+            };
+            if (!payload.job_id) return;
+            localStorage.setItem(IMPORT_TRACKER_KEY, JSON.stringify(payload));
+        } catch (_) {}
+    }
+
+    function readImportTracker() {
+        try {
+            const raw = localStorage.getItem(IMPORT_TRACKER_KEY);
+            if (!raw) return null;
+            const parsed = JSON.parse(raw);
+            if (!parsed || typeof parsed !== 'object') return null;
+            const jobId = String(parsed.job_id || '').trim();
+            if (!jobId) return null;
+            return {
+                job_id: jobId,
+                meta: normalizeImportMeta(parsed.meta),
+                success_message: String(parsed.success_message || '').trim(),
+                allow_redirect: Boolean(parsed.allow_redirect),
+            };
+        } catch (_) {
+            return null;
+        }
+    }
+
+    function clearImportTracker() {
+        try {
+            localStorage.removeItem(IMPORT_TRACKER_KEY);
+        } catch (_) {}
+    }
+
+    function applyImportMetaToForm(meta) {
+        const safeMeta = normalizeImportMeta(meta);
+        if (safeMeta.source_url) {
+            urlInputEl.value = safeMeta.source_url;
+        }
+        if (safeMeta.book_type === 'printed' || safeMeta.book_type === 'online') {
+            typeSelectEl.value = safeMeta.book_type;
+        }
+    }
+
+    function showBackgroundImportPanel(meta) {
+        const safeMeta = normalizeImportMeta(meta);
+        forceImportPanelVisible = true;
+        importPanelEl.classList.remove('hidden');
+        selectedBookTitleEl.textContent = safeMeta.import_all
+            ? "Barchasini yuklash davom etmoqda"
+            : "Tanlangan kitoblar yuklanmoqda";
+        selectedBookMetaEl.textContent = safeMeta.import_all
+            ? "Jarayon fon rejimida davom etadi. Sahifadan chiqib qaytsangiz ham progress saqlanadi."
+            : "Tanlangan kitoblar fon rejimida saqlanmoqda. Progress avtomatik yangilanadi.";
+        saveSelectedBtnEl.disabled = true;
+        saveAllBtnEl.disabled = true;
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function toSafeInt(value) {
+        const n = Number.parseInt(value, 10);
+        return Number.isFinite(n) ? n : 0;
+    }
+
+    function hasSwal() {
+        return typeof window.Swal === 'object' && typeof window.Swal.fire === 'function';
+    }
+
+    async function showSwalInfo(message, title = "Ma'lumot") {
+        if (hasSwal()) {
+            await window.Swal.fire({
+                icon: 'info',
+                title,
+                text: String(message || ''),
+                confirmButtonText: 'Tushunarli',
+                confirmButtonColor: '#2563eb',
+            });
+            return;
+        }
+        if (typeof showNotification === 'function') {
+            showNotification(title, String(message || ''), 'info');
+        }
+    }
+
+    async function showSwalError(message, title = "Xatolik") {
+        if (hasSwal()) {
+            await window.Swal.fire({
+                icon: 'error',
+                title,
+                text: String(message || ''),
+                confirmButtonText: 'Yopish',
+                confirmButtonColor: '#dc2626',
+            });
+            return;
+        }
+        if (typeof showNotification === 'function') {
+            showNotification(title, String(message || ''), 'error');
+        }
+    }
+
+    async function askSwalConfirm(message, title = 'Tasdiqlash') {
+        if (hasSwal()) {
+            const result = await window.Swal.fire({
+                icon: 'question',
+                title,
+                text: String(message || ''),
+                showCancelButton: true,
+                confirmButtonText: 'Ha, davom etish',
+                cancelButtonText: 'Bekor qilish',
+                confirmButtonColor: '#0284c7',
+                cancelButtonColor: '#6b7280',
+                reverseButtons: true,
+            });
+            return Boolean(result?.isConfirmed);
+        }
+        if (typeof confirmDialog === 'function') {
+            return confirmDialog({
+                title,
+                message: String(message || ''),
+                confirmText: 'Ha, davom etish',
+                type: 'info',
+            });
+        }
+        return false;
+    }
+
+    function getMediaPath(value) {
+        if (!value) return '';
+        if (typeof value === 'string') return value.trim();
+        if (typeof value === 'object') {
+            if (typeof value.url === 'string' && value.url.trim()) return value.url.trim();
+            if (typeof value.path === 'string' && value.path.trim()) return value.path.trim();
+        }
+        return '';
+    }
+
+    function hasMediaValue(value) {
+        return Boolean(getMediaPath(value));
+    }
+
+    function normalizeAssetUrl(path, apiOrigin) {
+        const raw = String(path || '').trim();
+        if (!raw) return '';
+        if (/^https?:\/\//i.test(raw)) return raw;
+        if (!apiOrigin) return raw;
+        return apiOrigin + (raw.startsWith('/') ? '' : '/') + raw;
+    }
+
+    function detectPayloadType(payload, books) {
+        const scope = String(payload?.scope || '').toLowerCase();
+        if (scope.includes('online')) return 'online';
+        if (scope.includes('offline') || scope.includes('printed')) return 'printed';
+
+        const first = Array.isArray(books) && books.length > 0 ? books[0] : null;
+        if (!first || typeof first !== 'object') return typeSelectEl.value;
+        if (first.online_book) return 'online';
+        if (Array.isArray(first.editions) && !first.copies) return 'online';
+        if (first.book || first.copies) return 'printed';
+        return typeSelectEl.value;
+    }
+
+    function updateFetchBtn(loading) {
+        fetchBtnTextEl.innerHTML = loading
+            ? '<i class="fa-solid fa-spinner fa-spin"></i> O\'qilmoqda'
+            : "O'qish";
+    }
+
+    function setPresetUrl(kind) {
+        if (kind === 'online') {
+            urlInputEl.value = 'https://arm.namspi.uz/api/online?format=json';
+            typeSelectEl.value = 'online';
+            return;
+        }
+        urlInputEl.value = 'https://arm.namspi.uz/api/offline?format=json';
+        typeSelectEl.value = 'printed';
+    }
+
+    function getSelectedItems() {
+        return Array.from(selectedIndexes)
+            .sort((a, b) => a - b)
+            .map((idx) => lastBooks[idx])
+            .filter((item) => item && typeof item === 'object');
+    }
+
+    function setSavingState(active, mode = '') {
+        isSaving = active;
+        saveMode = active ? mode : '';
+        if (active && mode === 'selected') {
+            saveBtnTextEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saqlanmoqda';
+        } else if (!active) {
+            const selectedCount = selectedIndexes.size;
+            saveBtnTextEl.textContent = selectedCount > 1 ? 'Tanlanganlarni saqlash' : 'Tanlanganni saqlash';
+        }
+
+        if (active && mode === 'all') {
+            saveAllBtnTextEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Yuklanmoqda';
+        } else if (!active) {
+            saveAllBtnTextEl.textContent = 'Barchasini yuklash';
+        }
+    }
+
+    function clearSelection() {
+        selectedIndexes = new Set();
+        importResultEl.textContent = '';
+        if (!activeImportJobId) {
+            setProgressVisible(false);
+            setProgressState(0, "Yuklanmoqda...", "0 / 0");
+        }
+        if (!resultsContainerEl.classList.contains('hidden')) {
+            renderTableRows(lastBooks, typeSelectEl.value);
+        }
+        renderSelectedBook();
+    }
+
+    function toggleSelect(index) {
+        if (!Array.isArray(lastBooks) || index < 0 || index >= lastBooks.length) return;
+        if (selectedIndexes.has(index)) {
+            selectedIndexes.delete(index);
+        } else {
+            selectedIndexes.add(index);
+        }
+        renderTableRows(lastBooks, typeSelectEl.value);
+        renderSelectedBook();
+    }
+
+    function selectAllCurrentPage() {
+        if (!Array.isArray(lastBooks) || lastBooks.length === 0) return;
+        selectedIndexes = new Set(lastBooks.map((_, idx) => idx));
+        renderTableRows(lastBooks, typeSelectEl.value);
+        renderSelectedBook();
+    }
+
+    function renderSelectedBook() {
+        if (!Array.isArray(lastBooks) || lastBooks.length === 0) {
+            if (forceImportPanelVisible) {
+                importPanelEl.classList.remove('hidden');
+                saveSelectedBtnEl.disabled = true;
+                saveAllBtnEl.disabled = isSaving;
+            } else {
+                importPanelEl.classList.add('hidden');
+            }
+            return;
+        }
+        if (!activeImportJobId && !isSaving) {
+            forceImportPanelVisible = false;
+        }
+
+        const selectedItems = getSelectedItems();
+        const selectedCount = selectedItems.length;
+        importPanelEl.classList.remove('hidden');
+
+        if (selectedCount === 0) {
+            selectedBookTitleEl.textContent = 'Kitob tanlanmagan';
+            selectedBookMetaEl.textContent = "Bir nechta kitob tanlang yoki barchasini yuklash tugmasidan foydalaning.";
+            if (!isSaving || saveMode !== 'selected') {
+                saveBtnTextEl.textContent = 'Tanlanganlarni saqlash';
+            }
+        } else if (selectedCount === 1) {
+            const selectedItem = selectedItems[0];
+            if (typeSelectEl.value === 'online') {
+                const online = (selectedItem.online_book && typeof selectedItem.online_book === 'object')
+                    ? selectedItem.online_book
+                    : ((selectedItem.book && typeof selectedItem.book === 'object') ? selectedItem.book : selectedItem);
+                const title = String(online?.title || '-');
+                const language = String(online?.language || '-').toUpperCase();
+                const authorsCount = Array.isArray(selectedItem?.authors) ? selectedItem.authors.length : 0;
+                const editionsCount = Array.isArray(selectedItem?.editions) ? selectedItem.editions.length : 0;
+                selectedBookTitleEl.textContent = title;
+                selectedBookMetaEl.textContent = `Online kitob - Til: ${language} - Mualliflar: ${authorsCount} - Versiyalar: ${editionsCount}`;
+            } else {
+                const printed = (selectedItem.book && typeof selectedItem.book === 'object') ? selectedItem.book : selectedItem;
+                const title = String(printed?.title || '-');
+                const copiesCount = Array.isArray(selectedItem?.copies) ? selectedItem.copies.length : toSafeInt(printed?.total_copies);
+                const isbn = String(printed?.isbn || '-');
+                selectedBookTitleEl.textContent = title;
+                selectedBookMetaEl.textContent = `Bosma kitob - ISBN: ${isbn} - Nusxalar: ${copiesCount}`;
+            }
+            if (!isSaving || saveMode !== 'selected') {
+                saveBtnTextEl.textContent = 'Tanlanganni saqlash';
+            }
+        } else {
+            const preview = selectedItems
+                .slice(0, 3)
+                .map((item) => {
+                    if (typeSelectEl.value === 'online') {
+                        const online = (item?.online_book && typeof item.online_book === 'object')
+                            ? item.online_book
+                            : ((item?.book && typeof item.book === 'object') ? item.book : item);
+                        return String(online?.title || '-');
+                    }
+                    const printed = (item?.book && typeof item.book === 'object') ? item.book : item;
+                    return String(printed?.title || '-');
+                })
+                .join(' | ');
+            const tailText = selectedCount > 3 ? ` va yana ${selectedCount - 3} ta` : '';
+            selectedBookTitleEl.textContent = `${selectedCount} ta kitob tanlandi`;
+            selectedBookMetaEl.textContent = `Tanlangan kitoblar to'liq yuklanadi. ${preview}${tailText}`;
+            if (!isSaving || saveMode !== 'selected') {
+                saveBtnTextEl.textContent = 'Tanlanganlarni saqlash';
+            }
+        }
+
+        saveSelectedBtnEl.disabled = selectedCount === 0 || isSaving;
+        saveAllBtnEl.disabled = isSaving;
+    }
+
+    async function fetchPage(offset) {
+        if (isFetching) return;
+
+        const urlInput = urlInputEl.value.trim();
+        if (!urlInput) {
+            await showSwalInfo("Iltimos, avval API URL manzilini kiriting.");
+            return;
+        }
+
+        let urlObj;
+        try {
+            urlObj = new URL(urlInput);
+        } catch (err) {
+            await showSwalError("URL formati noto'g'ri. To'liq URL kiriting.");
+            return;
+        }
+
+        isFetching = true;
+        currentOffset = Math.max(0, offset);
+        updateFetchBtn(true);
+        selectedIndexes = new Set();
+        importResultEl.textContent = '';
+        if (!activeImportJobId) {
+            setProgressVisible(false);
+            setProgressState(0, "Yuklanmoqda...", "0 / 0");
+        }
+        resultsContainerEl.classList.add('hidden');
+        if (!forceImportPanelVisible) {
+            importPanelEl.classList.add('hidden');
+        }
+        loadingStateEl.classList.remove('hidden');
+        prevBtnEl.disabled = true;
+        nextBtnEl.disabled = true;
+
+        try {
+            urlObj.searchParams.set('offset', String(currentOffset));
+            urlObj.searchParams.set('limit', String(LIMIT));
+
+            const proxyUrl = "/external-books/api/fetch?url=" + encodeURIComponent(urlObj.toString());
+            const response = await fetch(proxyUrl);
+
+            if (!response.ok) {
+                let errorText = "Server xatosi";
+                try {
+                    const errData = await response.json();
+                    if (errData && errData.detail) errorText = errData.detail;
+                } catch (_) {}
+                throw new Error(errorText);
+            }
+
+            const data = await response.json();
+            lastPayload = (data && typeof data === 'object') ? data : {};
+            lastBooks = Array.isArray(lastPayload?.books) ? lastPayload.books : [];
+
+            const totalBooks = Number(lastPayload?.total_books);
+            currentTotal = Number.isFinite(totalBooks) && totalBooks >= 0 ? totalBooks : lastBooks.length;
+
+            const detectedType = detectPayloadType(lastPayload, lastBooks);
+            typeSelectEl.value = detectedType;
+            renderTableHeaders(detectedType);
+            renderTableRows(lastBooks, detectedType);
+            updatePaginationUI(lastPayload, lastBooks.length);
+
+            totalBooksLoadedEl.textContent = String(currentTotal);
+            resultsContainerEl.classList.remove('hidden');
+            renderSelectedBook();
+        } catch (err) {
+            console.error("External fetch error:", err);
+            await showSwalError("Ma'lumot olishda xatolik yuz berdi: " + (err?.message || "Noma'lum xato"));
+        } finally {
+            isFetching = false;
+            updateFetchBtn(false);
+            loadingStateEl.classList.add('hidden');
+        }
+    }
+
+    function fetchNext() {
+        if (!isFetching && !nextBtnEl.disabled) fetchPage(currentOffset + LIMIT);
+    }
+
+    function fetchPrev() {
+        if (!isFetching && currentOffset >= LIMIT && !prevBtnEl.disabled) {
+            fetchPage(currentOffset - LIMIT);
+        }
+    }
+
+    function updatePaginationUI(data, rowCount) {
+        const start = currentTotal === 0 ? 0 : currentOffset + 1;
+        const end = currentTotal === 0 ? 0 : currentOffset + rowCount;
+        const currentPage = Math.floor(currentOffset / LIMIT) + 1;
+        const hasMoreFromApi = typeof data?.has_more === 'boolean'
+            ? data.has_more
+            : (currentOffset + rowCount < currentTotal && rowCount >= LIMIT);
+
+        pageStartEl.textContent = String(start);
+        pageEndEl.textContent = String(end);
+        currentPageDisplayEl.textContent = String(currentPage);
+
+        prevBtnEl.disabled = currentOffset === 0;
+        nextBtnEl.disabled = rowCount === 0 || !hasMoreFromApi;
+    }
+
+    function renderTableHeaders(type) {
+        if (type === 'printed') {
+            tableHeadEl.innerHTML = `
+                <tr>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest w-24 text-center">Tanlash</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">Muqova</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">Nomi</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">Muallif / Yili</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">ISBN</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-right">Nusxalar</th>
+                </tr>
+            `;
+            return;
+        }
+
+        tableHeadEl.innerHTML = `
+            <tr>
+                <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest w-24 text-center">Tanlash</th>
+                <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">Muqova</th>
+                <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">Online kitob nomi</th>
+                <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">Muallif / Til</th>
+                <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-center">Fayllar</th>
+                <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-right">Adadi</th>
+            </tr>
+        `;
+    }
+
+    function renderTableRows(books, type) {
+        if (!Array.isArray(books) || books.length === 0) {
+            tableBodyEl.innerHTML = `
+                <tr>
+                    <td colspan="6" class="py-14 text-center text-white/35">
+                        <i class="fa-solid fa-database text-3xl mb-3 block text-white/20"></i>
+                        Hozircha ma'lumot topilmadi
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        let apiOrigin = '';
+        try {
+            apiOrigin = new URL(urlInputEl.value.trim()).origin;
+        } catch (_) {}
+
+        let html = '';
+        books.forEach((item, index) => {
+            const selected = selectedIndexes.has(index);
+            const rowClass = selected ? 'bg-blue-500/10' : 'hover:bg-white/[0.03]';
+            const selectBtnClass = selected
+                ? 'bg-blue-500/25 border-blue-400/50 text-white'
+                : 'bg-white/5 border-white/10 text-white/70 hover:text-white hover:bg-white/10';
+            const selectBtn = `
+                <button type="button" onclick="toggleSelect(${index})"
+                    class="px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${selectBtnClass}">
+                    ${selected ? 'Tanlangan' : 'Tanlash'}
+                </button>
+            `;
+
+            let authorsNames = '<span class="text-white/35">-</span>';
+            if (Array.isArray(item?.authors) && item.authors.length > 0) {
+                authorsNames = item.authors
+                    .map((a) => {
+                        const name = escapeHtml(a?.name || '-');
+                        return `<span class="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-300 text-[0.65rem] font-semibold border border-blue-500/20">${name}</span>`;
+                    })
+                    .join(' ');
+            }
+
+            if (type === 'printed') {
+                const printed = (item && typeof item === 'object' && item.book && typeof item.book === 'object')
+                    ? item.book
+                    : (item || {});
+                const mediaImg = getMediaPath(item?.media?.image);
+                const displayImg = normalizeAssetUrl(mediaImg || printed?.image, apiOrigin);
+                const title = escapeHtml(printed?.title || '-');
+                const isbn = escapeHtml(printed?.isbn || '-');
+                const publishYear = escapeHtml(item?.related?.publication_year?.year || '-');
+                const copyCount = Array.isArray(item?.copies) ? item.copies.length : toSafeInt(printed?.total_copies);
+                const safeImg = escapeHtml(displayImg);
+
+                html += `
+                    <tr class="${rowClass} transition-colors">
+                        <td class="py-4 px-5 text-center">${selectBtn}</td>
+                        <td class="py-4 px-5">
+                            <div class="w-11 h-14 rounded-lg bg-white/5 flex items-center justify-center overflow-hidden border border-white/10 shrink-0">
+                                ${safeImg
+                                    ? `<img src="${safeImg}" class="w-full h-full object-cover" onerror="this.onerror=null; this.outerHTML='<i class=\\'fa-solid fa-book text-white/30 text-lg\\'></i>';">`
+                                    : `<i class="fa-solid fa-book text-white/30 text-lg"></i>`
+                                }
+                            </div>
+                        </td>
+                        <td class="py-4 px-5">
+                            <p class="font-semibold text-white text-sm">${title}</p>
+                        </td>
+                        <td class="py-4 px-5">
+                            <div class="flex flex-wrap gap-1 mb-1.5">${authorsNames}</div>
+                            <div class="text-xs text-white/45">
+                                <i class="fa-regular fa-calendar mr-1"></i>${publishYear} yil
+                            </div>
+                        </td>
+                        <td class="py-4 px-5 text-white/65 text-xs font-mono">${isbn}</td>
+                        <td class="py-4 px-5 text-right">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                                <i class="fa-solid fa-layer-group text-[0.6rem]"></i>${copyCount}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const online = (item && typeof item === 'object' && item.online_book && typeof item.online_book === 'object')
+                ? item.online_book
+                : ((item && typeof item === 'object' && item.book && typeof item.book === 'object') ? item.book : (item || {}));
+            const title = escapeHtml(online?.title || '-');
+            let displayImg = normalizeAssetUrl(getMediaPath(item?.media?.image) || online?.image, apiOrigin);
+
+            let totalAdad = toSafeInt(online?.adad);
+            let hasFile = false;
+            let hasAudio = false;
+
+            if (Array.isArray(item?.editions)) {
+                for (const edWrap of item.editions) {
+                    const edition = (edWrap && typeof edWrap === 'object' && edWrap.edition && typeof edWrap.edition === 'object')
+                        ? edWrap.edition
+                        : (edWrap || {});
+                    const media = (edWrap && typeof edWrap === 'object') ? (edWrap.media || {}) : {};
+                    totalAdad += toSafeInt(edition?.adad);
+                    if (hasMediaValue(edition?.file) || hasMediaValue(media?.file)) hasFile = true;
+                    if (hasMediaValue(edition?.audio_file) || hasMediaValue(media?.audio_file)) hasAudio = true;
+                    if (!displayImg) {
+                        const edImage = getMediaPath(media?.image) || getMediaPath(edition?.image);
+                        if (edImage) displayImg = normalizeAssetUrl(edImage, apiOrigin);
+                    }
+                }
+            }
+
+            const langCode = escapeHtml(String(online?.language || '-').toUpperCase());
+            const safeImg = escapeHtml(displayImg);
+
+            html += `
+                <tr class="${rowClass} transition-colors">
+                    <td class="py-4 px-5 text-center">${selectBtn}</td>
+                    <td class="py-4 px-5">
+                        <div class="w-11 h-14 rounded-lg bg-white/5 flex items-center justify-center overflow-hidden border border-white/10 shrink-0">
+                            ${safeImg
+                                ? `<img src="${safeImg}" class="w-full h-full object-cover" onerror="this.onerror=null; this.outerHTML='<i class=\\'fa-solid fa-tablet-screen-button text-cyan-400 text-lg\\'></i>';">`
+                                : `<i class="fa-solid fa-tablet-screen-button text-cyan-400 text-lg"></i>`
+                            }
+                        </div>
+                    </td>
+                    <td class="py-4 px-5">
+                        <p class="font-semibold text-white text-sm">${title}</p>
+                    </td>
+                    <td class="py-4 px-5">
+                        <div class="flex flex-wrap gap-1 mb-1.5">${authorsNames}</div>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[0.6rem] font-semibold uppercase bg-white/10 text-white/70 border border-white/10">
+                            <i class="fa-solid fa-earth-americas"></i>${langCode}
+                        </span>
+                    </td>
+                    <td class="py-4 px-5 text-center">
+                        <div class="inline-flex items-center justify-center gap-3">
+                            ${hasFile
+                                ? '<span class="text-emerald-300" title="Kitob fayli mavjud"><i class="fa-solid fa-file-pdf"></i></span>'
+                                : '<span class="text-red-300/70" title="Kitob fayli yo&#39;q"><i class="fa-solid fa-file-pdf"></i></span>'
+                            }
+                            ${hasAudio
+                                ? '<span class="text-emerald-300" title="Audio mavjud"><i class="fa-solid fa-headphones"></i></span>'
+                                : '<span class="text-red-300/70" title="Audio yo&#39;q"><i class="fa-solid fa-headphones"></i></span>'
+                            }
+                        </div>
+                    </td>
+                    <td class="py-4 px-5 text-right">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                            <i class="fa-solid fa-cubes text-[0.6rem]"></i>${totalAdad}
+                        </span>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tableBodyEl.innerHTML = html;
+    }
+
+    function renderImportResult(data, fallbackMessage, allowRedirect) {
+        const message = String(data?.message || fallbackMessage || "Muvaffaqiyatli saqlandi.");
+        const redirectUrl = String(data?.redirect_url || '').trim();
+        importResultEl.innerHTML = '';
+
+        const textSpan = document.createElement('span');
+        textSpan.textContent = message;
+        importResultEl.appendChild(textSpan);
+
+        if (allowRedirect && redirectUrl) {
+            const link = document.createElement('a');
+            link.href = redirectUrl;
+            link.className = 'text-blue-300 hover:text-blue-200 underline ml-2';
+            link.textContent = 'Ochish';
+            importResultEl.appendChild(link);
+        }
+
+        if (Array.isArray(data?.errors) && data.errors.length > 0) {
+            const firstError = data.errors[0] && typeof data.errors[0].message === 'string'
+                ? data.errors[0].message
+                : '';
+            if (firstError) {
+                const errLine = document.createElement('div');
+                errLine.className = 'mt-1 text-red-300/90';
+                errLine.textContent = `Xatolik: ${firstError}`;
+                importResultEl.appendChild(errLine);
+            }
+        }
+    }
+
+    function setProgressVisible(visible) {
+        if (visible) {
+            importProgressWrapEl.classList.remove('hidden');
+            return;
+        }
+        importProgressWrapEl.classList.add('hidden');
+    }
+
+    function setProgressState(percent, labelText, metaText) {
+        const safePercent = Math.max(0, Math.min(100, toSafeInt(percent)));
+        importProgressPercentEl.textContent = `${safePercent}%`;
+        importProgressBarEl.style.width = `${safePercent}%`;
+        importProgressLabelEl.textContent = labelText || 'Yuklanmoqda...';
+        importProgressMetaEl.textContent = metaText || '';
+    }
+
+    async function wait(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    async function trackActiveImportJob(successFallbackMessage, allowRedirect, options = {}) {
+        const silentNotFound = Boolean(options.silentNotFound);
+        const pollToken = ++activeImportPollToken;
+        while (activeImportJobId && pollToken === activeImportPollToken) {
+            await wait(700);
+            const progressResponse = await fetch(`/external-books/api/import-progress/${encodeURIComponent(activeImportJobId)}`);
+            const progressData = await progressResponse.json().catch(() => ({}));
+            if (!progressResponse.ok || !progressData?.ok) {
+                const isNotFound = progressResponse.status === 404;
+                const errMessage = progressData?.detail || progressData?.message || "Progress olishda xatolik.";
+                activeImportJobId = '';
+                activeImportJobMeta = null;
+                clearImportTracker();
+                if (silentNotFound && isNotFound) {
+                    setProgressVisible(false);
+                    return { ok: false, status: 'missing' };
+                }
+                throw new Error(errMessage);
+            }
+
+            const status = String(progressData.status || '').toLowerCase();
+            const processed = toSafeInt(progressData.processed);
+            const total = toSafeInt(progressData.total);
+            const percent = toSafeInt(progressData.progress_percent);
+            const message = String(progressData.message || "Yuklanmoqda...");
+            const phase = String(progressData.phase || '');
+            const phaseLabel = phase ? `${phase}: ${message}` : message;
+            const meta = total > 0 ? `${processed} / ${total}` : `${processed}`;
+            setProgressState(percent, phaseLabel, meta);
+
+            if (status === 'done') {
+                activeImportJobId = '';
+                activeImportJobMeta = null;
+                clearImportTracker();
+                const resultData = progressData.result && typeof progressData.result === 'object'
+                    ? progressData.result
+                    : progressData;
+                const successMessage = resultData?.message || successFallbackMessage || "Muvaffaqiyatli saqlandi.";
+                if (typeof showNotification === 'function') {
+                    showNotification('Muvaffaqiyatli', successMessage, 'success');
+                }
+                renderImportResult(resultData, successMessage, allowRedirect);
+                setProgressState(100, 'Tugallandi', meta);
+                return { ok: true, status: 'done', result: resultData };
+            }
+
+            if (status === 'error') {
+                activeImportJobId = '';
+                activeImportJobMeta = null;
+                clearImportTracker();
+                throw new Error(progressData?.message || "Import jarayonida xatolik.");
+            }
+        }
+
+        return { ok: false, status: 'stopped' };
+    }
+
+    async function runImportJob(jobPayload, successFallbackMessage, allowRedirect) {
+        const startResponse = await fetch('/external-books/api/import-async', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(jobPayload)
+        });
+
+        const startData = await startResponse.json().catch(() => ({}));
+        if (!startResponse.ok || !startData?.ok || !startData?.job_id) {
+            throw new Error(startData?.detail || startData?.message || "Import jarayonini boshlashda xatolik.");
+        }
+
+        activeImportJobId = String(startData.job_id);
+        activeImportJobMeta = normalizeImportMeta(startData?.meta || jobPayload);
+        applyImportMetaToForm(activeImportJobMeta);
+        forceImportPanelVisible = true;
+        saveImportTracker(activeImportJobId, activeImportJobMeta, successFallbackMessage, allowRedirect);
+        setProgressVisible(true);
+        const queuedPos = toSafeInt(startData.queue_position);
+        if (queuedPos > 1) {
+            setProgressState(1, `Navbatga qo'shildi (${queuedPos}-o'rin)`, "0 / 0");
+        } else {
+            setProgressState(1, "Jarayon boshlandi...", "0 / 0");
+        }
+        return trackActiveImportJob(successFallbackMessage, allowRedirect);
+    }
+
+    async function restoreRunningImportJob() {
+        if (isSaving || activeImportJobId) return;
+
+        let tracker = readImportTracker();
+        if (!tracker) {
+            const currentResp = await fetch('/external-books/api/import-progress-current');
+            const currentData = await currentResp.json().catch(() => ({}));
+            if (currentResp.ok && currentData?.ok && currentData?.has_job && currentData?.job_id) {
+                tracker = {
+                    job_id: String(currentData.job_id),
+                    meta: normalizeImportMeta(currentData.meta),
+                    success_message: '',
+                    allow_redirect: false,
+                };
+                saveImportTracker(tracker.job_id, tracker.meta, tracker.success_message, tracker.allow_redirect);
+            }
+        }
+
+        if (!tracker || !tracker.job_id) return;
+
+        activeImportJobId = String(tracker.job_id);
+        activeImportJobMeta = normalizeImportMeta(tracker.meta);
+        applyImportMetaToForm(activeImportJobMeta);
+        setSavingState(true, activeImportJobMeta.import_all ? 'all' : 'selected');
+        showBackgroundImportPanel(activeImportJobMeta);
+        setProgressVisible(true);
+        setProgressState(1, "Avvalgi import tiklandi...", "0 / 0");
+
+        let restoreStatus = '';
+        try {
+            const restoreResult = await trackActiveImportJob(
+                tracker.success_message || "Kitoblar to'liq yuklandi.",
+                Boolean(tracker.allow_redirect),
+                { silentNotFound: true },
+            );
+            restoreStatus = String(restoreResult?.status || '');
+        } catch (err) {
+            console.error("Restore import error:", err);
+            const errMsg = err?.message || "Import holatini tiklashda xatolik.";
+            importResultEl.textContent = errMsg;
+            if (typeof showNotification === 'function') {
+                showNotification('Xatolik', errMsg, 'error');
+            }
+        } finally {
+            setSavingState(false);
+            if (restoreStatus === 'missing' && (!Array.isArray(lastBooks) || lastBooks.length === 0)) {
+                forceImportPanelVisible = false;
+                importPanelEl.classList.add('hidden');
+                return;
+            }
+            if (!Array.isArray(lastBooks) || lastBooks.length === 0) {
+                forceImportPanelVisible = true;
+                importPanelEl.classList.remove('hidden');
+                saveSelectedBtnEl.disabled = true;
+                saveAllBtnEl.disabled = false;
+            } else {
+                renderSelectedBook();
+            }
+        }
+    }
+
+    async function saveSelectedBook() {
+        if (isSaving) return;
+        const selectedItems = getSelectedItems();
+        if (selectedItems.length === 0) {
+            await showSwalInfo("Avval jadvaldan kamida bitta kitob tanlang.");
+            return;
+        }
+
+        const sourceUrl = urlInputEl.value.trim();
+        if (!sourceUrl) {
+            await showSwalInfo("Avval API URL kiriting.");
+            return;
+        }
+
+        setSavingState(true, 'selected');
+        renderSelectedBook();
+        importResultEl.textContent = '';
+        setProgressVisible(true);
+        setProgressState(1, "Tayyorlanmoqda...", `0 / ${selectedItems.length}`);
+
+        try {
+            const allowRedirect = selectedItems.length === 1;
+            await runImportJob(
+                {
+                    source_url: sourceUrl,
+                    book_type: typeSelectEl.value,
+                    items: selectedItems,
+                    update_existing: false,
+                    commit_every: 100,
+                },
+                "Tanlangan kitoblar to'liq yuklandi.",
+                allowRedirect,
+            );
+        } catch (err) {
+            console.error("Import error:", err);
+            const errMsg = err?.message || "Noma'lum xatolik";
+            if (typeof showNotification === 'function') {
+                showNotification('Xatolik', errMsg, 'error');
+            }
+            await showSwalError(errMsg);
+        } finally {
+            setSavingState(false);
+            renderSelectedBook();
+        }
+    }
+
+    async function saveAllBooks() {
+        if (isSaving) return;
+
+        const sourceUrl = urlInputEl.value.trim();
+        if (!sourceUrl) {
+            await showSwalInfo("Avval API URL kiriting.");
+            return;
+        }
+
+        const ok = await askSwalConfirm(
+            "Barcha kitoblar to'liq yuklansinmi? Mavjudlari ham to'liq qayta saqlanadi.",
+            "Barchasini yuklash"
+        );
+        if (!ok) return;
+
+        setSavingState(true, 'all');
+        renderSelectedBook();
+        importResultEl.textContent = '';
+        setProgressVisible(true);
+        setProgressState(1, "Serverdan ro'yxat olinmoqda...", "0 / 0");
+
+        try {
+            await runImportJob(
+                {
+                    source_url: sourceUrl,
+                    book_type: typeSelectEl.value,
+                    import_all: true,
+                    update_existing: false,
+                    limit: IMPORT_ALL_LIMIT,
+                    commit_every: 100,
+                },
+                "Barcha kitoblar to'liq yuklandi.",
+                false,
+            );
+        } catch (err) {
+            console.error("Import all error:", err);
+            const errMsg = err?.message || "Noma'lum xatolik";
+            if (typeof showNotification === 'function') {
+                showNotification('Xatolik', errMsg, 'error');
+            }
+            await showSwalError(errMsg);
+        } finally {
+            setSavingState(false);
+            renderSelectedBook();
+        }
+    }
+
+    typeSelectEl.addEventListener('change', () => {
+        if (resultsContainerEl.classList.contains('hidden')) return;
+        selectedIndexes = new Set();
+        importResultEl.textContent = '';
+        renderTableHeaders(typeSelectEl.value);
+        renderTableRows(lastBooks, typeSelectEl.value);
+        renderSelectedBook();
+    });
+
+    urlInputEl.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            fetchPage(0);
+        }
+    });
+
+    setTimeout(() => {
+        restoreRunningImportJob().catch((err) => {
+            console.error("Restore running import failed:", err);
+        });
+    }, 0);
+</script>
+{% endblock %}

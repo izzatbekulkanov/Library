@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Nashriyot Ma'lumotlari") }} | Glass Pro{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10 w-full">
+    <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white mb-1 flex items-center gap-2">
+            <i class="fa-solid fa-print text-violet-400"></i> {{ _("Nashriyot Ma'lumotlari") }}
+        </h1>
+        <p class="text-[0.8rem] text-white/50 tracking-wide">{{ _('Nashriyotlar, shaharlar va nashr yillari') }}</p>
+    </div>
+
+    <div class="flex items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
+        <div class="pro-input-wrap w-full sm:w-[260px]">
+            <span class="pro-icon"><i class="fa-solid fa-search text-[0.85rem]"></i></span>
+            <input type="text" id="searchInput" placeholder="{{ _('Qidirish') }}..." class="pro-input" style="padding-top:0.65rem;padding-bottom:0.65rem;">
+        </div>
+
+        <!-- Har bir tab uchun add tugmalari -->
+        <button id="addPublisherBtn" onclick="openModal('publisher')"
+            style="display:none; align-items:center; gap:0.4rem; padding:0.625rem 1.1rem; background:linear-gradient(135deg,#7c3aed,#6d28d9); color:white; border-radius:0.75rem; font-size:0.85rem; font-weight:500; border:1px solid rgba(124,58,237,0.4); cursor:pointer; white-space:nowrap; flex-shrink:0; transition:all 0.2s;"
+            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 0 20px rgba(124,58,237,0.4)'"
+            onmouseout="this.style.transform=''; this.style.boxShadow=''">
+            <i class="fa-solid fa-plus" style="font-size:0.75rem;"></i> {{ _('Yangi Nashriyot') }}
+        </button>
+        <button id="addCityBtn" onclick="openModal('city')"
+            style="display:none; align-items:center; gap:0.4rem; padding:0.625rem 1.1rem; background:linear-gradient(135deg,#0891b2,#0e7490); color:white; border-radius:0.75rem; font-size:0.85rem; font-weight:500; border:1px solid rgba(8,145,178,0.4); cursor:pointer; white-space:nowrap; flex-shrink:0; transition:all 0.2s;"
+            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 0 20px rgba(8,145,178,0.4)'"
+            onmouseout="this.style.transform=''; this.style.boxShadow=''">
+            <i class="fa-solid fa-plus" style="font-size:0.75rem;"></i> {{ _('Yangi Shahar') }}
+        </button>
+        <button id="addYearBtn" onclick="openModal('year')"
+            style="display:none; align-items:center; gap:0.4rem; padding:0.625rem 1.1rem; background:linear-gradient(135deg,#d97706,#b45309); color:white; border-radius:0.75rem; font-size:0.85rem; font-weight:500; border:1px solid rgba(217,119,6,0.4); cursor:pointer; white-space:nowrap; flex-shrink:0; transition:all 0.2s;"
+            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 0 20px rgba(217,119,6,0.4)'"
+            onmouseout="this.style.transform=''; this.style.boxShadow=''">
+            <i class="fa-solid fa-plus" style="font-size:0.75rem;"></i> {{ _('Yangi Yil') }}
+        </button>
+    </div>
+</div>
+
+<!-- TABS -->
+<div class="flex gap-1 mb-6 border-b border-white/10 pb-[1px]">
+    <button onclick="switchTab('publishers')" id="tab-publishers" class="relative px-6 py-3 text-sm font-medium rounded-t-xl transition-all whitespace-nowrap cursor-pointer text-white/40 hover:bg-white/10 hover:text-white">
+        <div class="flex items-center gap-2"><i class="fa-solid fa-print"></i> {{ _('Nashriyotlar') }}</div>
+        <div id="tab-publishers-ind" class="absolute bottom-0 left-0 w-full h-[2px] bg-violet-600 opacity-0 transition-opacity duration-200"></div>
+    </button>
+    <button onclick="switchTab('cities')" id="tab-cities" class="relative px-6 py-3 text-sm font-medium rounded-t-xl transition-all whitespace-nowrap cursor-pointer text-white/40 hover:bg-white/10 hover:text-white">
+        <div class="flex items-center gap-2"><i class="fa-solid fa-city"></i> {{ _('Nashr Shaharlari') }}</div>
+        <div id="tab-cities-ind" class="absolute bottom-0 left-0 w-full h-[2px] bg-cyan-600 opacity-0 transition-opacity duration-200"></div>
+    </button>
+    <button onclick="switchTab('years')" id="tab-years" class="relative px-6 py-3 text-sm font-medium rounded-t-xl transition-all whitespace-nowrap cursor-pointer text-white/40 hover:bg-white/10 hover:text-white">
+        <div class="flex items-center gap-2"><i class="fa-solid fa-calendar-days"></i> {{ _('Nashr Yillari') }}</div>
+        <div id="tab-years-ind" class="absolute bottom-0 left-0 w-full h-[2px] bg-amber-600 opacity-0 transition-opacity duration-200"></div>
+    </button>
+</div>
+
+<!-- ====== PUBLISHERS TABLE ====== -->
+<div id="content-publishers" class="tab-content glass-card rounded-2xl border border-white/10 overflow-hidden shadow-2xl w-full mb-8" style="display:none;">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[500px] dataTable">
+            <thead>
+                <tr class="border-b border-white/10 bg-white/5">
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest w-12 text-center">{{ _('Tr') }}</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">{{ _('Nashriyot nomi') }}</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-center">{{ _('Holat') }}</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-right w-24">{{ _('Amallar') }}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 text-sm tableBody">
+                {% for item in publishers %}
+                <tr class="hover:bg-white/[0.03] transition-colors group">
+                    <td class="py-4 px-5 text-center text-white/40 font-mono text-xs">{{ loop.index }}</td>
+                    <td class="py-4 px-5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(124,58,237,0.15); border:1px solid rgba(124,58,237,0.2);">
+                                <i class="fa-solid fa-print text-violet-400 text-sm"></i>
+                            </div>
+                            <span class="font-semibold text-white">{{ item.name }}</span>
+                        </div>
+                    </td>
+                    <td class="py-4 px-5 text-center">
+                        {% if item.is_active %}
+                        <span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.25rem 0.75rem;border-radius:999px;font-size:0.65rem;font-weight:700;letter-spacing:0.07em;background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.25);">
+                            <span style="width:6px;height:6px;border-radius:50%;background:#4ade80;animation:pulse 2s infinite;"></span> {{ _('FAOL') }}
+                        </span>
+                        {% else %}
+                        <span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.25rem 0.75rem;border-radius:999px;font-size:0.65rem;font-weight:700;letter-spacing:0.07em;background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2);">
+                            <span style="width:6px;height:6px;border-radius:50%;background:#f87171;"></span> {{ _('NOFAOL') }}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-5 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <button onclick='openModal("publisher", {{ item.id }}, {{ item.name|tojson }}, {{ "true" if item.is_active else "false" }})' tooltip="{{ _('Tahrirlash') }}" class="w-8 h-8 rounded-lg bg-violet-500/10 hover:bg-violet-500/20 text-violet-400 flex items-center justify-center transition-colors border border-violet-500/0 hover:border-violet-500/30">
+                                <i class="fa-solid fa-pen-to-square text-xs"></i>
+                            </button>
+                            <button onclick="confirmDelete('{{ item.name }}', '/publishers/delete/{{ item.id }}')" tooltip="{{ _('O\'chirish') }}" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition-colors border border-red-500/0 hover:border-red-500/30">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="py-12 text-center text-white/40">{{ _('Nashriyotlar topilmadi') }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="p-4 border-t border-white/10 bg-black/10 text-xs text-white/40">
+        {{ _('Jami:') }} <span class="font-medium text-white/70">{{ publishers|length }}</span> {{ _('ta nashriyot') }}
+    </div>
+</div>
+
+<!-- ====== CITIES TABLE ====== -->
+<div id="content-cities" class="tab-content glass-card rounded-2xl border border-white/10 overflow-hidden shadow-2xl w-full mb-8" style="display:none;">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[500px] dataTable">
+            <thead>
+                <tr class="border-b border-white/10 bg-white/5">
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest w-12 text-center">{{ _('Tr') }}</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">{{ _('Shahar nomi') }}</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-center">{{ _('Holat') }}</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-right w-24">{{ _('Amallar') }}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 text-sm tableBody">
+                {% for item in cities %}
+                <tr class="hover:bg-white/[0.03] transition-colors group">
+                    <td class="py-4 px-5 text-center text-white/40 font-mono text-xs">{{ loop.index }}</td>
+                    <td class="py-4 px-5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(8,145,178,0.15); border:1px solid rgba(8,145,178,0.2);">
+                                <i class="fa-solid fa-city text-cyan-400 text-sm"></i>
+                            </div>
+                            <span class="font-semibold text-white">{{ item.name }}</span>
+                        </div>
+                    </td>
+                    <td class="py-4 px-5 text-center">
+                        {% if item.is_active %}
+                        <span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.25rem 0.75rem;border-radius:999px;font-size:0.65rem;font-weight:700;letter-spacing:0.07em;background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.25);">
+                            <span style="width:6px;height:6px;border-radius:50%;background:#4ade80;animation:pulse 2s infinite;"></span> {{ _('FAOL') }}
+                        </span>
+                        {% else %}
+                        <span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.25rem 0.75rem;border-radius:999px;font-size:0.65rem;font-weight:700;letter-spacing:0.07em;background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2);">
+                            <span style="width:6px;height:6px;border-radius:50%;background:#f87171;"></span> {{ _('NOFAOL') }}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-5 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <button onclick='openModal("city", {{ item.id }}, {{ item.name|tojson }}, {{ "true" if item.is_active else "false" }})' tooltip="{{ _('Tahrirlash') }}" class="w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center transition-colors border border-blue-500/0 hover:border-blue-500/30">
+                                <i class="fa-solid fa-pen-to-square text-xs"></i>
+                            </button>
+                            <button onclick="confirmDelete('{{ item.name }}', '/publishers/city/delete/{{ item.id }}')" tooltip="{{ _('O\'chirish') }}" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition-colors border border-red-500/0 hover:border-red-500/30">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="py-12 text-center text-white/40">{{ _('Shaharlar topilmadi') }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="p-4 border-t border-white/10 bg-black/10 text-xs text-white/40">
+        {{ _('Jami:') }} <span class="font-medium text-white/70">{{ cities|length }}</span> {{ _('ta shahar') }}
+    </div>
+</div>
+
+<!-- ====== YEARS TABLE ====== -->
+<div id="content-years" class="tab-content glass-card rounded-2xl border border-white/10 overflow-hidden shadow-2xl w-full mb-8" style="display:none;">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[500px] dataTable">
+            <thead>
+                <tr class="border-b border-white/10 bg-white/5">
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest w-12 text-center">{{ _('Tr') }}</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">{{ _('Nashr Yili') }}</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-center">{{ _('Holat') }}</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-right w-24">{{ _('Amallar') }}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 text-sm tableBody">
+                {% for item in years %}
+                <tr class="hover:bg-white/[0.03] transition-colors group">
+                    <td class="py-4 px-5 text-center text-white/40 font-mono text-xs">{{ loop.index }}</td>
+                    <td class="py-4 px-5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(217,119,6,0.15); border:1px solid rgba(217,119,6,0.2);">
+                                <i class="fa-solid fa-calendar-days text-amber-400 text-sm"></i>
+                            </div>
+                            <span class="font-mono text-lg font-bold text-white">{{ item.year }}</span>
+                        </div>
+                    </td>
+                    <td class="py-4 px-5 text-center">
+                        {% if item.is_active %}
+                        <span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.25rem 0.75rem;border-radius:999px;font-size:0.65rem;font-weight:700;letter-spacing:0.07em;background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.25);">
+                            <span style="width:6px;height:6px;border-radius:50%;background:#4ade80;animation:pulse 2s infinite;"></span> {{ _('FAOL') }}
+                        </span>
+                        {% else %}
+                        <span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.25rem 0.75rem;border-radius:999px;font-size:0.65rem;font-weight:700;letter-spacing:0.07em;background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2);">
+                            <span style="width:6px;height:6px;border-radius:50%;background:#f87171;"></span> {{ _('NOFAOL') }}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-5 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <button onclick='openModal("year", {{ item.id }}, "", {{ "true" if item.is_active else "false" }}, {{ item.year }})' tooltip="{{ _('Tahrirlash') }}" class="w-8 h-8 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 flex items-center justify-center transition-colors border border-amber-500/0 hover:border-amber-500/30">
+                                <i class="fa-solid fa-pen-to-square text-xs"></i>
+                            </button>
+                            <button onclick="confirmDelete('{{ item.year }}', '/publishers/year/delete/{{ item.id }}')" tooltip="{{ _('O\'chirish') }}" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition-colors border border-red-500/0 hover:border-red-500/30">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="py-12 text-center text-white/40">{{ _('Nashr yillari topilmadi') }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="p-4 border-t border-white/10 bg-black/10 text-xs text-white/40">
+        {{ _('Jami:') }} <span class="font-medium text-white/70">{{ years|length }}</span> {{ _('ta yil') }}
+    </div>
+</div>
+
+<!-- ══════════════════ UNIVERSAL MODAL ══════════════════ -->
+<div id="uniModal" onclick="if(event.target===this){closeModal()}" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);padding:1.5rem;overflow-y:auto;">
+    <div class="glass-card" style="max-width:480px;width:100%;margin:auto;border:1px solid rgba(255,255,255,0.1);border-radius:1.25rem;box-shadow:0 25px 50px rgba(0,0,0,0.6);overflow:hidden;" onclick="event.stopPropagation()">
+
+        <div style="padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.02);">
+            <h3 id="modalTitle" class="text-white" style="font-size:1rem;font-weight:700;display:flex;align-items:center;gap:0.5rem;"></h3>
+            <button onclick="closeModal()" style="width:32px;height:32px;border-radius:0.5rem;border:none;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.6);cursor:pointer;font-size:1rem;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form id="uniForm" method="POST" style="padding:1.5rem;" onsubmit="showLoader(event)">
+            <div id="nameField" style="margin-bottom:1.25rem; display:block;">
+                <label class="pro-label">{{ _('Nomi') }} <span class="text-red-400">*</span></label>
+                <div class="pro-input-wrap" style="margin-top:0.25rem;">
+                    <span class="pro-icon"><i id="nameIcon" class="fa-solid fa-print"></i></span>
+                    <input type="text" name="name" id="nameInput" class="pro-input" placeholder="" required>
+                </div>
+            </div>
+            <div id="yearField" style="margin-bottom:1.25rem; display:none;">
+                <label class="pro-label">{{ _('Yil') }} <span class="text-red-400">*</span></label>
+                <div class="pro-input-wrap" style="margin-top:0.25rem;">
+                    <span class="pro-icon"><i class="fa-solid fa-calendar"></i></span>
+                    <input type="number" name="year" id="yearInput" class="pro-input" placeholder="{{ _('Masalan: 2023') }}" min="1800" max="2100">
+                </div>
+            </div>
+
+            <div style="margin-bottom:1.25rem;">
+                <label style="display:block;font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.6);margin-bottom:0.5rem;letter-spacing:0.05em;">{{ _('Tizimda faolmi?') }}</label>
+                <div style="display:flex;align-items:center;gap:0.75rem;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:0.75rem;padding:0.75rem 1rem;">
+                    <button type="button" id="activeToggle" onclick="toggleActive()"
+                        style="width:40px;height:22px;border-radius:999px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background 0.3s;background:#7c3aed;">
+                        <span id="activeThumb" style="position:absolute;top:3px;left:19px;width:16px;height:16px;border-radius:50%;background:white;transition:left 0.3s;"></span>
+                    </button>
+                    <input type="checkbox" name="active" id="activeCheck" value="true" checked style="display:none;">
+                    <span id="activeLabel" style="font-size:0.875rem;color:rgba(255,255,255,0.8);">{{ _('Faol') }}</span>
+                </div>
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;gap:0.75rem;margin-top:1.75rem;">
+                <button type="button" onclick="closeModal()" style="padding:0.625rem 1.25rem;border-radius:0.75rem;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);font-size:0.875rem;font-weight:500;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">{{ _('Yopish') }}</button>
+                <button type="submit" id="saveBtn" style="padding:0.625rem 1.5rem;border-radius:0.75rem;border:none;background:#7c3aed;color:white;font-size:0.875rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:0.4rem;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                    <i class="fa-solid fa-save"></i> {{ _('Saqlash') }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const initTab = urlParams.get('tab') || 'publishers';
+    const TAB_COLORS = { publishers: '#7c3aed', cities: '#0891b2', years: '#d97706' };
+    const TAB_LIST   = ['publishers', 'cities', 'years'];
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+        TAB_LIST.forEach(id => {
+            const btn = document.getElementById('tab-' + id);
+            const ind = document.getElementById('tab-' + id + '-ind');
+            if(btn) { 
+                btn.className = 'relative px-6 py-3 text-sm font-medium rounded-t-xl transition-all whitespace-nowrap cursor-pointer text-white/40 hover:bg-white/10 hover:text-white';
+            }
+            if(ind) ind.style.opacity = '0';
+        });
+
+        // add buttons
+        document.getElementById('addPublisherBtn').style.display = tabId === 'publishers' ? 'flex' : 'none';
+        document.getElementById('addCityBtn').style.display     = tabId === 'cities'     ? 'flex' : 'none';
+        document.getElementById('addYearBtn').style.display     = tabId === 'years'      ? 'flex' : 'none';
+
+        const content = document.getElementById('content-' + tabId);
+        if(content) content.style.display = 'block';
+
+        const btn = document.getElementById('tab-' + tabId);
+        const ind = document.getElementById('tab-' + tabId + '-ind');
+        if(btn) { 
+            btn.className = 'relative px-6 py-3 text-sm font-medium rounded-t-xl transition-all whitespace-nowrap bg-white/5';
+            if(tabId === 'publishers') btn.classList.add('text-violet-400');
+            if(tabId === 'cities') btn.classList.add('text-cyan-400');
+            if(tabId === 'years') btn.classList.add('text-amber-400');
+        }
+        if(ind) ind.style.opacity = '1';
+
+        history.replaceState(null, null, '?tab=' + tabId);
+    }
+
+    switchTab(initTab);
+
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        const f = this.value.toLowerCase();
+        const active = document.querySelector('.tab-content[style*="block"]');
+        if(active) active.querySelectorAll('.tableBody tr').forEach(r => {
+            if(r.children.length > 1) r.style.display = r.textContent.toLowerCase().includes(f) ? '' : 'none';
+        });
+    });
+
+    // ── Modal ──
+    let currentType = 'publisher';
+    const MODAL_CFG = {
+        publisher: { title: '{{ _("Yangi Nashriyot") }}', icon: 'fa-print', color: '#7c3aed', addUrl: '/publishers/add', editUrl: '/publishers/edit/' },
+        city:      { title: '{{ _("Yangi Shahar") }}',    icon: 'fa-city',  color: '#0891b2', addUrl: '/publishers/city/add', editUrl: '/publishers/city/edit/' },
+        year:      { title: '{{ _("Yangi Yil") }}',       icon: 'fa-calendar-days', color: '#d97706', addUrl: '/publishers/year/add', editUrl: '/publishers/year/edit/' },
+    };
+
+    function openModal(type, id=null, name='', active=true, year=null) {
+        currentType = type;
+        const cfg  = MODAL_CFG[type];
+        const form = document.getElementById('uniForm');
+        const title= document.getElementById('modalTitle');
+        const saveBtn = document.getElementById('saveBtn');
+
+        title.innerHTML  = `<i class="fa-solid ${cfg.icon}" style="color:${cfg.color}"></i> ${id ? '{{ _("Tahrirlash") }}' : cfg.title}`;
+        saveBtn.style.background = cfg.color;
+
+        // show/hide fields
+        document.getElementById('nameField').style.display = type !== 'year' ? 'block' : 'none';
+        document.getElementById('yearField').style.display = type === 'year'  ? 'block' : 'none';
+        document.getElementById('nameInput').required = type !== 'year';
+        document.getElementById('yearInput').required = type === 'year';
+
+        if(id) {
+            form.action = cfg.editUrl + id;
+            if(type === 'year') document.getElementById('yearInput').value = year || '';
+            else document.getElementById('nameInput').value = name;
+        } else {
+            form.action = cfg.addUrl;
+            form.reset();
+        }
+
+        // toggle btn rengi
+        document.getElementById('activeToggle').style.background = cfg.color;
+
+        setToggle(active === true || active === 'true');
+        document.getElementById('uniModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        document.getElementById('uniModal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    function setToggle(checked) {
+        const chk   = document.getElementById('activeCheck');
+        const thumb = document.getElementById('activeThumb');
+        const label = document.getElementById('activeLabel');
+        const btn   = document.getElementById('activeToggle');
+        const cfg   = MODAL_CFG[currentType];
+        chk.checked = checked;
+        if(checked) { thumb.style.left='19px'; btn.style.background=cfg.color; label.textContent='{{ _("Faol") }}'; }
+        else        { thumb.style.left='3px';  btn.style.background='rgba(255,255,255,0.1)'; label.textContent='{{ _("Nofaol") }}'; }
+    }
+
+    function toggleActive() {
+        setToggle(!document.getElementById('activeCheck').checked);
+    }
+</script>
+{% endblock %}

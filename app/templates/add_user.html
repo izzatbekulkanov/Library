@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block title %}Yangi Foydalanuvchi Qo'shish | Glass Pro{% endblock %}
+
+{% block content %}
+<div class="h-full overflow-y-auto custom-scrollbar relative" style="padding: 1.5rem 2rem;">
+
+    <!-- Fon effektlari -->
+    <div style="position:absolute; top:-40px; right:80px; width:260px; height:260px; background:rgba(59,130,246,0.12); border-radius:50%; filter:blur(80px); pointer-events:none; z-index:0;"></div>
+    <div style="position:absolute; bottom:40px; left:40px; width:200px; height:200px; background:rgba(99,102,241,0.12); border-radius:50%; filter:blur(60px); pointer-events:none; z-index:0;"></div>
+
+    <div style="position:relative; z-index:10; width: 100%; display:flex; flex-direction:column; gap:1.25rem;">
+
+        <!-- Breadcrumb -->
+        <nav class="pro-breadcrumb">
+            <a href="/" onclick="showLoader(event,'/')"><i class="fa-solid fa-house" style="font-size:0.7rem;"></i> Bosh sahifa</a>
+            <i class="fa-solid fa-chevron-right sep"></i>
+            <a href="/users" onclick="showLoader(event,'/users')">Foydalanuvchilar</a>
+            <i class="fa-solid fa-chevron-right sep"></i>
+            <span class="current">Yangi qo'shish</span>
+        </nav>
+
+        <!-- Sarlavha satri -->
+        <div style="display:flex; align-items:center; gap:1rem;">
+            <a href="/users" onclick="showLoader(event,'/users')"
+               style="width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.12); color:rgba(148,163,184,0.7); text-decoration:none; transition:all 0.2s; flex-shrink:0;"
+               onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.color='#fff';"
+               onmouseout="this.style.background='transparent'; this.style.color='rgba(148,163,184,0.7)';">
+                <i class="fa-solid fa-arrow-left" style="font-size:0.85rem;"></i>
+            </a>
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800 dark:text-white mb-0 mt-0 transition-colors">Yangi Foydalanuvchi</h1>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 mb-0 transition-colors">Tizimga kirish huquqiga ega yangi akkaunt yaratish</p>
+            </div>
+        </div>
+
+        {% if error %}
+        <div style="display:flex; align-items:center; gap:0.75rem; padding: 0.875rem 1.25rem; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); border-radius:0.75rem; color:#fca5a5; font-size:0.875rem;">
+            <i class="fa-solid fa-circle-exclamation" style="flex-shrink:0;"></i>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <!-- Forma -->
+        <div class="pro-form-card">
+            <form action="/users/add" method="POST" autocomplete="off">
+
+                <!-- ─── SHAXSIY MA'LUMOTLAR ─── -->
+                <div class="pro-section-title">
+                    <i class="fa-regular fa-user" style="color:#60a5fa;"></i>
+                    Shaxsiy ma'lumotlar
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.1rem; margin-bottom:1.75rem;">
+
+                    <div>
+                        <label class="pro-label">To'liq ism</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-id-card"></i></span>
+                            <input type="text" name="full_name" class="pro-input" placeholder="Tojimatov Jasur" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="pro-label">Login (Username)</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-at"></i></span>
+                            <input type="text" name="username" class="pro-input" placeholder="jasur_dev" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="pro-label">Email manzili</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-regular fa-envelope"></i></span>
+                            <input type="email" name="email" class="pro-input" placeholder="jasur@misol.uz" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="pro-label">Telefon raqami</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-phone"></i></span>
+                            <input type="tel" name="phone_number" id="phoneInput" class="pro-input" placeholder="+998 90 123 45 67" maxlength="17">
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ─── ROL VA KATEGORIYA ─── -->
+                <div class="pro-section-title">
+                    <i class="fa-solid fa-shield-halved" style="color:#a78bfa;"></i>
+                    Rol va kategoriya
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.1rem; margin-bottom:1.75rem;">
+
+                    <div>
+                        <label class="pro-label">Jinsi</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-venus-mars"></i></span>
+                            <select name="gender" class="pro-select">
+                                <option value="Erkak">Erkak</option>
+                                <option value="Ayol">Ayol</option>
+                            </select>
+                            <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="pro-label">Foydalanuvchi turi</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-briefcase"></i></span>
+                            <select name="user_type" class="pro-select">
+                                <option value="Foydalanuvchi">Foydalanuvchi</option>
+                                <option value="Administrator">Administrator</option>
+                                <option value="Kutubxona xodimi">Kutubxona xodimi</option>
+                                <option value="Kutubxona Raxbari">Kutubxona Raxbari</option>
+                                <option value="Mehmon">Mehmon</option>
+                            </select>
+                            <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="pro-label">Tizim roli</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon" style="color:rgba(167,139,250,0.8);"><i class="fa-solid fa-user-shield"></i></span>
+                            <select name="system_role" class="pro-select" style="border-color:rgba(167,139,250,0.3);">
+                                <option value="user">Oddiy foydalanuvchi</option>
+                                <option value="lib_staff">Kutubxona xodimi</option>
+                                <option value="staff">Admin (Staff)</option>
+                                <option value="superadmin">Super Administrator</option>
+                            </select>
+                            <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <p style="font-size:0.71rem; color:rgba(148,163,184,0.5); margin:0.3rem 0.2rem 0;">Tizimga kirish va boshqaruv darajasi</p>
+                    </div>
+
+                </div>
+
+                <!-- ─── MENYU RUXSATLARI ─── -->
+                <div class="pro-section-title">
+                    <i class="fa-solid fa-list-check" style="color:#38bdf8;"></i>
+                    Menyu ruxsatlari
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0.75rem 1rem; margin-bottom:1.75rem;">
+                    {% for key, label, path in menu_items %}
+                    <div class="pro-checkbox-area" style="margin:0;">
+                        <input type="checkbox"
+                               name="menu_permissions"
+                               id="menu_perm_{{ key }}"
+                               value="{{ key }}"
+                               {% if key in selected_menu_keys %}checked{% endif %}
+                               style="width:1rem; height:1rem; accent-color:#0ea5e9; flex-shrink:0; cursor:pointer; margin-top:0.15rem;">
+                        <div>
+                            <label for="menu_perm_{{ key }}">{{ label }}</label>
+                            <p>{{ path }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <p style="font-size:0.72rem; color:rgba(148,163,184,0.55); margin-top:-1.1rem; margin-bottom:1.8rem;">
+                    Eslatma: <strong>Foydalanuvchilar</strong> bo'limiga kirish faqat Admin/Super Admin uchun ishlaydi.
+                </p>
+
+                <!-- ─── KIRISH MA'LUMOTLARI ─── -->
+                <div class="pro-section-title">
+                    <i class="fa-solid fa-lock" style="color:#fbbf24;"></i>
+                    Kirish ma'lumotlari
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.1rem; margin-bottom:2rem; align-items:end;">
+
+                    <div>
+                        <label class="pro-label">Parol</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-lock"></i></span>
+                            <input type="password" name="password" id="passwordInput" class="pro-input" placeholder="Kamida 8 ta belgi" required style="padding-right: 3rem;">
+                            <button type="button" onclick="togglePassword()"
+                                style="position:absolute; inset-block:0; right:0; display:flex; align-items:center; padding-right:0.9rem; background:none; border:none; color:rgba(100,116,139,0.8); cursor:pointer; font-size:0.85rem; z-index:5;"
+                                id="eyeBtn">
+                                <i class="fa-regular fa-eye" id="eyeIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="pro-checkbox-area" style="margin-top:0;">
+                            <input type="checkbox" name="is_active" id="isActiveCheck" checked
+                                style="width:1.1rem; height:1.1rem; accent-color:#6366f1; flex-shrink:0; cursor:pointer; margin-top:0.2rem;">
+                            <div>
+                                <label for="isActiveCheck">Faol holat</label>
+                                <p>Yaratilganda darhol login imkoniyati berilsin</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ─── AMALLAR ─── -->
+                <div style="display:flex; justify-content:flex-end; gap:0.75rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,0.07);">
+                    <a href="/users" onclick="showLoader(event,'/users')" class="pro-btn-cancel">
+                        Bekor qilish
+                    </a>
+                    <button type="submit" class="pro-btn-save">
+                        <i class="fa-solid fa-floppy-disk"></i> Saqlash
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePassword() {
+    const input = document.getElementById('passwordInput');
+    const icon  = document.getElementById('eyeIcon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+
+// Telefon raqam niqobi: +998 XX XXX XX XX
+(function() {
+    const phone = document.getElementById('phoneInput');
+    if (!phone) return;
+
+    phone.addEventListener('input', function(e) {
+        let digits = this.value.replace(/\D/g, '');
+        // Agar +998 bilan boshlanmasa — prefixni qo'shish
+        if (digits.startsWith('998')) {
+            digits = digits.substring(3);
+        }
+        // Faqat 9 sifr (keyin +998 ni qo'shib kiritamiz)
+        digits = digits.slice(0, 9);
+        let result = '+998';
+        if (digits.length > 0) result += ' ' + digits.slice(0, 2);
+        if (digits.length > 2) result += ' ' + digits.slice(2, 5);
+        if (digits.length > 5) result += ' ' + digits.slice(5, 7);
+        if (digits.length > 7) result += ' ' + digits.slice(7, 9);
+        this.value = result;
+    });
+
+    phone.addEventListener('focus', function() {
+        if (!this.value) this.value = '+998 ';
+    });
+
+    phone.addEventListener('keydown', function(e) {
+        // Backspace +998 prefiksindan yuqoriga o'tmasin
+        if (e.key === 'Backspace' && this.value.length <= 6) {
+            e.preventDefault();
+        }
+    });
+})();
+</script>
+{% endblock %}

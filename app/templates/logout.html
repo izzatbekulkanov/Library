@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Tizimdan chiqildi | Glass Pro{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center p-8 transition-colors duration-300 text-slate-800" style="background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);">
+
+    <!-- Fon effekti -->
+    <div class="fixed top-[-10%] left-[-10%] w-[50vw] h-[50vh] rounded-full pointer-events-none" style="background:radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%);"></div>
+
+    <div class="relative z-10 text-center max-w-[440px] w-full bg-white/80 backdrop-blur-xl border border-white/50 rounded-[1.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.05)]">
+
+        <!-- Ikonka -->
+        <div class="w-20 h-20 mx-auto rounded-[20px] bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-6 shadow-sm ring-4 ring-white">
+            <i class="fa-solid fa-door-open text-3xl text-indigo-500"></i>
+        </div>
+
+        <!-- Sarlavha -->
+        <h1 class="text-2xl font-extrabold text-slate-800 mb-2 tracking-tight">{{ _('Tizimdan chiqdingiz') }}</h1>
+        <p class="text-sm font-medium text-slate-500 mb-8 leading-relaxed">
+            {{ _('Siz tizimdan muvaffaqiyatli chiqdingiz.') }}<br>
+            {{ _('Xavfsizlik uchun barcha malumotlar tozalandi.') }}
+        </p>
+
+        <!-- Kartochka -->
+        <div class="bg-white/90 border border-slate-100 rounded-2xl p-6 mb-8 shadow-sm text-left">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-shield-check text-emerald-500 text-sm"></i>
+                </div>
+                <span class="text-sm font-semibold text-slate-700">{{ _('Session tozalandi') }}</span>
+            </div>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-cookie-bite text-emerald-500 text-sm"></i>
+                </div>
+                <span class="text-sm font-semibold text-slate-700">{{ _('Cookie tozalandi') }}</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-lock text-emerald-500 text-sm"></i>
+                </div>
+                <span class="text-sm font-semibold text-slate-700">{{ _('Malumotlaringiz himoyalangan') }}</span>
+            </div>
+        </div>
+
+        <!-- Tugmalar -->
+        <div class="flex flex-col gap-3">
+            <a href="/login" class="flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-bold shadow-md hover:shadow-lg hover:shadow-blue-500/30 transition-all w-full transform hover:-translate-y-[1px]">
+                <i class="fa-solid fa-right-to-bracket"></i> {{ _('Qayta kirish') }}
+            </a>
+        </div>
+
+        <!-- Pastki matn -->
+        <p class="text-xs font-semibold text-slate-400 mt-10">
+            &copy; 2025 {{ _('Barcha huquqlar himoyalangan') }}
+        </p>
+    </div>
+</div>
+
+
+<script>
+// 30 soniyadan so'ng avtomatik login sahifasiga yo'naltirish
+let secs = 30;
+const countEl = document.createElement('p');
+countEl.style.cssText = 'font-size:0.78rem; color:rgba(148,163,184,0.45); margin-top:0.5rem;';
+document.querySelector('.fa-door-open').closest('div').parentElement.appendChild(countEl);
+
+const timer = setInterval(() => {
+    secs--;
+    countEl.textContent = `${secs} {{ _("soniyadan song avtomatik yonalitiriladi...") }}`;
+    if (secs <= 0) { clearInterval(timer); window.location.href = '/login'; }
+}, 1000);
+countEl.textContent = `${secs} {{ _("soniyadan song avtomatik yonalitiriladi...") }}`;
+</script>
+{% endblock %}

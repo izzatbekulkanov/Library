@@ -1,0 +1,1183 @@
+{% extends "base.html" %}
+{% block title %}{{ item.title }} | Online Kitob{% endblock %}
+
+{% block content %}
+{% set lang = (language_code or '')|lower %}
+
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+    <div>
+        <a href="/online-books" class="text-white/40 hover:text-white mb-2 inline-flex items-center gap-2 text-sm transition-colors">
+            <i class="fa-solid fa-arrow-left"></i> Orqaga qaytish
+        </a>
+        <h1 class="text-2xl font-bold tracking-tight text-white mb-1">Online Kitob Ma'lumotlari</h1>
+        <p class="text-[0.8rem] text-white/50">"{{ item.title }}" haqida batafsil ma'lumot</p>
+    </div>
+    <div class="flex items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
+        <a href="/online-books/edit/{{ item.id }}"
+           class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-orange-400 border border-orange-500/30 bg-orange-500/10 hover:bg-orange-500/20 transition-all shadow-[0_4px_12px_rgba(249,115,22,0.15)]"
+           title="Tahrirlash">
+            <i class="fa-solid fa-pen text-xs"></i> Tahrirlash
+        </a>
+        <button onclick="confirmDelete(this.dataset.title, '/online-books/delete/{{ item.id }}', 'GET')"
+                data-title="{{ item.title }}"
+                class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-red-500 border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 hover:border-red-500/50 hover:text-red-100 hover:-translate-y-0.5 hover:shadow-[0_0_25px_rgba(239,68,68,0.45)] transition-all shadow-[0_4px_12px_rgba(239,68,68,0.15)] overflow-hidden relative group"
+                title="O'chirish">
+            <div class="absolute inset-0 bg-red-500/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-xl"></div>
+            <i class="fa-solid fa-trash-can text-xs relative z-10"></i>
+            <span class="relative z-10">O'chirish</span>
+        </button>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
+    <div class="lg:col-span-2 glass-card rounded-2xl border border-white/10 p-6 shadow-2xl relative overflow-hidden flex flex-col sm:flex-row gap-6">
+        <div class="shrink-0 relative group rounded-xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.5)] bg-white/5 border border-white/10" style="width: 200px; height: 300px;">
+            {% if edition and edition.image %}
+            <img src="{{ edition.image }}" alt="{{ item.title }}" class="w-full h-full object-contain bg-black/5 group-hover:scale-105 transition-transform duration-500">
+            {% else %}
+            <div class="w-full h-full flex items-center justify-center bg-blue-500/10">
+                <i class="fa-solid fa-tablet-screen-button text-6xl text-blue-500/30"></i>
+            </div>
+            {% endif %}
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60"></div>
+        </div>
+
+        <div class="flex-1 flex flex-col justify-center">
+            <div class="mb-4">
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 font-bold text-[0.65rem] uppercase tracking-wider mb-2">
+                    {{ book_type_name or 'Turi ko\'rsatilmagan' }}
+                </div>
+                <h2 class="text-2xl font-bold text-white leading-tight mb-2">{{ item.title }}</h2>
+                <div class="text-white/60 text-sm flex items-center gap-2 flex-wrap">
+                    <i class="fa-solid fa-user-pen text-white/40"></i>
+                    {% if authors_text %}
+                        <span class="font-medium text-white/80">{{ authors_text }}</span>
+                    {% else %}
+                        Noma'lum muallif
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-y-4 gap-x-6 mb-4">
+                <div>
+                    <label class="text-[0.65rem] text-white/40 uppercase tracking-widest block mb-1">BBK / Kategoriya</label>
+                    <p class="text-sm font-medium text-white">
+                        {% if bbk_text and bbk_text != '-' %}
+                            {{ bbk_text }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <label class="text-[0.65rem] text-white/40 uppercase tracking-widest block mb-1">Til</label>
+                    <div class="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5">
+                        {% if lang in ['uz', 'oz'] %}
+                        <img src="https://flagcdn.com/w20/uz.png" alt="uz" class="w-5 h-auto rounded-[2px]">
+                        {% elif lang == 'ru' %}
+                        <img src="https://flagcdn.com/w20/ru.png" alt="ru" class="w-5 h-auto rounded-[2px]">
+                        {% elif lang == 'en' %}
+                        <img src="https://flagcdn.com/w20/gb.png" alt="en" class="w-5 h-auto rounded-[2px]">
+                        {% elif lang == 'tr' %}
+                        <img src="https://flagcdn.com/w20/tr.png" alt="tr" class="w-5 h-auto rounded-[2px]">
+                        {% elif lang == 'de' %}
+                        <img src="https://flagcdn.com/w20/de.png" alt="de" class="w-5 h-auto rounded-[2px]">
+                        {% elif lang == 'fr' %}
+                        <img src="https://flagcdn.com/w20/fr.png" alt="fr" class="w-5 h-auto rounded-[2px]">
+                        {% elif lang == 'kk' %}
+                        <img src="https://flagcdn.com/w20/kz.png" alt="kk" class="w-5 h-auto rounded-[2px]">
+                        {% elif lang == 'ky' %}
+                        <img src="https://flagcdn.com/w20/kg.png" alt="ky" class="w-5 h-auto rounded-[2px]">
+                        {% else %}
+                        <i class="fa-solid fa-language text-white/60"></i>
+                        {% endif %}
+                        <span class="text-sm font-medium text-white uppercase">{{ language_name or '-' }}</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[0.65rem] text-white/40 uppercase tracking-widest block mb-1">Sahifalar</label>
+                    <p class="text-sm font-medium text-white">{{ edition.pages if edition and edition.pages is not none else '-' }} ta</p>
+                </div>
+                <div>
+                    <label class="text-[0.65rem] text-white/40 uppercase tracking-widest block mb-1">ISBN</label>
+                    <p class="text-sm font-mono text-white/70">{{ item.isbn or '-' }}</p>
+                </div>
+                <div>
+                    <label class="text-[0.65rem] text-white/40 uppercase tracking-widest block mb-1">Nashriyot</label>
+                    <p class="text-sm font-medium text-white">{{ publisher_name or '-' }}</p>
+                </div>
+                <div>
+                    <label class="text-[0.65rem] text-white/40 uppercase tracking-widest block mb-1">Nashr Yili / Shahri</label>
+                    <p class="text-sm font-medium text-white">
+                        {{ year_value or '-' }},
+                        {{ city_name or '-' }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-auto">
+                <label class="text-[0.65rem] text-white/40 uppercase tracking-widest block mb-1">Adadi</label>
+                <div class="inline-block px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-sm">
+                    {{ edition.adad if edition and edition.adad else 'Noma\'lum' }} ta adad
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card rounded-2xl border border-white/10 p-6 shadow-2xl relative flex flex-col">
+        <h3 class="text-sm font-bold text-white/70 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-align-left text-blue-400"></i> Annotatsiya
+        </h3>
+        <div class="flex-1 text-sm text-white/60 leading-relaxed overflow-y-auto pr-2 custom-scrollbar">
+            {{ item.annotation or "Annotatsiya kiritilmagan." }}
+        </div>
+    </div>
+</div>
+
+<div id="electronicResourcesCard" class="mt-6 glass-card rounded-2xl border border-white/10 shadow-2xl relative z-10 overflow-hidden">
+    <div class="p-5 border-b border-white/10 bg-white/5">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <h3 class="text-sm font-bold text-white/70 uppercase tracking-widest flex items-center gap-2">
+                <i class="fa-solid fa-cloud-arrow-down text-blue-400"></i> Elektron Resurslar
+            </h3>
+            <div class="inline-flex rounded-xl bg-black/20 border border-white/5 p-1 relative" style="box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+                <button type="button" class="tab-btn is-active relative z-10 px-4 py-1.5 text-xs font-bold text-white/60 hover:text-white transition-colors uppercase tracking-wider rounded-lg" data-tab="fileTab">
+                    <i class="fa-solid fa-file-pdf mr-1 text-red-500"></i> Fayl
+                </button>
+                <button type="button" class="tab-btn relative z-10 px-4 py-1.5 text-xs font-bold text-white/60 hover:text-white transition-colors uppercase tracking-wider rounded-lg" data-tab="audioTab">
+                    <i class="fa-solid fa-headphones mr-1 text-emerald-500"></i> Audio
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABS CONTENT -->
+    <div class="p-0">
+        <div id="fileTab" class="tab-pane p-5 sm:p-8 border-t border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent">
+            {% if file_url %}
+                {% if file_is_pdf %}
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 bg-white/5 p-4 rounded-xl border border-white/10 backdrop-blur-sm shadow-inner">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500/20 to-red-600/20 flex items-center justify-center text-red-500 shadow-inner border border-red-500/10">
+                            <i class="fa-solid fa-file-pdf text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-white mb-0.5 tracking-wide">Asosiy matn (PDF)</p>
+                            <p class="text-[0.65rem] text-white/40 uppercase tracking-widest">Brauzer o'quvchisi</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <a href="{{ file_url }}" target="_blank" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition-all border border-white/10 shadow-sm" title="To'liq ekranda ochish">
+                            <i class="fa-solid fa-expand text-xs"></i> <span class="text-xs font-semibold">Toliq ekran</span>
+                        </a>
+                        <a href="{{ file_url }}" download class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 transition-all border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.15)]" title="Yuklab olish">
+                            <i class="fa-solid fa-download text-xs"></i> <span class="text-xs font-semibold">Yuklash</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="w-full relative rounded-2xl overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.6)] border border-white/15 group" style="height: clamp(600px, 75vh, 1000px); background: #2b2d31;">
+                   <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+                       <i class="fa-solid fa-circle-notch fa-spin text-4xl text-white/20"></i>
+                   </div>
+                   <!-- Remove toolbar=0 so the default download functionality still works if user desires -->
+                   <iframe src="{{ file_url }}#view=FitH&scrollbar=1" class="w-full h-full border-0 absolute inset-0 z-10 bg-[#2b2d31]" title="PDF preview"></iframe>
+                </div>
+                {% else %}
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-6 flex items-center justify-between gap-4 shadow-lg flex-col sm:flex-row">
+                    <div class="flex items-center gap-5 w-full">
+                        <div class="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 shadow-inner">
+                            <i class="fa-solid fa-file-lines text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-base font-bold text-white mb-1">Elektron Fayl</p>
+                            <p class="text-xs text-white/50 leading-relaxed max-w-md">Ushbu fayl formati to'g'ridan to'g'ri o'qish uchun mo'ljallanmagan bo'lishi mumkin. Yuklab oling yoki kengaytirilgan oynada oching.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 w-full sm:w-auto mt-4 sm:mt-0">
+                        <a href="{{ file_url }}" target="_blank"
+                           class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold bg-white/5 text-white/70 border border-white/10 hover:bg-white/10 hover:text-white transition-all">
+                            <i class="fa-solid fa-up-right-from-square"></i> Ochish
+                        </a>
+                        <a href="{{ file_url }}" download
+                           class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30 transition-all shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+                            <i class="fa-solid fa-download"></i> Yuklash
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            {% else %}
+            <div class="rounded-3xl border-2 border-dashed border-white/10 bg-white/[0.02] p-16 text-center flex flex-col items-center justify-center my-4">
+                <i class="fa-solid fa-folder-open text-5xl text-white/10 mb-4 drop-shadow-md"></i>
+                <h4 class="text-white/60 font-semibold mb-2 text-lg tracking-wide">Kitob fayli yuklanmagan</h4>
+                <p class="text-xs text-white/40 max-w-sm">Kutubxona xodimlari dastur orqali PDF yoki boshqa elektron formatlarni tez orada yuklashlari kutilmoqda.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div id="audioTab" class="tab-pane hidden p-5 sm:p-8 border-t border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent">
+            {% if edition and edition.audio_file %}
+            <div class="max-w-2xl mx-auto my-6 sm:my-10">
+                <div class="p-8 sm:p-10 rounded-[2rem] bg-gradient-to-br from-[#1b1f2e] to-[#12151f] border border-white/5 shadow-[0_25px_50px_rgba(0,0,0,0.6)] relative overflow-hidden group">
+                    <!-- Accent background glows -->
+                    <div class="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 via-transparent to-transparent pointer-events-none"></div>
+                    <div class="absolute -top-16 -right-16 w-56 h-56 bg-emerald-500/10 blur-[70px] rounded-full pointer-events-none transition-opacity duration-700 opacity-60 group-hover:opacity-100"></div>
+                    
+                    <div class="flex items-center flex-col sm:flex-row gap-8 relative z-10 mb-10 text-center sm:text-left">
+                        <div class="w-24 h-24 rounded-[1.25rem] bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-[0_15px_30px_rgba(16,185,129,0.3)] shrink-0 relative overflow-hidden">
+                            <div class="absolute inset-0 bg-white/20 mix-blend-overlay"></div>
+                            <i class="fa-solid fa-headphones-simple text-4xl text-white drop-shadow-md animate-[pulse_4s_ease-in-out_infinite]"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-3xl font-extrabold text-white mb-2 tracking-tight drop-shadow-sm">Audio format</h4>
+                            <p class="text-xs font-bold text-emerald-400/90 uppercase tracking-[0.2em]">{{ item.title }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="relative z-10 p-5 rounded-2xl border border-white/5 shadow-inner backdrop-blur-md" style="background: rgba(0,0,0,0.4);">
+                        <audio id="premiumAudioPlayer" controls class="w-full h-14 outline-none custom-audio" controlsList="nodownload">
+                            <source src="{{ edition.audio_file }}">
+                            Sizning brauzeringiz audio elementini qo'llab-quvvatlamaydi.
+                        </audio>
+                    </div>
+                    
+                    <div class="mt-8 flex justify-center sm:justify-end relative z-10 border-t border-white/5 pt-8">
+                        <a href="{{ edition.audio_file }}" download class="inline-flex items-center justify-center gap-3 px-6 py-3.5 rounded-xl text-xs font-bold uppercase tracking-[0.1em] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 hover:text-emerald-300 transition-all shadow-lg hover:shadow-[0_10px_20px_rgba(16,185,129,0.15)] hover:-translate-y-1">
+                            <i class="fa-solid fa-cloud-arrow-down text-sm"></i> ASL NUXASINI YUKLASH
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="rounded-3xl border-2 border-dashed border-white/10 bg-white/[0.02] p-16 text-center flex flex-col items-center justify-center my-4">
+                <i class="fa-solid fa-file-audio text-5xl text-white/10 mb-4 drop-shadow-md"></i>
+                <h4 class="text-white/60 font-semibold mb-2 text-lg tracking-wide">Audio kitob mavjud emas</h4>
+                <p class="text-xs text-white/40 max-w-sm">Jismoniy va raqamli audio treklar yuklanganda, maxsus premium formatda namoyish etiladi.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div id="versionsCard" class="mt-6 glass-card rounded-2xl border border-white/10 shadow-2xl relative z-10 overflow-hidden">
+    <div class="p-5 border-b border-white/10 bg-white/5 flex items-center justify-between gap-3">
+        <h3 class="text-sm font-bold text-white/70 uppercase tracking-widest flex items-center gap-2">
+            <i class="fa-solid fa-layer-group text-indigo-400"></i> Versiyalar
+        </h3>
+        <div class="flex items-center gap-2">
+            <button type="button"
+                    onclick="openEditionAddModal()"
+                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors">
+                <i class="fa-solid fa-plus text-[11px]"></i> Versiya qo'shish
+            </button>
+            <span class="text-xs px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-white/60">
+                Jami: {{ editions|length }}
+            </span>
+        </div>
+    </div>
+
+    {% if editions %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[980px]">
+            <thead>
+                <tr class="border-b border-white/10 bg-white/5 text-[0.7rem] uppercase tracking-widest text-white/50">
+                    <th class="py-4 px-5 text-center w-14">ID</th>
+                    <th class="py-4 px-5">Nashriyot / Shahar / Yil</th>
+                    <th class="py-4 px-5 text-center w-24">Sahifa</th>
+                    <th class="py-4 px-5 text-center w-24">Adad</th>
+                    <th class="py-4 px-5 text-center w-28">Status</th>
+                    <th class="py-4 px-5 text-center w-32">Resurslar</th>
+                    <th class="py-4 px-5 text-center w-44">Sana</th>
+                    <th class="py-4 px-5 text-right w-44">Amallar</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 text-sm">
+                {% for ed in editions %}
+                <tr class="hover:bg-white/[0.03] transition-colors">
+                    <td class="py-3.5 px-5 text-center text-white/60 font-mono">#{{ ed.id }}</td>
+                    <td class="py-3.5 px-5">
+                        <p class="text-white/80">{{ ed.publisher_name or '-' }}</p>
+                        <p class="text-[11px] text-white/45 mt-0.5">{{ ed.city_name or '-' }} | {{ ed.year_label or '-' }}</p>
+                    </td>
+                    <td class="py-3.5 px-5 text-center text-white/75">{{ ed.pages if ed.pages is not none else '-' }}</td>
+                    <td class="py-3.5 px-5 text-center text-emerald-300 font-semibold">{{ ed.adad if ed.adad is not none else 0 }}</td>
+                    <td class="py-3.5 px-5 text-center">
+                        <span class="inline-flex px-2.5 py-1 rounded-full text-[11px] font-semibold border {{ 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' if ed.status == 'distributed' else 'bg-amber-500/10 text-amber-300 border-amber-500/20' }}">
+                            {{ ed.status_label or '-' }}
+                        </span>
+                    </td>
+                    <td class="py-3.5 px-5 text-center">
+                        <div class="inline-flex items-center gap-2">
+                            <span title="Rasm" class="{{ 'text-emerald-300' if ed.image else 'text-white/30' }}"><i class="fa-solid fa-image"></i></span>
+                            <span title="Fayl" class="{{ 'text-emerald-300' if ed.file else 'text-white/30' }}"><i class="fa-solid fa-file-lines"></i></span>
+                            <span title="Audio" class="{{ 'text-emerald-300' if ed.audio_file else 'text-white/30' }}"><i class="fa-solid fa-headphones"></i></span>
+                        </div>
+                    </td>
+                    <td class="py-3.5 px-5 text-center text-white/45 text-xs">
+                        {{ ed.created_at.strftime('%d.%m.%Y %H:%M') if ed.created_at else '-' }}
+                    </td>
+                    <td class="py-3.5 px-5 text-right">
+                        <div class="inline-flex items-center justify-end gap-2">
+                            {% if ed.file %}
+                            <a href="{{ ed.file }}" target="_blank" title="Faylni ko'rish"
+                               class="w-8 h-8 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 inline-flex items-center justify-center border border-indigo-500/0 hover:border-indigo-500/30 transition-colors">
+                                <i class="fa-regular fa-eye text-[12px]"></i>
+                            </a>
+                            {% else %}
+                            <span title="Fayl yo'q"
+                                  class="w-8 h-8 rounded-lg bg-white/5 text-white/25 inline-flex items-center justify-center border border-white/10 cursor-not-allowed">
+                                <i class="fa-regular fa-eye text-[12px]"></i>
+                            </span>
+                            {% endif %}
+
+                            <button type="button"
+                                    onclick="openEditionEditModal(this)"
+                                    data-action="/online-books/{{ item.id }}/editions/{{ ed.id }}/edit"
+                                    data-edition-id="{{ ed.id }}"
+                                    data-pages="{{ ed.pages if ed.pages is not none else '' }}"
+                                    data-adad="{{ ed.adad if ed.adad is not none else 0 }}"
+                                    data-status="{{ ed.status if ed.status else 'undistributed' }}"
+                                    data-publisher-id="{{ ed.publisher_id if ed.publisher_id else '' }}"
+                                    data-publisher-label="{{ ed.publisher_name if ed.publisher_id else '' }}"
+                                    data-city-id="{{ ed.published_city_id if ed.published_city_id else '' }}"
+                                    data-city-label="{{ ed.city_name if ed.published_city_id else '' }}"
+                                    data-year-id="{{ ed.publication_year_id if ed.publication_year_id else '' }}"
+                                    data-year-label="{{ ed.year_label if ed.publication_year_id else '' }}"
+                                    title="Versiyani tahrirlash"
+                                    class="w-8 h-8 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-300 inline-flex items-center justify-center border border-orange-500/0 hover:border-orange-500/30 transition-colors">
+                                <i class="fa-solid fa-pen text-[11px]"></i>
+                            </button>
+
+                            <button type="button"
+                                    onclick="confirmDelete('Versiya #{{ ed.id }}', '/online-books/{{ item.id }}/editions/{{ ed.id }}/delete', 'GET')"
+                                    title="Versiyani o'chirish"
+                                    class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 inline-flex items-center justify-center border border-red-500/0 hover:border-red-500/30 transition-colors">
+                                <i class="fa-solid fa-trash-can text-[11px]"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="p-10 text-center text-white/45">
+        <i class="fa-solid fa-box-open text-3xl mb-3 block text-white/20"></i>
+        Ushbu kitob uchun hali versiya qo'shilmagan.
+    </div>
+    {% endif %}
+</div>
+
+<div id="editionEditModal" class="edition-modal-backdrop absolute inset-0 hidden flex items-start sm:items-center justify-center p-3 sm:p-5 overflow-y-auto" style="z-index:99999;">
+    <div class="edition-modal-panel mx-auto my-auto w-full max-w-4xl rounded-2xl border shadow-2xl overflow-x-hidden overflow-y-auto" style="max-height:calc(100% - 1.5rem);">
+        <div class="edition-modal-head px-5 py-4 border-b flex items-center justify-between">
+            <h4 class="edition-modal-title text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                <i class="fa-solid fa-pen text-orange-500"></i>
+                <span id="editionModalModeText">Versiyani tahrirlash</span> <span id="editionEditTitleId" class="text-orange-500">#-</span>
+            </h4>
+            <button type="button" onclick="closeEditionEditModal()" class="edition-modal-close w-8 h-8 rounded-lg border transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form id="editionEditForm" method="POST" enctype="multipart/form-data" class="p-5 space-y-4" onsubmit="showLoader(event)">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="edition-modal-label text-[11px] uppercase tracking-widest mb-1.5 block">Sahifalar</label>
+                    <div class="pro-input-wrap">
+                        <span class="pro-icon"><i class="fa-solid fa-file-lines text-[0.8rem]"></i></span>
+                        <input type="number" name="pages" id="editionEditPages" class="pro-input" min="1" placeholder="Masalan: 320">
+                    </div>
+                </div>
+                <div>
+                    <label class="edition-modal-label text-[11px] uppercase tracking-widest mb-1.5 block">Adad</label>
+                    <div class="pro-input-wrap">
+                        <span class="pro-icon"><i class="fa-solid fa-cubes text-[0.8rem]"></i></span>
+                        <input type="number" name="adad" id="editionEditAdad" class="pro-input" min="0" value="0">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="edition-modal-label text-[11px] uppercase tracking-widest mb-1.5 block">Status</label>
+                <div class="pro-input-wrap">
+                    <span class="pro-icon"><i class="fa-solid fa-circle-check text-[0.8rem]"></i></span>
+                    <select name="status" id="editionEditStatus" class="pro-select">
+                        {% for code, label in edition_statuses %}
+                        <option value="{{ code }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                    <label class="edition-modal-label text-[11px] uppercase tracking-widest mb-1.5 block">Nashriyot</label>
+                    <div class="flex items-center gap-2">
+                        <div class="pro-input-wrap custom-dropdown-container" style="flex:1;">
+                            <span class="pro-icon"><i class="fa-solid fa-print text-[0.8rem]"></i></span>
+                            <input type="text" id="editionEditPublisherText" class="pro-input custom-dropdown-input" placeholder="Qidirish va tanlash..." autocomplete="off">
+                            <input type="hidden" name="publisher_id" id="editionEditPublisherId">
+                            <div class="custom-dropdown-list" id="editionPublisherList">
+                                {% for p in publishers %}
+                                <div class="custom-dropdown-item" data-val="{{ p.id }}" data-lbl="{{ p.name }}">{{ p.name }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <button type="button"
+                                onclick="openEditionQuick('publisher')"
+                                class="h-11 w-11 shrink-0 rounded-xl border border-blue-500/30 bg-blue-500/20 text-blue-200 hover:bg-blue-500/30 transition-colors"
+                                title="Yangi nashriyot qo'shish">
+                            <i class="fa-solid fa-plus text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label class="edition-modal-label text-[11px] uppercase tracking-widest mb-1.5 block">Shahar</label>
+                    <div class="flex items-center gap-2">
+                        <div class="pro-input-wrap custom-dropdown-container" style="flex:1;">
+                            <span class="pro-icon"><i class="fa-solid fa-city text-[0.8rem]"></i></span>
+                            <input type="text" id="editionEditCityText" class="pro-input custom-dropdown-input" placeholder="Qidirish va tanlash..." autocomplete="off">
+                            <input type="hidden" name="published_city_id" id="editionEditCityId">
+                            <div class="custom-dropdown-list" id="editionCityList">
+                                {% for c in cities %}
+                                <div class="custom-dropdown-item" data-val="{{ c.id }}" data-lbl="{{ c.name }}">{{ c.name }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <button type="button"
+                                onclick="openEditionQuick('city')"
+                                class="h-11 w-11 shrink-0 rounded-xl border border-blue-500/30 bg-blue-500/20 text-blue-200 hover:bg-blue-500/30 transition-colors"
+                                title="Yangi shahar qo'shish">
+                            <i class="fa-solid fa-plus text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label class="edition-modal-label text-[11px] uppercase tracking-widest mb-1.5 block">Yil</label>
+                    <div class="flex items-center gap-2">
+                        <div class="pro-input-wrap custom-dropdown-container" style="flex:1;">
+                            <span class="pro-icon"><i class="fa-solid fa-calendar text-[0.8rem]"></i></span>
+                            <input type="text" id="editionEditYearText" class="pro-input custom-dropdown-input" placeholder="Yilni qidiring..." autocomplete="off">
+                            <input type="hidden" name="publication_year_id" id="editionEditYearId">
+                            <div class="custom-dropdown-list" id="editionYearList">
+                                {% for y in years %}
+                                <div class="custom-dropdown-item" data-val="{{ y.id }}" data-lbl="{{ y.year }}">{{ y.year }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <button type="button"
+                                onclick="openEditionQuick('year')"
+                                class="h-11 w-11 shrink-0 rounded-xl border border-blue-500/30 bg-blue-500/20 text-blue-200 hover:bg-blue-500/30 transition-colors"
+                                title="Yangi yil qo'shish">
+                            <i class="fa-solid fa-plus text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-nowrap gap-3">
+                <div class="flex-1 min-w-0">
+                    <label class="edition-modal-label text-[11px] uppercase tracking-widest mb-1.5 block">Rasm yuklash</label>
+                    <label for="editionEditImageInput" class="upload-tile upload-tile-image">
+                        <i class="fa-solid fa-image"></i>
+                        <span>Rasm tanlash</span>
+                    </label>
+                    <input id="editionEditImageInput" type="file" name="image" accept="image/*" class="sr-only" data-upload-caption="editionEditImageCaption">
+                    <p id="editionEditImageCaption" class="upload-caption">Fayl tanlanmagan</p>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <label class="edition-modal-label text-[11px] uppercase tracking-widest mb-1.5 block">Fayl yuklash</label>
+                    <label for="editionEditFileInput" class="upload-tile upload-tile-file">
+                        <i class="fa-solid fa-file-lines"></i>
+                        <span>Fayl tanlash</span>
+                    </label>
+                    <input id="editionEditFileInput" type="file" name="file" accept=".pdf,.epub,.doc,.docx,.txt" class="sr-only" data-upload-caption="editionEditFileCaption">
+                    <p id="editionEditFileCaption" class="upload-caption">Fayl tanlanmagan</p>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <label class="edition-modal-label text-[11px] uppercase tracking-widest mb-1.5 block">Audio yuklash</label>
+                    <label for="editionEditAudioInput" class="upload-tile upload-tile-audio">
+                        <i class="fa-solid fa-headphones"></i>
+                        <span>Audio tanlash</span>
+                    </label>
+                    <input id="editionEditAudioInput" type="file" name="audio_file" accept="audio/*" class="sr-only" data-upload-caption="editionEditAudioCaption">
+                    <p id="editionEditAudioCaption" class="upload-caption">Fayl tanlanmagan</p>
+                </div>
+            </div>
+
+            <div class="pt-2 flex items-center justify-end gap-2">
+                <button type="button" onclick="closeEditionEditModal()" class="edition-modal-btn edition-modal-btn-secondary px-4 py-2 rounded-xl text-xs font-semibold border transition-colors">
+                    Bekor qilish
+                </button>
+                <button type="submit" class="edition-modal-btn edition-modal-btn-primary px-4 py-2 rounded-xl text-xs font-semibold border transition-colors">
+                    Saqlash
+                </button>
+            </div>
+        </form>
+
+        <div id="editionQuickOverlay" class="absolute inset-0 hidden items-center justify-center bg-black/45 p-4 z-[2]">
+            <div class="edition-quick-panel w-full max-w-md rounded-2xl border shadow-2xl overflow-hidden">
+                <div class="edition-quick-head px-4 py-3 border-b flex items-center justify-between">
+                    <h5 id="editionQuickTitle" class="text-sm font-bold text-white/90 flex items-center gap-2"></h5>
+                    <button type="button" onclick="closeEditionQuick()" class="w-8 h-8 rounded-lg border border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-colors">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="p-4 space-y-3">
+                    <div id="editionQuickTextWrap" class="pro-input-wrap">
+                        <span class="pro-icon"><i id="editionQuickIcon" class="fa-solid fa-pen"></i></span>
+                        <input type="text" id="editionQuickTextInput" class="pro-input" placeholder="Nomi..." onkeydown="if(event.key==='Enter'){event.preventDefault(); saveEditionQuick();}">
+                    </div>
+                    <div id="editionQuickYearWrap" class="pro-input-wrap hidden">
+                        <span class="pro-icon"><i class="fa-solid fa-calendar"></i></span>
+                        <input type="number" id="editionQuickYearInput" class="pro-input" placeholder="Yil (masalan: 2026)" onkeydown="if(event.key==='Enter'){event.preventDefault(); saveEditionQuick();}">
+                    </div>
+                    <div class="flex items-center justify-end gap-2">
+                        <button type="button" onclick="closeEditionQuick()" class="edition-modal-btn edition-modal-btn-secondary px-4 py-2 rounded-xl text-xs font-semibold border transition-colors">Bekor</button>
+                        <button type="button" id="editionQuickSaveBtn" onclick="saveEditionQuick()" class="edition-modal-btn px-4 py-2 rounded-xl text-xs font-semibold border border-blue-500/40 bg-blue-500/15 text-blue-300 hover:bg-blue-500/25 transition-colors">
+                            Qo'shish
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Audio player customizations to inherit modern looks across supported browsers */
+.custom-audio::-webkit-media-controls-panel {
+    background-color: #1e222e;
+}
+.custom-audio::-webkit-media-controls-play-button,
+.custom-audio::-webkit-media-controls-mute-button {
+    background-color: #10b981;
+    border-radius: 50%;
+}
+.custom-audio::-webkit-media-controls-current-time-display,
+.custom-audio::-webkit-media-controls-time-remaining-display {
+    color: #f1f5f9;
+    font-weight: 500;
+}
+.custom-audio::-webkit-media-controls-timeline,
+.custom-audio::-webkit-media-controls-volume-slider {
+    filter: sepia(100%) hue-rotate(110deg) saturate(200%);
+}
+
+.tab-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+.tab-btn.is-active {
+    background: rgba(255,255,255,0.1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+.edition-modal-backdrop {
+    background: transparent;
+}
+
+.edition-modal-panel {
+    background: rgba(15, 23, 42, 0.96);
+    border-color: rgba(148, 163, 184, 0.3);
+}
+
+.edition-modal-head {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(148, 163, 184, 0.28);
+}
+
+.edition-modal-title {
+    color: rgba(241, 245, 249, 0.9);
+}
+
+.edition-modal-close {
+    border-color: rgba(148, 163, 184, 0.32);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(226, 232, 240, 0.82);
+}
+
+.edition-modal-close:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(248, 250, 252, 1);
+}
+
+.edition-modal-label {
+    color: rgba(203, 213, 225, 0.82);
+}
+
+.edition-modal-btn-secondary {
+    border-color: rgba(148, 163, 184, 0.32);
+    background: rgba(148, 163, 184, 0.08);
+    color: rgba(226, 232, 240, 0.92);
+}
+
+.edition-modal-btn-secondary:hover {
+    background: rgba(148, 163, 184, 0.16);
+}
+
+.edition-modal-btn-primary {
+    border-color: rgba(249, 115, 22, 0.4);
+    background: rgba(249, 115, 22, 0.12);
+    color: rgba(253, 186, 116, 0.98);
+}
+
+.edition-modal-btn-primary:hover {
+    background: rgba(249, 115, 22, 0.2);
+}
+
+.custom-dropdown-container {
+    position: relative;
+}
+
+.custom-dropdown-list {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    max-height: 220px;
+    overflow-y: auto;
+    background: #1e2230;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    z-index: 20;
+    display: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    padding: 6px 0;
+}
+
+.custom-dropdown-input:focus ~ .custom-dropdown-list {
+    display: block;
+}
+
+.custom-dropdown-list:hover {
+    display: block;
+}
+
+.custom-dropdown-item {
+    padding: 10px 16px;
+    font-size: 13.5px;
+    color: rgba(255, 255, 255, 0.82);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.custom-dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+}
+
+.edition-quick-panel {
+    background: #13151f;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.edition-quick-head {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.upload-tile {
+    width: 100%;
+    min-height: 86px;
+    border-radius: 0.9rem;
+    border: 1px dashed rgba(148, 163, 184, 0.38);
+    background: rgba(15, 23, 42, 0.45);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 700;
+    transition: all 0.2s ease;
+}
+
+.upload-tile i {
+    font-size: 1rem;
+}
+
+.upload-tile:hover {
+    transform: translateY(-1px);
+    border-color: rgba(148, 163, 184, 0.72);
+    background: rgba(15, 23, 42, 0.58);
+}
+
+.upload-tile-image {
+    color: #60a5fa;
+}
+
+.upload-tile-file {
+    color: #818cf8;
+}
+
+.upload-tile-audio {
+    color: #34d399;
+}
+
+.upload-caption {
+    margin-top: 0.35rem;
+    font-size: 0.7rem;
+    color: rgba(203, 213, 225, 0.7);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+html.theme-light .edition-modal-panel {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: rgba(15, 23, 42, 0.16);
+}
+
+html.theme-light .edition-modal-head {
+    background: rgba(241, 245, 249, 0.8);
+    border-color: rgba(15, 23, 42, 0.11);
+}
+
+html.theme-light .edition-modal-title {
+    color: rgba(15, 23, 42, 0.92);
+}
+
+html.theme-light .edition-modal-close {
+    border-color: rgba(15, 23, 42, 0.15);
+    background: rgba(226, 232, 240, 0.78);
+    color: rgba(30, 41, 59, 0.86);
+}
+
+html.theme-light .edition-modal-close:hover {
+    background: rgba(226, 232, 240, 0.95);
+    color: rgba(15, 23, 42, 1);
+}
+
+html.theme-light .edition-modal-label {
+    color: rgba(51, 65, 85, 0.9);
+}
+
+html.theme-light .edition-modal-btn-secondary {
+    border-color: rgba(15, 23, 42, 0.18);
+    background: rgba(226, 232, 240, 0.66);
+    color: rgba(15, 23, 42, 0.9);
+}
+
+html.theme-light .edition-modal-btn-secondary:hover {
+    background: rgba(226, 232, 240, 0.92);
+}
+
+html.theme-light .custom-dropdown-list {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.15);
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+}
+
+html.theme-light .custom-dropdown-item {
+    color: rgba(15, 23, 42, 0.85);
+}
+
+html.theme-light .custom-dropdown-item:hover {
+    background: rgba(59, 130, 246, 0.12);
+    color: rgba(15, 23, 42, 0.95);
+}
+
+html.theme-light .edition-quick-panel {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.14);
+}
+
+html.theme-light .edition-quick-head {
+    background: rgba(241, 245, 249, 0.8);
+    border-color: rgba(15, 23, 42, 0.11);
+}
+
+html.theme-light #editionQuickTitle {
+    color: rgba(15, 23, 42, 0.92);
+}
+
+html.theme-light .upload-tile {
+    border-color: rgba(15, 23, 42, 0.2);
+    background: rgba(248, 250, 252, 0.95);
+}
+
+html.theme-light .upload-tile:hover {
+    border-color: rgba(15, 23, 42, 0.34);
+    background: #ffffff;
+}
+
+html.theme-light .upload-caption {
+    color: rgba(71, 85, 105, 0.86);
+}
+</style>
+
+<script>
+(function placeVersionsCardBeforeResources() {
+    const versionsCard = document.getElementById('versionsCard');
+    const resourcesCard = document.getElementById('electronicResourcesCard');
+    if (!versionsCard || !resourcesCard || !resourcesCard.parentElement) return;
+    resourcesCard.parentElement.insertBefore(versionsCard, resourcesCard);
+})();
+
+const UPLOAD_EMPTY_TEXT = "Fayl tanlanmagan";
+let editionQuickType = '';
+let editionModalScrollHost = null;
+let editionModalHostOverflow = '';
+
+const EDITION_QUICK_CFG = {
+    publisher: {
+        title: "Yangi nashriyot",
+        icon: "fa-print",
+        color: "#7c3aed",
+        endpoint: "/publishers/api/publisher",
+        isYear: false,
+        listId: "editionPublisherList",
+        hiddenId: "editionEditPublisherId",
+        textId: "editionEditPublisherText",
+    },
+    city: {
+        title: "Yangi shahar",
+        icon: "fa-city",
+        color: "#0891b2",
+        endpoint: "/publishers/api/city",
+        isYear: false,
+        listId: "editionCityList",
+        hiddenId: "editionEditCityId",
+        textId: "editionEditCityText",
+    },
+    year: {
+        title: "Yangi yil",
+        icon: "fa-calendar",
+        color: "#d97706",
+        endpoint: "/publishers/api/year",
+        isYear: true,
+        listId: "editionYearList",
+        hiddenId: "editionEditYearId",
+        textId: "editionEditYearText",
+    },
+};
+
+function resolveEditionScrollHost() {
+    return (
+        document.querySelector('main.flex-1.overflow-x-hidden.overflow-y-auto') ||
+        document.querySelector('main.overflow-y-auto') ||
+        null
+    );
+}
+
+function syncEditionModalPosition() {
+    const modal = document.getElementById('editionEditModal');
+    if (!modal) return;
+
+    editionModalScrollHost = resolveEditionScrollHost();
+    if (!editionModalScrollHost) {
+        modal.style.transform = '';
+        modal.style.height = '';
+        return;
+    }
+
+    modal.style.transform = `translateY(${editionModalScrollHost.scrollTop}px)`;
+    modal.style.height = `${editionModalScrollHost.clientHeight}px`;
+}
+
+function lockEditionHostScroll() {
+    if (!editionModalScrollHost) return;
+    editionModalHostOverflow = editionModalScrollHost.style.overflowY || '';
+    editionModalScrollHost.style.overflowY = 'hidden';
+}
+
+function unlockEditionHostScroll() {
+    if (!editionModalScrollHost) return;
+    editionModalScrollHost.style.overflowY = editionModalHostOverflow;
+    editionModalHostOverflow = '';
+}
+
+function resetEditionModalPosition() {
+    const modal = document.getElementById('editionEditModal');
+    if (modal) {
+        modal.style.transform = '';
+        modal.style.height = '';
+    }
+    unlockEditionHostScroll();
+    editionModalScrollHost = null;
+}
+
+function bindUploadCaption(inputId, captionId) {
+    const input = document.getElementById(inputId);
+    const caption = document.getElementById(captionId);
+    if (!input || !caption) return;
+
+    input.addEventListener('change', () => {
+        const fileName = input.files && input.files[0] ? input.files[0].name : '';
+        caption.textContent = fileName || UPLOAD_EMPTY_TEXT;
+    });
+}
+
+function resetUploadCaptions() {
+    const captions = document.querySelectorAll('#editionEditModal .upload-caption');
+    captions.forEach((caption) => {
+        caption.textContent = UPLOAD_EMPTY_TEXT;
+    });
+}
+
+function initEditionDropdowns() {
+    document.querySelectorAll('#editionEditModal .custom-dropdown-container').forEach((container) => {
+        if (container.dataset.inited === '1') return;
+        container.dataset.inited = '1';
+
+        const input = container.querySelector('.custom-dropdown-input');
+        const hidden = container.querySelector('input[type="hidden"]');
+        const list = container.querySelector('.custom-dropdown-list');
+        if (!input || !hidden || !list) return;
+
+        list.addEventListener('mousedown', (e) => {
+            const item = e.target.closest('.custom-dropdown-item');
+            if (!item) return;
+            e.preventDefault();
+            input.value = item.dataset.lbl || '';
+            hidden.value = item.dataset.val || '';
+            list.style.display = 'none';
+        });
+
+        input.addEventListener('input', () => {
+            const q = (input.value || '').toLowerCase();
+            hidden.value = '';
+            list.querySelectorAll('.custom-dropdown-item').forEach((item) => {
+                const label = (item.dataset.lbl || '').toLowerCase();
+                item.style.display = label.includes(q) ? 'block' : 'none';
+            });
+            list.style.display = 'block';
+        });
+
+        input.addEventListener('focus', () => {
+            const q = (input.value || '').toLowerCase();
+            list.querySelectorAll('.custom-dropdown-item').forEach((item) => {
+                const label = (item.dataset.lbl || '').toLowerCase();
+                item.style.display = label.includes(q) ? 'block' : 'none';
+            });
+            list.style.display = 'block';
+        });
+
+        input.addEventListener('blur', () => {
+            setTimeout(() => {
+                list.style.display = 'none';
+            }, 120);
+        });
+    });
+}
+
+function setEditionLookupField(kind, idValue, labelValue) {
+    const cfg = EDITION_QUICK_CFG[kind];
+    if (!cfg) return;
+    const hidden = document.getElementById(cfg.hiddenId);
+    const text = document.getElementById(cfg.textId);
+    if (hidden) hidden.value = idValue || '';
+    if (text) text.value = labelValue || '';
+}
+
+function clearEditionLookupFields() {
+    setEditionLookupField('publisher', '', '');
+    setEditionLookupField('city', '', '');
+    setEditionLookupField('year', '', '');
+}
+
+function openEditionQuick(type) {
+    const cfg = EDITION_QUICK_CFG[type];
+    const overlay = document.getElementById('editionQuickOverlay');
+    const title = document.getElementById('editionQuickTitle');
+    const icon = document.getElementById('editionQuickIcon');
+    const textWrap = document.getElementById('editionQuickTextWrap');
+    const yearWrap = document.getElementById('editionQuickYearWrap');
+    const textInput = document.getElementById('editionQuickTextInput');
+    const yearInput = document.getElementById('editionQuickYearInput');
+    const saveBtn = document.getElementById('editionQuickSaveBtn');
+    if (!cfg || !overlay || !title || !icon || !textWrap || !yearWrap || !textInput || !yearInput || !saveBtn) return;
+
+    editionQuickType = type;
+    title.innerHTML = `<i class="fa-solid ${cfg.icon}" style="color:${cfg.color}"></i> ${cfg.title}`;
+    icon.className = `fa-solid ${cfg.icon}`;
+    saveBtn.style.background = '';
+    saveBtn.style.borderColor = '';
+    saveBtn.style.color = '';
+
+    textInput.value = '';
+    yearInput.value = '';
+    textWrap.classList.toggle('hidden', cfg.isYear);
+    yearWrap.classList.toggle('hidden', !cfg.isYear);
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+    setTimeout(() => (cfg.isYear ? yearInput : textInput).focus(), 50);
+}
+
+function closeEditionQuick() {
+    const overlay = document.getElementById('editionQuickOverlay');
+    if (!overlay) return;
+    overlay.classList.add('hidden');
+    overlay.classList.remove('flex');
+    editionQuickType = '';
+}
+
+async function saveEditionQuick() {
+    const cfg = EDITION_QUICK_CFG[editionQuickType];
+    if (!cfg) return;
+
+    const textInput = document.getElementById('editionQuickTextInput');
+    const yearInput = document.getElementById('editionQuickYearInput');
+    const value = cfg.isYear ? String(yearInput?.value || '').trim() : String(textInput?.value || '').trim();
+    if (!value) return;
+
+    const fd = new FormData();
+    fd.append(cfg.isYear ? 'year' : 'name', value);
+
+    try {
+        const res = await fetch(cfg.endpoint, { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok || data.error) {
+            const err = data?.error || "Saqlashda xatolik.";
+            if (typeof showNotification === 'function') {
+                showNotification('Xatolik', err, 'error');
+            } else {
+                alert(err);
+            }
+            return;
+        }
+
+        const label = cfg.isYear ? String(data.year || '') : String(data.name || '');
+        const id = String(data.id || '');
+        const list = document.getElementById(cfg.listId);
+        if (list && id && label) {
+            let existing = Array.from(list.children).find((el) => el.dataset.val === id);
+            if (!existing) {
+                existing = document.createElement('div');
+                existing.className = 'custom-dropdown-item';
+                existing.dataset.val = id;
+                existing.dataset.lbl = label;
+                existing.textContent = label;
+                list.insertBefore(existing, list.firstChild);
+            }
+        }
+
+        setEditionLookupField(editionQuickType, id, label);
+        closeEditionQuick();
+    } catch (err) {
+        const errMsg = err?.message || "Noma'lum xatolik";
+        if (typeof showNotification === 'function') {
+            showNotification('Xatolik', errMsg, 'error');
+        } else {
+            alert(errMsg);
+        }
+    }
+}
+
+bindUploadCaption('editionEditImageInput', 'editionEditImageCaption');
+bindUploadCaption('editionEditFileInput', 'editionEditFileCaption');
+bindUploadCaption('editionEditAudioInput', 'editionEditAudioCaption');
+initEditionDropdowns();
+
+document.querySelectorAll('.tab-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach((el) => el.classList.remove('is-active'));
+        document.querySelectorAll('.tab-pane').forEach((pane) => pane.classList.add('hidden'));
+        
+        btn.classList.add('is-active');
+        const target = document.getElementById(btn.dataset.tab);
+        if (target) {
+            target.classList.remove('hidden');
+            // Adding a micro-animation class for seamless pop-in
+            target.classList.add('animate-fadeIn');
+        }
+    });
+});
+
+function openEditionEditModal(button) {
+    const modal = document.getElementById('editionEditModal');
+    const form = document.getElementById('editionEditForm');
+    if (!modal || !form || !button) return;
+
+    form.reset();
+    resetUploadCaptions();
+    closeEditionQuick();
+    form.action = button.dataset.action || '';
+    document.getElementById('editionModalModeText').textContent = "Versiyani tahrirlash";
+    document.getElementById('editionEditTitleId').textContent = `#${button.dataset.editionId || '-'}`;
+    document.getElementById('editionEditPages').value = button.dataset.pages || '';
+    document.getElementById('editionEditAdad').value = button.dataset.adad || '0';
+    document.getElementById('editionEditStatus').value = button.dataset.status || 'undistributed';
+    setEditionLookupField('publisher', button.dataset.publisherId || '', button.dataset.publisherLabel || '');
+    setEditionLookupField('city', button.dataset.cityId || '', button.dataset.cityLabel || '');
+    setEditionLookupField('year', button.dataset.yearId || '', button.dataset.yearLabel || '');
+
+    syncEditionModalPosition();
+    lockEditionHostScroll();
+    modal.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+}
+
+function openEditionAddModal() {
+    const modal = document.getElementById('editionEditModal');
+    const form = document.getElementById('editionEditForm');
+    if (!modal || !form) return;
+
+    form.reset();
+    resetUploadCaptions();
+    closeEditionQuick();
+    form.action = '/online-books/{{ item.id }}/editions/add';
+    document.getElementById('editionModalModeText').textContent = "Yangi versiya qo'shish";
+    document.getElementById('editionEditTitleId').textContent = '';
+    document.getElementById('editionEditPages').value = '';
+    document.getElementById('editionEditAdad').value = '0';
+    document.getElementById('editionEditStatus').value = 'undistributed';
+    clearEditionLookupFields();
+
+    syncEditionModalPosition();
+    lockEditionHostScroll();
+    modal.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+}
+
+function closeEditionEditModal() {
+    const modal = document.getElementById('editionEditModal');
+    if (!modal) return;
+    document.getElementById('editionModalModeText').textContent = "Versiyani tahrirlash";
+    document.getElementById('editionEditTitleId').textContent = '#-';
+    closeEditionQuick();
+    resetUploadCaptions();
+    modal.classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+    resetEditionModalPosition();
+}
+
+document.getElementById('editionEditModal')?.addEventListener('click', function (e) {
+    if (e.target === this) closeEditionEditModal();
+});
+
+document.getElementById('editionQuickOverlay')?.addEventListener('mousedown', function (e) {
+    if (e.target === this) closeEditionQuick();
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const quickOverlay = document.getElementById('editionQuickOverlay');
+    if (quickOverlay && !quickOverlay.classList.contains('hidden')) {
+        closeEditionQuick();
+        return;
+    }
+    closeEditionEditModal();
+});
+
+window.addEventListener('resize', () => {
+    const modal = document.getElementById('editionEditModal');
+    if (!modal || modal.classList.contains('hidden')) return;
+    syncEditionModalPosition();
+});
+</script>
+{% endblock %}

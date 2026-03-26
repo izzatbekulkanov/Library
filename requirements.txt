@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+gunicorn
+jinja2
+sqlalchemy
+pydantic-settings
+bcrypt
+python-multipart
+reportlab

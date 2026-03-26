@@ -1,0 +1,684 @@
+{% extends "base.html" %}
+{% block title %}Kitobni Tahrirlash: {{ book.title }} | Glass Pro{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+    <div>
+        <a href="/books/{{ book.id }}" class="text-white/40 hover:text-white mb-2 inline-flex items-center gap-2 text-sm transition-colors">
+            <i class="fa-solid fa-arrow-left"></i> Orqaga qaytish
+        </a>
+        <h1 class="text-2xl font-bold tracking-tight text-white mb-1 flex items-center gap-2">
+            <i class="fa-solid fa-book-medical text-blue-400"></i> Kitobni Tahrirlash: {{ book.title }}
+        </h1>
+        <p class="text-[0.8rem] text-white/50">Mavjud kitobni o'zgartirish</p>
+    </div>
+</div>
+
+<form method="POST" action="/books/edit/{{ book.id }}" enctype="multipart/form-data" id="mainForm" onsubmit="return submitForm(this);">
+    <!-- Xatoliklarni ko'rsatish bloki (JS orqali to'ldiriladi) -->
+    <div id="errorBox" style="display:none; background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239,68,68,0.3); border-left:4px solid #ef4444; color:#fca5a5; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:14px; line-height:1.5;"></div>
+
+<div class="glass-card rounded-2xl border border-white/10 p-6 shadow-2xl relative z-10">
+<div class="flex flex-col gap-6">
+
+    <!-- ── 1: Nomi + Turi + BBK (bir qatorda) ── -->
+    <div style="display:flex; flex-wrap:wrap; gap:1rem;">
+        <div style="flex:2; min-width:280px;">
+            <label class="pro-label">Kitob nomi <span class="text-red-400">*</span></label>
+            <div class="pro-input-wrap mt-1">
+                <span class="pro-icon"><i class="fa-solid fa-book"></i></span>
+                <input type="text" name="title" class="pro-input" placeholder="Msl: Alkimyogar" value="{{ book.title }}" required>
+            </div>
+        </div>
+        <div style="flex:1; min-width:250px;">
+            <label class="pro-label">Kitob turi <span class="text-red-400">*</span></label>
+            <div class="pro-input-wrap mt-1 custom-dropdown-container">
+                <span class="pro-icon"><i class="fa-solid fa-layer-group"></i></span>
+                <input type="text" class="pro-input custom-dropdown-input" placeholder="Qidirish va tanlash..." autocomplete="off" value="{{ book.book_type.name if book.book_type else '' }}">
+                <input type="hidden" name="book_type_id" value="{{ book.book_type.id if book.book_type else '' }}" required>
+                <div class="custom-dropdown-list">
+                    {% for bt in book_types %}
+                    <div class="custom-dropdown-item" data-val="{{ bt.id }}" data-lbl="{{ bt.name }}">{{ bt.name }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div style="flex:1; min-width:250px;">
+            <label class="pro-label">BBK kategoriyasi <span class="text-red-400">*</span></label>
+            <div class="pro-input-wrap mt-1 custom-dropdown-container">
+                <span class="pro-icon"><i class="fa-solid fa-list-ol"></i></span>
+                <input type="text" class="pro-input custom-dropdown-input" placeholder="Qidirish va tanlash..." autocomplete="off" value="{{ book.bbk.code ~ ' – ' ~ book.bbk.name if book.bbk else '' }}">
+                <input type="hidden" name="bbk_id" value="{{ book.bbk.id if book.bbk else '' }}" required>
+                <div class="custom-dropdown-list">
+                    {% for b in bbks %}
+                    <div class="custom-dropdown-item" data-val="{{ b.id }}" data-lbl="{{ b.code }} – {{ b.name }}">{{ b.code }} – {{ b.name }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── 3: Muallif (qidirish + modal qo'shish) ── -->
+    <div>
+        <label class="pro-label">Muallif(lar)</label>
+        <div style="display:flex; gap:0.5rem; margin-top:0.25rem;">
+            <div class="custom-dropdown-container" style="flex:1; position: relative; z-index: 50;">
+                <div class="pro-input-wrap">
+                    <span class="pro-icon"><i class="fa-solid fa-magnifying-glass text-xs"></i></span>
+                    <input type="text" id="authorSearchInput" class="pro-input" placeholder="Muallif qidirish..." autocomplete="off">
+                </div>
+                <!-- Shaxsiy dropdown aniq ustma-ust tushishi uchun absolute va qattiq z-index bilan -->
+                <div class="custom-dropdown-list" id="authorSuggestList" style="position:absolute; top:calc(100% + 4px); left:0; right:0; max-height:220px; overflow-y:auto; background:#1e2230; border:1px solid rgba(255,255,255,0.15); border-radius:12px; z-index:9999; display:none; box-shadow:0 10px 30px rgba(0,0,0,0.6); padding:6px 0;">
+                    {% for a in authors %}
+                    <div class="author-suggest-item" data-val="{{ a.id }}" data-lbl="{{ a.name }}" style="padding:10px 16px; cursor:pointer; font-size:13.5px; color:rgba(255,255,255,0.8); transition:background 0.1s;">
+                        <i class="fa-solid fa-pen-nib" style="color:#93c5fd; margin-right:6px;"></i>{{ a.name }}
+                    </div>
+                    {% endfor %}
+                    <div class="empty-msg" style="display:none; padding:8px 12px; color:rgba(255,255,255,0.4); font-size:13px; text-align:center;">Topilmadi</div>
+                </div>
+            </div>
+            <button type="button" onclick="openQuick('author')"
+                style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:12px; border:none; background:#2563eb; color:white; cursor:pointer; flex-shrink: 0;" title="Yangi muallif qo'shish">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+        </div>
+        <!-- Tanlangan mualliflar vizual -->
+        <div id="selectedAuthorsBox" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;"></div>
+        <div id="authorHiddenInputs"></div> <!-- Form yuboriish uchun hidden inputlar -->
+    </div>
+
+    <!-- ── 4: Til + Sahifalar + Adad + Narxi (bir qatorda) ── -->
+    <div style="display:flex; flex-wrap:wrap; gap:1rem;">
+        <div style="flex:1; min-width:140px;">
+            <label class="pro-label">Tili <span class="text-red-400">*</span></label>
+            <div class="pro-input-wrap mt-1 custom-dropdown-container">
+                <span class="pro-icon"><i class="fa-solid fa-language"></i></span>
+                <input type="text" class="pro-input custom-dropdown-input" value="{{ language_labels.get(book.language, "O'zbek (lotin)") }}" placeholder="Til tanlang" autocomplete="off" required>
+                <input type="hidden" name="language" value="{{ book.language or 'uz' }}" required>
+                <div class="custom-dropdown-list">
+                    {% for code, name in languages %}
+                    <div class="custom-dropdown-item" data-val="{{ code }}" data-lbl="{{ name }}" style="display:flex; align-items:center; gap:8px;">
+                        {% if code == 'uz' or code == 'oz' %}
+                        <img src="https://flagcdn.com/w20/uz.png" class="w-5 h-auto rounded-sm" alt="uz">
+                        {% elif code == 'ru' %}
+                        <img src="https://flagcdn.com/w20/ru.png" class="w-5 h-auto rounded-sm" alt="ru">
+                        {% elif code == 'en' %}
+                        <img src="https://flagcdn.com/w20/gb.png" class="w-5 h-auto rounded-sm" alt="en">
+                        {% elif code == 'tr' %}
+                        <img src="https://flagcdn.com/w20/tr.png" class="w-5 h-auto rounded-sm" alt="tr">
+                        {% elif code == 'de' %}
+                        <img src="https://flagcdn.com/w20/de.png" class="w-5 h-auto rounded-sm" alt="de">
+                        {% elif code == 'fr' %}
+                        <img src="https://flagcdn.com/w20/fr.png" class="w-5 h-auto rounded-sm" alt="fr">
+                        {% elif code == 'kk' %}
+                        <img src="https://flagcdn.com/w20/kz.png" class="w-5 h-auto rounded-sm" alt="kz">
+                        {% elif code == 'ky' %}
+                        <img src="https://flagcdn.com/w20/kg.png" class="w-5 h-auto rounded-sm" alt="kg">
+                        {% endif %}
+                        <span>{{ name }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div style="flex:1; min-width:140px;">
+            <label class="pro-label">Sahifalar soni <span class="text-red-400">*</span></label>
+            <div class="pro-input-wrap mt-1">
+                <span class="pro-icon"><i class="fa-solid fa-file-lines"></i></span>
+                <input type="number" name="pages" class="pro-input" placeholder="Msl: 320" min="1" value="{{ book.pages or '' }}" required>
+            </div>
+        </div>
+        <div style="flex:1; min-width:140px;">
+            <label class="pro-label">Adad <span class="text-red-400">*</span></label>
+            <div class="pro-input-wrap mt-1">
+                <span class="pro-icon"><i class="fa-solid fa-cubes"></i></span>
+                <input type="number" name="adad" class="pro-input" placeholder="5000" min="0" value="{{ book.adad or '' }}" required>
+            </div>
+        </div>
+        <div style="flex:1; min-width:140px;">
+            <label class="pro-label">Narxi <span class="text-red-400">*</span></label>
+            <div class="pro-input-wrap mt-1">
+                <span class="pro-icon" style="font-weight: bold; font-size: 0.75rem;">UZS</span>
+                <input type="number" name="price" class="pro-input" placeholder="85000.50" min="0" step="0.01" value="{{ book.price or '' }}" required>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── 5: Nashriyot + Shahar + Yil (bir qatorda) ── -->
+    <div style="display:flex; flex-wrap:wrap; gap:1rem;">
+        <!-- Nashriyot -->
+        <div style="flex:1; min-width:220px;">
+            <label class="pro-label">Nashriyot <span class="text-red-400">*</span></label>
+            <div style="display:flex; gap:0.5rem; margin-top:0.25rem;">
+                <div class="pro-input-wrap custom-dropdown-container" style="flex:1;">
+                    <span class="pro-icon"><i class="fa-solid fa-print"></i></span>
+                    <input type="text" class="pro-input custom-dropdown-input" placeholder="Qidirish va tanlash..." autocomplete="off" value="{{ book.publisher.name if book.publisher else '' }}" required>
+                    <input type="hidden" name="publisher_id" id="val_publisher" value="{{ book.publisher.id if book.publisher else '' }}" required>
+                    <div class="custom-dropdown-list" id="list_publisher">
+                        {% for p in publishers %}<div class="custom-dropdown-item" data-val="{{ p.id }}" data-lbl="{{ p.name }}">{{ p.name }}</div>{% endfor %}
+                    </div>
+                </div>
+                <button type="button" onclick="openQuick('publisher')"
+                    style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:12px; border:none; background:#7c3aed; color:white; cursor:pointer;" title="Yangi qo'shish">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+            </div>
+        </div>
+        <!-- Shahar -->
+        <div style="flex:1; min-width:220px;">
+            <label class="pro-label">Nashr shahri <span class="text-red-400">*</span></label>
+            <div style="display:flex; gap:0.5rem; margin-top:0.25rem;">
+                <div class="pro-input-wrap custom-dropdown-container" style="flex:1;">
+                    <span class="pro-icon"><i class="fa-solid fa-city"></i></span>
+                    <input type="text" class="pro-input custom-dropdown-input" placeholder="Qidirish va tanlash..." autocomplete="off" value="{{ book.published_city.name if book.published_city else '' }}" required>
+                    <input type="hidden" name="published_city_id" id="val_city" value="{{ book.published_city.id if book.published_city else '' }}" required>
+                    <div class="custom-dropdown-list" id="list_city">
+                        {% for c in cities %}<div class="custom-dropdown-item" data-val="{{ c.id }}" data-lbl="{{ c.name }}">{{ c.name }}</div>{% endfor %}
+                    </div>
+                </div>
+                <button type="button" onclick="openQuick('city')"
+                    style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:12px; border:none; background:#0891b2; color:white; cursor:pointer;" title="Yangi qo'shish">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+            </div>
+        </div>
+        <!-- Yil -->
+        <div style="flex:1; min-width:180px;">
+            <label class="pro-label">Nashr yili <span class="text-red-400">*</span></label>
+            <div style="display:flex; gap:0.5rem; margin-top:0.25rem;">
+                <div class="pro-input-wrap custom-dropdown-container" style="flex:1;">
+                    <span class="pro-icon"><i class="fa-solid fa-calendar"></i></span>
+                    <input type="text" class="pro-input custom-dropdown-input" placeholder="Tanlash..." autocomplete="off" value="{{ book.publication_year.year if book.publication_year else '' }}" required>
+                    <input type="hidden" name="publication_year_id" id="val_year" value="{{ book.publication_year.id if book.publication_year else '' }}" required>
+                    <div class="custom-dropdown-list" id="list_year">
+                        {% for y in years %}<div class="custom-dropdown-item" data-val="{{ y.id }}" data-lbl="{{ y.year }}">{{ y.year }}</div>{% endfor %}
+                    </div>
+                </div>
+                <button type="button" onclick="openQuick('year')"
+                    style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:12px; border:none; background:#d97706; color:white; cursor:pointer;" title="Yangi qo'shish">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── 6: ISBN + Inventar prefix + Nusxa soni + Preview ── -->
+    <div style="display:flex; flex-wrap:wrap; gap:1rem;">
+        <div style="flex:1; min-width:160px;">
+            <label class="pro-label">ISBN <span class="text-red-400">*</span></label>
+            <div class="pro-input-wrap mt-1">
+                <span class="pro-icon"><i class="fa-solid fa-barcode"></i></span>
+                <input type="text" name="isbn" class="pro-input" placeholder="ISBN raqami" value="{{ book.isbn or '' }}" required>
+            </div>
+        </div>
+        <div style="flex:1; min-width:160px;">
+            <label class="pro-label">Inventar prefiksi <span class="text-red-400">*</span></label>
+            <div class="pro-input-wrap mt-1 opacity-50 cursor-not-allowed">
+                <span class="pro-icon"><i class="fa-solid fa-hashtag"></i></span>
+                <input type="text" class="pro-input cursor-not-allowed" placeholder="O'zgartirib bo'lmaydi" value="{{ book.total_inventory }}" disabled readonly>
+            </div>
+            <p class="text-[0.6rem] text-white/40 mt-1 mt-1">Bu faqat nusxa modulida qo'shiladi</p>
+        </div>
+        <div style="flex:1; min-width:140px;">
+            <label class="pro-label">Nusxa soni <span class="text-red-400">*</span></label>
+            <div class="pro-input-wrap mt-1 opacity-50 cursor-not-allowed">
+                <span class="pro-icon"><i class="fa-solid fa-clone"></i></span>
+                <input type="number" class="pro-input cursor-not-allowed" placeholder="Mavjud" value="{{ book.total_copies }}" disabled readonly>
+            </div>
+        </div>
+        <div style="flex:2; min-width:250px;">
+            <label class="pro-label">Mavjud Nusxalar (<span class="text-white">{{ book.copies|length }}</span> ta)</label>
+            <div id="copyPreview" class="mt-1" style="display:flex; flex-wrap:wrap; align-content:flex-start; gap:6px; padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); min-height:44px; max-height:140px; overflow-y:auto;">
+                {% if book.copies %}
+                    {% for copy in book.copies %}
+                        <div style="background:rgba(124,58,237,0.15); border:1px solid rgba(124,58,237,0.3); padding:4px 8px; border-radius:6px; display:flex; gap:8px; align-items:center;">
+                            <span style="color:#a78bfa; font-size:12px; font-weight:700; font-family:monospace;">{{ copy.inventory_number }}</span>
+                            <span style="color:{% if copy.status == 'active' %}#34d399{% elif copy.status == 'lost' %}#ef4444{% else %}#f87171{% endif %}; font-size:10px; text-transform:uppercase;">
+                                {{ 'Faol' if copy.status == 'active' else 'Yo\'qolgan' if copy.status == 'lost' else copy.status }}
+                            </span>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <span style="color:rgba(255,255,255,0.3); font-size:11px; align-self:center; width:100%; text-align:center;">Hozircha nusxalar kiritilmagan...</span>
+                {% endif %}
+            </div>
+            <p class="text-[0.65rem] text-white/40 mt-1 mt-2">Nusxalarni o'chirish/boshqarish batafsil sahifasida bajariladi.</p>
+        </div>
+    </div>
+
+    <!-- ── 7: Annotatsiya ── -->
+    <div>
+        <label class="pro-label">Kitob annotatsiyasi <span class="text-red-400">*</span></label>
+        <div class="pro-input-wrap mt-1" style="align-items:flex-start;">
+            <span class="pro-icon" style="margin-top:12px;"><i class="fa-solid fa-align-left"></i></span>
+            <textarea name="annotation" class="pro-input w-full resize-none" rows="3"
+                      style="min-height:90px; height:auto; padding-top:12px;"
+                      placeholder="Kitob haqida qisqacha ma'lumot..." required>{{ book.annotation or '' }}</textarea>
+        </div>
+    </div>
+
+    <!-- ── 8: Rasm + Fayl (yonma-yon, flex layout) ── -->
+    <div style="display:flex; flex-wrap:wrap; gap:1.25rem;">
+        <!-- Rasm -->
+        <div style="flex:1; min-width:280px;">
+            <label class="pro-label">Rasm yuklash (ixtiyoriy)</label>
+            <label for="imageInput" class="block w-full text-center p-6 border-2 border-dashed border-slate-300 dark:border-white/20 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-blue-400 dark:hover:border-blue-500/50 transition-all cursor-pointer group mt-1">
+                <div id="imagePreview" class="flex flex-col items-center justify-center transition-transform group-hover:scale-105">
+                    {% if book.image %}
+                    <img src="{{ book.image }}" alt="Kitob rasmi" class="h-24 w-auto object-contain mx-auto mb-2 rounded-md">
+                    <p class="text-sm font-semibold text-slate-600 dark:text-white/70 transition-colors">Rasm tanlash yoki tashlang</p>
+                    <p class="text-xs text-slate-400 dark:text-white/40 mt-1 transition-colors">Hozirgi: {{ book.image.split('/')[-1] }}</p>
+                    {% else %}
+                    <i class="fa-solid fa-image" class="text-[2.5rem] text-purple-500 mb-2"></i>
+                    <p class="text-sm font-semibold text-slate-600 dark:text-white/70 transition-colors">Rasm tanlash yoki tashlang</p>
+                    <p class="text-xs text-slate-400 dark:text-white/40 mt-1 transition-colors">JPG, PNG, WEBP — max 5MB</p>
+                    {% endif %}
+                </div>
+                <input type="file" name="image" id="imageInput" accept="image/*" class="hidden" onchange="previewFile(this, 'imagePreview', true)">
+            </label>
+        </div>
+        <!-- Fayl -->
+        <div style="flex:1; min-width:280px;">
+            <label class="pro-label">Fayl yuklash (ixtiyoriy)</label>
+            <label for="fileInput" class="block w-full text-center p-6 border-2 border-dashed border-slate-300 dark:border-white/20 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-blue-400 dark:hover:border-blue-500/50 transition-all cursor-pointer group mt-1">
+                <div id="filePreview" class="flex flex-col items-center justify-center transition-transform group-hover:scale-105">
+                    {% if book.file %}
+                    <i class="fa-solid fa-file-pdf" class="text-[2.5rem] text-emerald-400 mb-2"></i>
+                    <p class="text-sm font-semibold text-slate-600 dark:text-white/70 transition-colors">Fayl tanlash yoki tashlang</p>
+                    <p class="text-xs text-slate-400 dark:text-white/40 mt-1 transition-colors">Hozirgi: {{ book.file.split('/')[-1] }}</p>
+                    {% else %}
+                    <i class="fa-solid fa-file-pdf" class="text-[2.5rem] text-emerald-400 mb-2"></i>
+                    <p class="text-sm font-semibold text-slate-600 dark:text-white/70 transition-colors">Fayl tanlash yoki tashlang</p>
+                    <p class="text-xs text-slate-400 dark:text-white/40 mt-1 transition-colors">PDF, DOC, DOCX — max 50MB</p>
+                    {% endif %}
+                </div>
+                <input type="file" name="file" id="fileInput" accept=".pdf,.doc,.docx,.txt" class="hidden" onchange="previewFile(this, 'filePreview', false)">
+            </label>
+        </div>
+    </div>
+
+    <!-- ── Submit ── -->
+    <div style="display:flex; justify-content:flex-end; padding-top:10px;">
+        <button type="submit" class="submit-btn" onclick="return validateSSelects()">
+            <i class="fa-solid fa-lock" style="font-size:12px;"></i> O'zgarishlarni Saqlash
+        </button>
+    </div>
+
+</div>
+</div>
+</form>
+
+<!-- в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ HAQIQIY MODAL OYNASI в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ -->
+<div id="realModalOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:99999; justify-content:center; align-items:center;">
+    <!-- Modal content -->
+    <div style="background:#13151f; border:1px solid rgba(255,255,255,0.1); border-radius:16px; width:100%; max-width:400px; box-shadow:0 25px 50px rgba(0,0,0,0.5); overflow:hidden; transform:scale(0.95); opacity:0; transition:all 0.2s ease;" id="realModalBox">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.05); background:rgba(255,255,255,0.02);">
+            <h3 id="modalTitle" style="color:white; font-size:16px; font-weight:700; display:flex; align-items:center; gap:8px;"></h3>
+            <button type="button" onclick="closeQuick()" style="background:none; border:none; color:rgba(255,255,255,0.5); font-size:18px; cursor:pointer;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div style="padding:20px;">
+            <div class="pro-input-wrap" id="modalTextWrap" style="margin-bottom:15px;">
+                <span class="pro-icon"><i id="modalIcon" class="fa-solid fa-pen"></i></span>
+                <input type="text" id="modalTextInput" class="pro-input" placeholder="Nomi *" onkeydown="if(event.key==='Enter') saveQuick()">
+            </div>
+            
+            <div id="modalAuthorExtraFields" style="display:none;">
+                <div class="pro-input-wrap" style="margin-bottom:15px;">
+                    <span class="pro-icon"><i class="fa-solid fa-id-badge"></i></span>
+                    <input type="text" id="modalCodeInput" class="pro-input" placeholder="Muallif kodi (ixtiyoriy)" onkeydown="if(event.key==='Enter') saveQuick()">
+                </div>
+                <div class="pro-input-wrap" style="margin-bottom:15px;">
+                    <span class="pro-icon"><i class="fa-solid fa-phone"></i></span>
+                    <input type="text" id="modalPhoneInput" class="pro-input" placeholder="Telefon raqami (ixtiyoriy)" onkeydown="if(event.key==='Enter') saveQuick()">
+                </div>
+                <div class="pro-input-wrap" style="margin-bottom:15px;">
+                    <span class="pro-icon"><i class="fa-solid fa-envelope"></i></span>
+                    <input type="email" id="modalEmailInput" class="pro-input" placeholder="Email manzili (ixtiyoriy)" onkeydown="if(event.key==='Enter') saveQuick()">
+                </div>
+            </div>
+
+            <div class="pro-input-wrap" id="modalYearWrap" style="display:none; margin-bottom:15px;">
+                <span class="pro-icon"><i class="fa-solid fa-calendar"></i></span>
+                <input type="number" id="modalYearInput" class="pro-input" placeholder="Yil (msl: 2024) *" onkeydown="if(event.key==='Enter') saveQuick()">
+            </div>
+            
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" onclick="closeQuick()" style="padding:10px 18px; border-radius:10px; background:rgba(255,255,255,0.05); color:white; border:1px solid rgba(255,255,255,0.1); font-size:14px; cursor:pointer;">Bekor qilish</button>
+                <button type="button" id="modalSaveBtn" onclick="saveQuick()" style="padding:10px 20px; border-radius:10px; border:none; color:white; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-check"></i> Qo'shish
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* CSS formating for new layout */
+.glass-card { background: rgba(18, 20, 29, 0.7); backdrop-filter: blur(16px); }
+.pro-label { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.8); display: block; margin-bottom: 6px; }
+
+/* Custom Dropdown Styles (CSS only behavior where possible) */
+.custom-dropdown-container { position: relative; }
+.custom-dropdown-list {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    max-height: 200px; overflow-y: auto;
+    background: #1e2230; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px;
+    z-index: 9999; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    padding: 6px 0;
+}
+.custom-dropdown-input:focus ~ .custom-dropdown-list { display: block; }
+.custom-dropdown-list:hover { display: block; } /* hover state ushlab turish uchun */
+.custom-dropdown-item, .author-suggest-item {
+    padding: 10px 16px; font-size: 13.5px; color: rgba(255,255,255,0.8);
+    cursor: pointer; transition: background 0.15s;
+}
+.custom-dropdown-item:hover, .author-suggest-item:hover { background: rgba(255,255,255,0.08); color: white; }
+
+
+
+.submit-btn {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    border: 1px solid rgba(22, 163, 74, 0.4);
+    box-shadow: 0 0 20px rgba(22, 163, 74, 0.2);
+    padding: 12px 32px; border-radius: 12px; color: white; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+}
+.submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(22, 163, 74, 0.4); }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Modal fixed position ishlashi uchun uni <main> dan obchiqib <body> ga tirkab qo'yamiz
+    const modal = document.getElementById('realModalOverlay');
+    if(modal) document.body.appendChild(modal);
+
+    {% if book.authors %}
+    // Edit page init: mavjud mualliflarni oldindan select qilib ro'yxatga qo'shish
+    {% for ath in book.authors %}
+    selectAuthor('{{ ath.id }}', '{{ ath.name }}', true);
+    {% endfor %}
+    {% endif %}
+});
+
+/* =========================================================
+   1. CUSTOM SELECT & SEARCH LOGIC
+========================================================= */
+document.querySelectorAll('.custom-dropdown-container').forEach(container => {
+    const input = container.querySelector('.custom-dropdown-input');
+    const hidden = container.querySelector('input[type="hidden"]');
+    const list = container.querySelector('.custom-dropdown-list');
+    if(!input || !list || input.id === 'authorSearchInput') return; // muallif boshqacha ishlaydi
+
+    // Option bosilganda
+    list.addEventListener('mousedown', e => {
+        const item = e.target.closest('.custom-dropdown-item');
+        if(item) {
+            e.preventDefault(); // blur oldini oladi
+            input.value = item.dataset.lbl;
+            if(hidden) hidden.value = item.dataset.val;
+            list.style.display = 'none';
+        }
+    });
+
+    // Harf yozilganda qidirish
+    input.addEventListener('input', e => {
+        const q = e.target.value.toLowerCase();
+        let hasObj = false;
+        list.querySelectorAll('.custom-dropdown-item').forEach(item => {
+            const match = item.dataset.lbl.toLowerCase().includes(q);
+            item.style.display = match ? 'block' : 'none';
+            if(match) hasObj = true;
+        });
+        if(hidden) hidden.value = ''; // Yozilganda avvalgisini tozalaymiz
+    });
+
+    // Qayta fokuslanganda hammasini ko'rsatish
+    input.addEventListener('focus', () => {
+        list.style.display = 'block';
+        list.querySelectorAll('.custom-dropdown-item').forEach(i => i.style.display = 'block');
+    });
+
+    // Tashqariga bosilganda yo'qolishi
+    input.addEventListener('blur', () => {
+        setTimeout(() => { list.style.display = ''; }, 150);
+    });
+});
+
+/* Foydalanuvchi qidirib to'g'ri tanlamasa hidden bo'sh qolmasligini tekshirish */
+function validateSSelects() {
+    let ok = true;
+    document.querySelectorAll('.custom-dropdown-container').forEach(c => {
+        const h = c.querySelector('input[type="hidden"]');
+        if(h && h.required && !h.value) {
+            c.querySelector('.custom-dropdown-input').style.borderColor = '#f87171';
+            ok = false;
+        }
+    });
+
+    // Author check
+    if(selectedAuthorIds.size === 0) {
+        document.getElementById('authorSearchInput').style.borderColor = '#f87171';
+        ok = false;
+    }
+
+    if(!ok) alert("Iltimos barcha majburiy ro'yxatlarni va muallifni tanlang.");
+    return ok;
+}
+
+
+/* =========================================================
+   2. MUALLIF (MULTIPLE) QIDIRUV VA TANLASH
+========================================================= */
+const authSearch = document.getElementById('authorSearchInput');
+const authList   = document.getElementById('authorSuggestList');
+const selectedBox= document.getElementById('selectedAuthorsBox');
+const authHidden = document.getElementById('authorHiddenInputs');
+let selectedAuthorIds = new Set();
+
+authSearch.addEventListener('input', () => { authList.style.display='block'; filterAuthors(); });
+authSearch.addEventListener('focus', () => { authList.style.display='block'; filterAuthors(); });
+authSearch.addEventListener('click', () => { authList.style.display='block'; filterAuthors(); });
+authSearch.addEventListener('blur', () => { setTimeout(() => authList.style.display='', 200); });
+
+function filterAuthors() {
+    const q = authSearch.value.toLowerCase();
+    let vis = 0;
+    authList.querySelectorAll('.author-suggest-item').forEach(item => {
+        if(item.dataset.lbl.toLowerCase().includes(q) && !selectedAuthorIds.has(item.dataset.val)) {
+            item.style.display = 'block'; vis++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    authList.querySelector('.empty-msg').style.display = vis ? 'none' : 'block';
+}
+
+authList.addEventListener('mousedown', e => {
+    const item = e.target.closest('.author-suggest-item');
+    if(item) {
+        e.preventDefault();
+        selectAuthor(item.dataset.val, item.dataset.lbl);
+    }
+});
+
+function selectAuthor(id, name, isInit = false) {
+    if(selectedAuthorIds.has(String(id))) return;
+    selectedAuthorIds.add(String(id));
+    if(!isInit) authSearch.value = '';
+    
+    // Vizual chip
+    // CSS-in-JS style for chip
+    const chip = document.createElement('div');
+    chip.style.cssText = 'display:inline-flex; align-items:center; gap:6px; background:rgba(37,99,235,0.15); border:1px solid rgba(37,99,235,0.3); color:#93c5fd; padding:4px 12px; border-radius:100px; font-size:12px; font-weight:600;';
+    chip.innerHTML = `<i class="fa-solid fa-pen-nib" style="font-size:10px;"></i> ${name} 
+        <i class="fa-solid fa-xmark" style="cursor:pointer; margin-left:4px; opacity:0.7;" onclick="removeAuthor('${id}', this.parentElement)"></i>`;
+    selectedBox.appendChild(chip);
+
+    // Hidden input for POST
+    const inp = document.createElement('input');
+    inp.type = 'hidden'; inp.name = 'author_ids'; inp.value = id; inp.id = `hid_auth_${id}`;
+    authHidden.appendChild(inp);
+    
+    // Qidiruv ro'yxati ochiq qolishi va filtrlanishi (foydalanuvchi yana qo'shishiga imkon berish)
+    if(!isInit) {
+        authSearch.focus();
+        filterAuthors(); 
+    }
+}
+
+function removeAuthor(id, el) {
+    selectedAuthorIds.delete(String(id));
+    el.remove();
+    const inp = document.getElementById(`hid_auth_${id}`);
+    if(inp) inp.remove();
+}
+
+function addAuthorToList(id, name) {
+    const div = document.createElement('div');
+    div.className = 'author-suggest-item';
+    div.dataset.val = id;
+    div.dataset.lbl = name;
+    div.innerHTML = `<i class="fa-solid fa-pen-nib" style="color:#93c5fd; margin-right:6px;"></i>${name}`;
+    authList.insertBefore(div, authList.firstChild); // Boshiga qo'shish
+}
+
+
+/* =========================================================
+   3. NUSXA PREVIEW (Edit rejimida JS preview o'chirilgan)
+========================================================= */
+function updatePreview() {
+    // Edit modeda inventory fieldlar disabled ishlamaydi, 
+    // real bazadagi nusxalar backdan kelaveradi.
+}
+
+/* =========================================================
+   4. FILE UPLOAD PREVIEW
+========================================================= */
+function previewFile(input, boxId, isImage) {
+    const file = input.files[0];
+    if(!file) return;
+    const box = document.getElementById(boxId);
+    if(isImage && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = e => box.innerHTML = `<img src="${e.target.result}" style="max-height:100px; border-radius:8px; object-fit:contain;"><p style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:8px;">${file.name}</p>`;
+        reader.readAsDataURL(file);
+    } else {
+        box.innerHTML = `<i class="fa-solid fa-file-circle-check" class="text-[2.5rem] text-emerald-400 mb-2"></i><p style="font-size:12px; color:rgba(255,255,255,0.8);">${file.name}</p>`;
+    }
+}
+
+/* =========================================================
+   5. HAQIQIY MODAL (QUICK ADD) LOGIC
+========================================================= */
+let _qType = null;
+const Q_CFG = {
+    publisher: { t:'Yangi Nashriyot', icon:'fa-print',    clr:'#7c3aed', endpoint:'/publishers/api/publisher', isYear:false, targetList:'list_publisher', targetVal:'val_publisher' },
+    city:      { t:'Yangi Shahar',    icon:'fa-city',     clr:'#0891b2', endpoint:'/publishers/api/city',      isYear:false, targetList:'list_city',      targetVal:'val_city' },
+    year:      { t:'Yangi Yil',       icon:'fa-calendar', clr:'#d97706', endpoint:'/publishers/api/year',      isYear:true,  targetList:'list_year',      targetVal:'val_year' },
+    author:    { t:'Yangi Muallif',   icon:'fa-pen-nib',  clr:'#2563eb', endpoint:'/authors/api/quick',        isYear:false, targetList:null,             targetVal:null },
+};
+
+function openQuick(type) {
+    _qType = type;
+    const cfg = Q_CFG[type];
+    document.getElementById('modalTitle').innerHTML = `<i class="fa-solid ${cfg.icon}" style="color:${cfg.clr}"></i> ${cfg.t}`;
+    document.getElementById('modalIcon').className = `fa-solid ${cfg.icon}`;
+    document.getElementById('modalSaveBtn').style.background = cfg.clr;
+    
+    document.getElementById('modalTextWrap').style.display = cfg.isYear ? 'none' : 'block';
+    document.getElementById('modalYearWrap').style.display = cfg.isYear ? 'block' : 'none';
+    
+    // Author extra inputs show/hide
+    const ext = document.getElementById('modalAuthorExtraFields');
+    if (ext) ext.style.display = type === 'author' ? 'block' : 'none';
+
+    // Clear inputs
+    document.getElementById('modalTextInput').value = '';
+    document.getElementById('modalYearInput').value = '';
+    document.getElementById('modalCodeInput').value = '';
+    document.getElementById('modalPhoneInput').value = '';
+    document.getElementById('modalEmailInput').value = '';
+
+    const modal = document.getElementById('realModalOverlay');
+    const box   = document.getElementById('realModalBox');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Animation
+    requestAnimationFrame(() => {
+        box.style.transform = 'scale(1)';
+        box.style.opacity = '1';
+    });
+    
+    setTimeout(() => { (cfg.isYear ? document.getElementById('modalYearInput') : document.getElementById('modalTextInput')).focus(); }, 150);
+}
+
+function closeQuick() {
+    const modal = document.getElementById('realModalOverlay');
+    const box   = document.getElementById('realModalBox');
+    box.style.transform = 'scale(0.95)';
+    box.style.opacity = '0';
+    setTimeout(() => {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }, 200);
+}
+
+async function saveQuick() {
+    const cfg = Q_CFG[_qType];
+    const inp = cfg.isYear ? document.getElementById('modalYearInput') : document.getElementById('modalTextInput');
+    const val = inp.value.trim();
+    if(!val) return;
+
+    const fd = new FormData();
+    fd.append(cfg.isYear ? 'year' : 'name', val);
+
+    if (_qType === 'author') {
+        fd.append('author_code', document.getElementById('modalCodeInput').value.trim());
+        fd.append('phone_number', document.getElementById('modalPhoneInput').value.trim());
+        fd.append('email', document.getElementById('modalEmailInput').value.trim());
+    }
+
+    try {
+        const res = await fetch(cfg.endpoint, { method:'POST', body: fd });
+        const data = await res.json();
+        if(data.error) { alert(data.error); return; }
+
+        if(_qType === 'author') {
+            addAuthorToList(data.id, data.name);
+            selectAuthor(data.id, data.name);
+        } else {
+            const list = document.getElementById(cfg.targetList);
+            const hidden = document.getElementById(cfg.targetVal);
+            const label = cfg.isYear ? String(data.year) : data.name;
+            
+            // Itemni ro'yxatga qo'shdik agar yo'q bo'lsa
+            let exists = Array.from(list.children).find(el => el.dataset.val == data.id);
+            if(!exists) {
+                const div = document.createElement('div');
+                div.className = 'custom-dropdown-item';
+                div.dataset.val = data.id;
+                div.dataset.lbl = label;
+                div.textContent = label;
+                list.insertBefore(div, list.firstChild);
+            }
+            
+            // Avto tanlash
+            hidden.value = data.id;
+            const wrap = list.closest('.custom-dropdown-container');
+            if(wrap) wrap.querySelector('.custom-dropdown-input').value = label;
+        }
+
+        closeQuick();
+    } catch(e) { alert("Xatolik: " + e.message); }
+}
+
+// Modal overlay bosilganda yopilishi
+document.getElementById('realModalOverlay').addEventListener('mousedown', e => {
+    if(e.target === e.currentTarget) closeQuick();
+});
+</script>
+{% endblock %}

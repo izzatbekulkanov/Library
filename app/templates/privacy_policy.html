@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Maxfiylik Siyosati | Glass Pro{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-5">
+    <div class="glass-card rounded-2xl border border-white/10 p-6 lg:p-8 shadow-2xl relative overflow-hidden">
+        <div class="absolute -top-16 -right-16 w-44 h-44 rounded-full bg-blue-500/10 blur-3xl pointer-events-none"></div>
+        <h1 class="text-2xl lg:text-3xl font-bold text-white mb-2 flex items-center gap-3">
+            <i class="fa-solid fa-user-shield text-blue-400"></i>
+            Maxfiylik siyosati
+        </h1>
+        <p class="text-white/65 text-sm leading-relaxed">
+            Ushbu bo‘limda foydalanuvchi ma’lumotlarini yig‘ish, saqlash, qayta ishlash va himoya qilish qoidalari keltirilgan.
+            Tizimdan foydalanish ushbu siyosatga rozilik bildirgan holda amalga oshiriladi.
+        </p>
+        <p class="text-xs text-white/45 mt-2">Amal qilish sanasi: 25.03.2026</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="glass-card rounded-2xl border border-white/10 p-5">
+            <h2 class="text-sm uppercase tracking-widest text-white/55 font-bold mb-3">1. Yig‘iladigan ma’lumotlar</h2>
+            <ul class="space-y-2 text-sm text-white/75 leading-relaxed">
+                <li>Foydalanuvchi hisob ma’lumotlari: ism, username, email, rol, status.</li>
+                <li>Tizim faoliyati: oxirgi kirish va oxirgi faollik vaqti.</li>
+                <li>Kutubxona ish jarayoni bo‘yicha amaliy yozuvlar (kitob/nusxa operatsiyalari).</li>
+            </ul>
+        </div>
+        <div class="glass-card rounded-2xl border border-white/10 p-5">
+            <h2 class="text-sm uppercase tracking-widest text-white/55 font-bold mb-3">2. Foydalanish maqsadi</h2>
+            <ul class="space-y-2 text-sm text-white/75 leading-relaxed">
+                <li>Autentifikatsiya, avtorizatsiya va rolga asoslangan kirishni boshqarish.</li>
+                <li>Audit, xavfsizlik monitoringi va real vaqt holatini ko‘rsatish.</li>
+                <li>Xizmat sifatini oshirish va tizim nosozliklarini aniqlash.</li>
+            </ul>
+        </div>
+        <div class="glass-card rounded-2xl border border-white/10 p-5">
+            <h2 class="text-sm uppercase tracking-widest text-white/55 font-bold mb-3">3. Saqlash va himoya</h2>
+            <ul class="space-y-2 text-sm text-white/75 leading-relaxed">
+                <li>Parollar xeshlangan ko‘rinishda saqlanadi.</li>
+                <li>Ma’lumotlarga kirish faqat vakolatli rollar asosida cheklanadi.</li>
+                <li>Tizim ichidagi sessiyalar xavfsizlik sozlamalari bilan boshqariladi.</li>
+            </ul>
+        </div>
+        <div class="glass-card rounded-2xl border border-white/10 p-5">
+            <h2 class="text-sm uppercase tracking-widest text-white/55 font-bold mb-3">4. Foydalanuvchi huquqlari</h2>
+            <ul class="space-y-2 text-sm text-white/75 leading-relaxed">
+                <li>Ma’lumotlarining holati bo‘yicha administratorga murojaat qilish.</li>
+                <li>Noto‘g‘ri ma’lumotlarni tuzatish bo‘yicha so‘rov yuborish.</li>
+                <li>Hisob holati va kirish ruxsatlari haqida ma’lumot olish.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="glass-card rounded-2xl border border-amber-500/25 bg-amber-500/10 p-5">
+        <h3 class="text-sm font-semibold text-amber-200 mb-2">Muhim eslatma</h3>
+        <p class="text-sm text-amber-100/85 leading-relaxed">
+            Foydalanuvchi ma’lumotlarini tahrirlash va menyu ruxsatlarini boshqarish faqat administratorlar tomonidan amalga oshiriladi.
+            Oddiy foydalanuvchilar profilni mustaqil tahrirlay olmaydi.
+        </p>
+    </div>
+</div>
+{% endblock %}

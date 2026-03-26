@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Men Haqimda | Glass Pro{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-5">
+    <div class="glass-card rounded-2xl border border-white/10 p-6 lg:p-8 shadow-2xl relative overflow-hidden">
+        <div class="absolute -top-20 -right-20 w-52 h-52 rounded-full bg-blue-500/10 blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-20 -left-20 w-52 h-52 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none"></div>
+
+        <div class="relative flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+            <div class="flex items-center gap-4 min-w-0">
+                <div class="w-20 h-20 rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white font-bold text-2xl shrink-0 shadow-lg">
+                    {% if about.image %}
+                    <img src="{{ about.image }}" alt="{{ about.full_name }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <span class="w-full h-full items-center justify-center" style="display:none;">{{ (about.full_name or 'U')[0] | upper }}</span>
+                    {% else %}
+                    {{ (about.full_name or 'U')[0] | upper }}
+                    {% endif %}
+                </div>
+                <div class="min-w-0">
+                    <h1 class="text-2xl font-bold text-white leading-tight truncate">{{ about.full_name }}</h1>
+                    <p class="text-white/60 text-sm">@{{ about.username }}</p>
+                    <div class="mt-2 flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center rounded-full border border-blue-500/30 bg-blue-500/10 px-2.5 py-1 text-[11px] font-semibold text-blue-300">
+                            {{ about.role_label }}
+                        </span>
+                        <span class="inline-flex items-center rounded-full border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1 text-[11px] font-semibold text-indigo-300">
+                            {{ about.user_type }}
+                        </span>
+                        {% if about.is_active %}
+                        <span class="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
+                            {{ about.status_text }}
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center rounded-full border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[11px] font-semibold text-red-300">
+                            {{ about.status_text }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                {% if about.is_online_now %}
+                <p class="text-emerald-300 font-semibold text-sm">Real vaqt holati: {{ about.online_text }}</p>
+                {% else %}
+                <p class="text-slate-300 font-semibold text-sm">Real vaqt holati: {{ about.online_text }}</p>
+                {% endif %}
+                <p class="text-white/50 text-xs mt-1">{{ about.online_hint }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p class="text-[11px] uppercase tracking-widest text-white/45 mb-1">Akkount status</p>
+            <p class="text-white font-semibold">{{ about.status_text }}</p>
+            <p class="text-white/55 text-xs mt-1">{{ about.verify_text }}</p>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p class="text-[11px] uppercase tracking-widest text-white/45 mb-1">Oxirgi faollik</p>
+            <p class="text-white font-semibold">{{ about.last_activity }}</p>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p class="text-[11px] uppercase tracking-widest text-white/45 mb-1">Oxirgi kirish</p>
+            <p class="text-white font-semibold">{{ about.last_login }}</p>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p class="text-[11px] uppercase tracking-widest text-white/45 mb-1">HEMIS ID</p>
+            <p class="text-white font-semibold">{{ about.hemis_id }}</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div class="glass-card rounded-2xl border border-white/10 p-5 shadow-xl">
+            <h3 class="text-xs font-bold uppercase tracking-widest text-white/50 mb-4">Shaxsiy ma'lumotlar</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-white/40 text-xs mb-1">To'liq ism</p><p class="text-white">{{ about.full_name }}</p></div>
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-white/40 text-xs mb-1">Qisqa ism</p><p class="text-white">{{ about.short_name }}</p></div>
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-white/40 text-xs mb-1">Familiya</p><p class="text-white">{{ about.first_name }}</p></div>
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-white/40 text-xs mb-1">Ism</p><p class="text-white">{{ about.second_name }}</p></div>
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-white/40 text-xs mb-1">Otasining ismi</p><p class="text-white">{{ about.third_name }}</p></div>
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-white/40 text-xs mb-1">Jinsi</p><p class="text-white">{{ about.gender }}</p></div>
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-white/40 text-xs mb-1">Tug'ilgan sana</p><p class="text-white">{{ about.birth_date }}</p></div>
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-white/40 text-xs mb-1">Yoshi</p><p class="text-white">{{ about.age }}</p></div>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-2xl border border-white/10 p-5 shadow-xl">
+            <h3 class="text-xs font-bold uppercase tracking-widest text-white/50 mb-4">Aloqa va ijtimoiy</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-white/40 text-xs mb-1">Email</p><p class="text-white break-all">{{ about.email }}</p></div>
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-white/40 text-xs mb-1">Telefon</p><p class="text-white">{{ about.phone_number }}</p></div>
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-white/40 text-xs mb-1">Telegram</p><p class="text-white">{{ about.telegram }}</p></div>
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-white/40 text-xs mb-1">Instagram</p><p class="text-white">{{ about.instagram }}</p></div>
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3 sm:col-span-2"><p class="text-white/40 text-xs mb-1">Facebook</p><p class="text-white break-all">{{ about.facebook }}</p></div>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-2xl border border-white/10 p-5 shadow-xl">
+            <h3 class="text-xs font-bold uppercase tracking-widest text-white/50 mb-4">Tizim ma'lumotlari</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-white/40 text-xs mb-1">User ID</p><p class="text-white">#{{ about.id }}</p></div>
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-white/40 text-xs mb-1">Username</p><p class="text-white">@{{ about.username }}</p></div>
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-white/40 text-xs mb-1">Foydalanuvchi turi</p><p class="text-white">{{ about.user_type }}</p></div>
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-white/40 text-xs mb-1">Tizim roli</p><p class="text-white">{{ about.role_label }}</p></div>
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-white/40 text-xs mb-1">Yaratilgan</p><p class="text-white">{{ about.created_at }}</p></div>
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-white/40 text-xs mb-1">Yangilangan</p><p class="text-white">{{ about.updated_at }}</p></div>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-2xl border border-white/10 p-5 shadow-xl">
+            <h3 class="text-xs font-bold uppercase tracking-widest text-white/50 mb-4">Qo'shimcha</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-white/40 text-xs mb-1">Kirish yili</p><p class="text-white">{{ about.year_of_enter }}</p></div>
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-white/40 text-xs mb-1">Kitob kuzatuvchisi</p><p class="text-white">{{ about.followers_book }}</p></div>
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3 sm:col-span-2"><p class="text-white/40 text-xs mb-1">Real vaqt izohi</p><p class="text-white">{{ about.online_hint }}</p></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

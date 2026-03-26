@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Kitoblar') }} | Glass Pro{% endblock %}
+
+{% block content %}
+<form method="GET" action="/books" id="filterForm" class="mb-6 relative z-10 p-4 rounded-2xl glass-card border border-white/10 shadow-2xl">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-white mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-book text-blue-400"></i> {{ _('Kitoblar') }}
+            </h1>
+            <p class="text-[0.8rem] text-white/50">{{ _('Tizimdagi barcha bosma kitoblar royxati') }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="/books/copies/transfer" onclick="showLoader(event,'/books/copies/transfer')"
+               class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-blue-200 whitespace-nowrap transition-all bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/35">
+                <i class="fa-solid fa-arrows-left-right text-xs"></i> <span>Nusxa biriktirish</span>
+            </a>
+            <a href="/books/add" onclick="showLoader(event,'/books/add')"
+               class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white whitespace-nowrap transition-all"
+               style="background:linear-gradient(135deg,#2563eb,#1d4ed8); border:1px solid rgba(37,99,235,0.4);"
+               onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 0 20px rgba(37,99,235,0.4)'"
+               onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                <i class="fa-solid fa-plus text-xs"></i> <span>{{ _('Yangi Kitob') }}</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
+        <!-- Qidirish -->
+        <div class="pro-input-wrap min-w-0">
+            <span class="pro-icon"><i class="fa-solid fa-search text-[0.85rem]"></i></span>
+            <input type="text" name="q" value="{{ q }}" placeholder="{{ _('Kitob nomi...') }}" class="pro-input" style="padding-top:0.65rem;padding-bottom:0.65rem;">
+        </div>
+
+        <!-- Til filtri -->
+        {% set lang = (language or '')|lower %}
+        <div class="pro-input-wrap min-w-0">
+            <span class="pro-icon"><i class="fa-solid fa-language text-[0.85rem]"></i></span>
+            <select name="language" class="pro-select" style="padding-top:0.65rem;padding-bottom:0.65rem;" onchange="this.form.submit()">
+                <option value="">{{ _('Barcha tillar') }}</option>
+                {% for item in languages %}
+                <option value="{{ item }}" {% if lang == item %}selected{% endif %}>{{ language_labels.get(item, item | upper) }}</option>
+                {% endfor %}
+            </select>
+            <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+        </div>
+
+        <!-- Kitob turi filtri -->
+        <div class="pro-input-wrap min-w-0">
+            <span class="pro-icon"><i class="fa-solid fa-list text-[0.85rem]"></i></span>
+            <select name="type_id" class="pro-select" style="padding-top:0.65rem;padding-bottom:0.65rem;" onchange="this.form.submit()">
+                <option value="">{{ _('Barcha turlar') }}</option>
+                {% for t in types %}
+                <option value="{{ t.id }}" {% if type_id|string == t.id|string %}selected{% endif %}>{{ t.name }}</option>
+                {% endfor %}
+            </select>
+            <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+        </div>
+
+        <!-- Muallif filtri -->
+        <div class="pro-input-wrap min-w-0">
+            <span class="pro-icon"><i class="fa-solid fa-user-pen text-[0.85rem]"></i></span>
+            <select name="author_id" class="pro-select" style="padding-top:0.65rem;padding-bottom:0.65rem;" onchange="this.form.submit()">
+                <option value="">{{ _('Barcha mualliflar') }}</option>
+                {% for a in authors %}
+                <option value="{{ a.id }}" {% if author_id|string == a.id|string %}selected{% endif %}>{{ a.name }}</option>
+                {% endfor %}
+            </select>
+            <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+        </div>
+        
+        <!-- BBK filtri -->
+        <div class="pro-input-wrap min-w-0">
+            <span class="pro-icon"><i class="fa-solid fa-bookmark text-[0.85rem]"></i></span>
+            <select name="bbk_id" class="pro-select" style="padding-top:0.65rem;padding-bottom:0.65rem;" onchange="this.form.submit()">
+                <option value="">{{ _('Barcha BBK') }}</option>
+                {% for b in bbks %}
+                <option value="{{ b.id }}" {% if bbk_id|string == b.id|string %}selected{% endif %}>{{ b.code }} ({{ b.name }})</option>
+                {% endfor %}
+            </select>
+            <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+            <button type="submit" class="hidden"></button>
+        </div>
+    </div>
+
+    <div class="mt-3 flex flex-wrap items-center gap-2">
+        <button type="submit" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white whitespace-nowrap transition-all" style="background:linear-gradient(135deg,#0891b2,#0e7490); border:1px solid rgba(6,182,212,0.35);">
+            <i class="fa-solid fa-filter text-xs"></i> {{ _('Filtrlash') }}
+        </button>
+        <a href="/books" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white/80 hover:text-white whitespace-nowrap transition-all bg-white/5 hover:bg-white/10 border border-white/10">
+            <i class="fa-solid fa-rotate-left text-xs"></i> {{ _('Tozalash') }}
+        </a>
+    </div>
+</form>
+
+<div class="glass-card rounded-2xl border border-white/10 overflow-hidden shadow-2xl w-full">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[700px]">
+            <thead>
+                <tr class="border-b border-white/10 bg-white/5">
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest w-12 text-center">{{ _('Tr') }}</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">{{ _('Kitob_header') }}</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">{{ _('Muallif(lar)') }}</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-center">{{ _('Nusxalar') }}</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-center">{{ _('Til') }}</th>
+                    <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-right w-24">{{ _('Amallar') }}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 text-sm" id="tableBody">
+                {% for book in books %}
+                <tr class="hover:bg-white/[0.03] transition-colors group searchRow">
+                    <td class="py-4 px-5 text-center text-white/40 font-mono text-xs">{{ ((page - 1) * per_page) + loop.index }}</td>
+                    <td class="py-4 px-5">
+                        <div class="flex items-center gap-3">
+                            {% if book.image %}
+                            <img src="{{ book.image }}" alt="{{ book.title }}"
+                                onclick="openImageModal('{{ book.image }}')"
+                                class="w-10 h-12 object-cover rounded-lg shrink-0 border border-white/10 cursor-pointer hover:border-blue-400 transition-colors">
+                            {% else %}
+                            <div class="w-10 h-12 rounded-lg flex items-center justify-center shrink-0"
+                                style="background:rgba(37,99,235,0.15); border:1px solid rgba(37,99,235,0.2);">
+                                <i class="fa-solid fa-book text-blue-400 text-sm"></i>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <p class="font-semibold text-white text-sm" title="{{ book.title }}">
+                                    {% if book.title|length > 60 %}{{ book.title[:60] }}...{% else %}{{ book.title }}{% endif %}
+                                </p>
+                                <div class="flex items-center gap-3 mt-1">
+                                    {% if book.isbn %}
+                                    <p class="text-[0.65rem] font-mono text-white/40"><i class="fa-solid fa-barcode text-white/30 mr-1"></i> {{ book.isbn }}</p>
+                                    {% endif %}
+                                    {% if book.price and book.price > 0 %}
+                                    <p class="text-[0.65rem] text-emerald-400 font-bold bg-emerald-400/10 px-1.5 py-0.5 rounded">{{ "{:,.2f}".format(book.price).replace(',', ' ') }} so'm</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-4 px-5 text-white/70 text-sm">
+                        {% if book.authors %}
+                            {% for a in book.authors %}<span>{{ a.name }}</span>{% if not loop.last %}, {% endif %}{% endfor %}
+                        {% else %}
+                            <span class="text-white/30">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-5 text-center">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                            <i class="fa-solid fa-clone text-[0.6rem] text-blue-400/50"></i> {{ book.total_copies }}
+                        </span>
+                    </td>
+                    <td class="py-4 px-5 text-center text-xs">
+                        {% if book.language == 'uz' or book.language == 'oz' %}
+                        <div class="flex flex-col items-center justify-center gap-1" title="O'zbek">
+                            <img src="https://flagcdn.com/w20/uz.png" class="w-5 h-auto rounded-[2px]" alt="uz">
+                            <span class="text-[0.6rem] font-bold text-white/50 uppercase">{{ book.language }}</span>
+                        </div>
+                        {% elif book.language == 'ru' %}
+                        <div class="flex flex-col items-center justify-center gap-1" title="Rus">
+                            <img src="https://flagcdn.com/w20/ru.png" class="w-5 h-auto rounded-[2px]" alt="ru">
+                            <span class="text-[0.6rem] font-bold text-white/50 uppercase">{{ book.language }}</span>
+                        </div>
+                        {% elif book.language == 'en' %}
+                        <div class="flex flex-col items-center justify-center gap-1" title="Ingliz">
+                            <img src="https://flagcdn.com/w20/gb.png" class="w-5 h-auto rounded-[2px]" alt="en">
+                            <span class="text-[0.6rem] font-bold text-white/50 uppercase">{{ book.language }}</span>
+                        </div>
+                        {% elif book.language == 'tr' %}
+                        <div class="flex flex-col items-center justify-center gap-1" title="Turk">
+                            <img src="https://flagcdn.com/w20/tr.png" class="w-5 h-auto rounded-[2px]" alt="tr">
+                            <span class="text-[0.6rem] font-bold text-white/50 uppercase">{{ book.language }}</span>
+                        </div>
+                        {% elif book.language == 'de' %}
+                        <div class="flex flex-col items-center justify-center gap-1" title="Nemis">
+                            <img src="https://flagcdn.com/w20/de.png" class="w-5 h-auto rounded-[2px]" alt="de">
+                            <span class="text-[0.6rem] font-bold text-white/50 uppercase">{{ book.language }}</span>
+                        </div>
+                        {% elif book.language == 'fr' %}
+                        <div class="flex flex-col items-center justify-center gap-1" title="Fransuz">
+                            <img src="https://flagcdn.com/w20/fr.png" class="w-5 h-auto rounded-[2px]" alt="fr">
+                            <span class="text-[0.6rem] font-bold text-white/50 uppercase">{{ book.language }}</span>
+                        </div>
+                        {% elif book.language == 'kk' %}
+                        <div class="flex flex-col items-center justify-center gap-1" title="Qozoq">
+                            <img src="https://flagcdn.com/w20/kz.png" class="w-5 h-auto rounded-[2px]" alt="kz">
+                            <span class="text-[0.6rem] font-bold text-white/50 uppercase">{{ book.language }}</span>
+                        </div>
+                        {% elif book.language == 'ky' %}
+                        <div class="flex flex-col items-center justify-center gap-1" title="Qirg'iz">
+                            <img src="https://flagcdn.com/w20/kg.png" class="w-5 h-auto rounded-[2px]" alt="kg">
+                            <span class="text-[0.6rem] font-bold text-white/50 uppercase">{{ book.language }}</span>
+                        </div>
+                        {% else %}
+                        <span class="text-white/50 uppercase font-bold">{{ book.language }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-5 text-right">
+                        <div class="inline-flex flex-nowrap items-center justify-end gap-2">
+                            <a href="/books/{{ book.id }}" onclick="showLoader(event,'/books/{{ book.id }}')" tooltip="Ko'rish"
+                                class="w-8 h-8 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 flex items-center justify-center transition-colors border border-indigo-500/0 hover:border-indigo-500/30">
+                                <i class="fa-regular fa-eye text-[0.85rem]"></i>
+                            </a>
+                            <a href="/books/edit/{{ book.id }}" onclick="showLoader(event,'/books/edit/{{ book.id }}')" tooltip="Tahrirlash"
+                                class="w-8 h-8 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 flex items-center justify-center transition-colors border border-orange-500/0 hover:border-orange-500/30">
+                                <i class="fa-solid fa-pen text-xs"></i>
+                            </a>
+                            <button onclick="confirmDelete(`{{ book.title }}`, '/books/delete/{{ book.id }}', 'GET')" tooltip="O'chirish"
+                                class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 flex items-center justify-center transition-colors border border-red-500/0 hover:border-red-500/30">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="py-16 text-center text-white/40">
+                        <i class="fa-solid fa-book-open text-4xl mb-4 block text-white/20"></i>
+                        {{ _('Hozircha kitob qoshilmagan') }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="p-4 border-t border-white/10 bg-black/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="text-xs text-white/40">
+            {{ _('Jami:') }} <span class="font-medium text-white/70">{{ total_items }}</span> {{ _('ta kitob') }}
+        </div>
+        
+        <!-- Pagination -->
+        {% if total_pages > 1 %}
+        <div class="flex items-center gap-1.5">
+            {% if page > 1 %}
+            <a href="{{ page_url_base }}{{ page - 1 }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white transition-colors" title="{{ _('Oldingi') }}">
+                <i class="fa-solid fa-chevron-left text-[0.65rem]"></i>
+            </a>
+            {% else %}
+            <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 border border-white/5 text-white/20 cursor-not-allowed">
+                <i class="fa-solid fa-chevron-left text-[0.65rem]"></i>
+            </div>
+            {% endif %}
+
+            <div class="flex items-center px-2">
+                <span class="text-xs text-white/70 font-semibold">{{ page }}</span>
+                <span class="text-xs text-white/30 mx-1">/</span>
+                <span class="text-xs text-white/40">{{ total_pages }}</span>
+            </div>
+
+            {% if page < total_pages %}
+            <a href="{{ page_url_base }}{{ page + 1 }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white transition-colors" title="{{ _('Keyingi') }}">
+                <i class="fa-solid fa-chevron-right text-[0.65rem]"></i>
+            </a>
+            {% else %}
+            <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 border border-white/5 text-white/20 cursor-not-allowed">
+                <i class="fa-solid fa-chevron-right text-[0.65rem]"></i>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Rasm Modal (Zoom) -->
+<div id="imageModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity opacity-0 hidden" style="margin:0; transition-duration:0.3s;">
+    <div class="relative w-full h-full flex items-center justify-center p-4">
+        <!-- Yopish tugmasi -->
+        <button onclick="closeImageModal()" class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-colors z-10 backdrop-blur-md border border-white/20">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+        <!-- Modal kontenti (Rasm) -->
+        <img id="modalImage" src="" alt="Kitob Muqovasi" class="max-h-[90vh] max-w-full object-contain rounded-xl shadow-2xl border border-white/10 transition-transform scale-95 duration-300">
+    </div>
+</div>
+
+<script>
+    // Image Modal Script
+    function openImageModal(src) {
+        const modal = document.getElementById('imageModal');
+        const img = document.getElementById('modalImage');
+        img.src = src;
+        
+        // Dastlab display:block(yoki flex ga o'tkazish)
+        modal.classList.remove('hidden');
+        
+        // Animatsiya u-n reflow
+        void modal.offsetWidth;
+        
+        // Opacity va scale ni o'zgartirish
+        modal.classList.remove('opacity-0');
+        img.classList.remove('scale-95');
+        img.classList.add('scale-100');
+
+        document.addEventListener('keydown', handleEscapeKey);
+    }
+
+    function closeImageModal() {
+        const modal = document.getElementById('imageModal');
+        const img = document.getElementById('modalImage');
+        
+        modal.classList.add('opacity-0');
+        img.classList.remove('scale-100');
+        img.classList.add('scale-95');
+
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            img.src = '';
+        }, 300);
+        
+        document.removeEventListener('keydown', handleEscapeKey);
+    }
+
+    function handleEscapeKey(e) {
+        if (e.key === 'Escape') closeImageModal();
+    }
+    
+    // Rasm ortiga bosganda ham yopilishi
+    document.getElementById('imageModal').addEventListener('click', function(e) {
+        if (e.target === this || e.target.parentElement === this) {
+            closeImageModal();
+        }
+    });
+</script>
+{% endblock %}

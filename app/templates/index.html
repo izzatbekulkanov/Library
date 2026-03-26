@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Dashboard') }} - Glass Pro{% endblock %}
+
+{% block content %}
+{% set s = stats or {} %}
+
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+    <div>
+        <h1 class="text-3xl font-bold text-white drop-shadow-md">{{ _('Tizim Boshqaruvi') }}</h1>
+        <p class="text-white/60 mt-1 font-light">{{ _('Kutubxona tizimining joriy statistikasi') }}</p>
+    </div>
+    <a href="/books/add" onclick="showLoader(event, '/books/add')"
+       class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white font-medium py-2.5 px-5 rounded-xl shadow-[0_4px_15px_rgba(59,130,246,0.3)] hover:shadow-[0_6px_20px_rgba(59,130,246,0.5)] transition-all flex items-center gap-2 border border-white/10 backdrop-blur-md">
+        <i class="fa-solid fa-plus text-sm"></i>
+        <span>{{ _('Yangi Kitob') }}</span>
+    </a>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+    <div class="glass-card rounded-2xl p-6 hover:-translate-y-1 transition-transform duration-300 group">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-white/50 mb-1">{{ _('Bosma kitoblar') }}</p>
+                <h3 class="text-3xl font-bold text-white drop-shadow-sm">{{ s.get('total_print_books', 0) }}</h3>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-400/30 text-blue-400 flex items-center justify-center backdrop-blur-md group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-book text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card rounded-2xl p-6 hover:-translate-y-1 transition-transform duration-300 group">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-white/50 mb-1">{{ _('Online kitoblar') }}</p>
+                <h3 class="text-3xl font-bold text-white drop-shadow-sm">{{ s.get('total_online_books', 0) }}</h3>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-indigo-500/20 border border-indigo-400/30 text-indigo-400 flex items-center justify-center backdrop-blur-md group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-globe text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card rounded-2xl p-6 hover:-translate-y-1 transition-transform duration-300 group">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-white/50 mb-1">{{ _('Jami nusxalar') }}</p>
+                <h3 class="text-3xl font-bold text-white drop-shadow-sm">{{ s.get('total_copies', 0) }}</h3>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-sky-500/20 border border-sky-400/30 text-sky-400 flex items-center justify-center backdrop-blur-md group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-layer-group text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card rounded-2xl p-6 hover:-translate-y-1 transition-transform duration-300 group">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-white/50 mb-1">{{ _('Faol foydalanuvchilar') }}</p>
+                <h3 class="text-3xl font-bold text-white drop-shadow-sm">{{ s.get('active_users', 0) }}</h3>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-teal-500/20 border border-teal-400/30 text-teal-400 flex items-center justify-center backdrop-blur-md group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-users text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <div class="lg:col-span-2 glass-card rounded-2xl overflow-hidden flex flex-col">
+        <div class="px-7 py-5 border-b border-white/10 flex justify-between items-center bg-white/5 backdrop-blur-md">
+            <h2 class="font-bold text-white text-lg tracking-wide">{{ _('Kutubxona bo\'yicha umumiy holat') }}</h2>
+            <a href="/books" onclick="showLoader(event, '/books')" class="text-blue-300 hover:text-white text-sm font-medium py-1 px-3 rounded-lg hover:bg-white/10 transition-all border border-transparent hover:border-white/10">{{ _('Kitoblar') }}</a>
+        </div>
+        <div class="p-7 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="rounded-xl border border-white/10 bg-white/5 p-4">
+                <p class="text-[0.72rem] uppercase tracking-widest text-white/40 mb-2">{{ _('Bosma kitoblar ulushi') }}</p>
+                {% set print_books = s.get('total_print_books', 0) %}
+                {% set online_books = s.get('total_online_books', 0) %}
+                {% set total_books = print_books + online_books %}
+                {% set print_ratio = ((print_books * 100) // total_books) if total_books > 0 else 0 %}
+                <p class="text-white font-semibold text-xl">{{ print_ratio }}%</p>
+                <p class="text-white/50 text-sm mt-1">{{ print_books }} / {{ total_books }} ta</p>
+            </div>
+            <div class="rounded-xl border border-white/10 bg-white/5 p-4">
+                <p class="text-[0.72rem] uppercase tracking-widest text-white/40 mb-2">{{ _('Faol kutubxonalar') }}</p>
+                <p class="text-white font-semibold text-xl">{{ s.get('active_libraries', 0) }}</p>
+                <p class="text-white/50 text-sm mt-1">{{ _('Nofaol') }}: {{ s.get('passive_libraries', 0) }}</p>
+            </div>
+            <div class="rounded-xl border border-white/10 bg-white/5 p-4">
+                <p class="text-[0.72rem] uppercase tracking-widest text-white/40 mb-2">{{ _('Jami foydalanuvchilar') }}</p>
+                <p class="text-white font-semibold text-xl">{{ s.get('total_users', 0) }}</p>
+            </div>
+            <div class="rounded-xl border border-white/10 bg-white/5 p-4">
+                <p class="text-[0.72rem] uppercase tracking-widest text-white/40 mb-2">{{ _('Har bir kitobga o\'rtacha nusxa') }}</p>
+                {% set avg = (s.get('total_copies', 0) / print_books) if print_books > 0 else 0 %}
+                <p class="text-white font-semibold text-xl">{{ '%.2f'|format(avg) }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="glass-card rounded-2xl flex flex-col p-7 relative overflow-hidden group">
+        <div class="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/30 rounded-full blur-3xl group-hover:bg-blue-400/40 transition-colors"></div>
+        <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-indigo-500/30 rounded-full blur-3xl group-hover:bg-indigo-400/40 transition-colors"></div>
+        <h3 class="text-xl font-bold text-white mb-3 relative z-10">{{ _('Tezkor havolalar') }}</h3>
+        <p class="text-white/60 text-[14px] mb-6 font-light relative z-10">
+            {{ _('Asosiy bo\'limlarga tez o\'tish.') }}
+        </p>
+        <div class="mt-auto space-y-3 relative z-10">
+            <a href="/books" onclick="showLoader(event, '/books')" class="h-12 rounded-xl bg-white/5 border border-white/10 flex items-center px-4 backdrop-blur-md hover:bg-white/10 transition-colors">
+                <i class="fa-solid fa-book text-blue-400 mr-3"></i>
+                <span class="text-sm font-medium text-white/80">{{ _('Kitoblar') }}</span>
+            </a>
+            <a href="/users" onclick="showLoader(event, '/users')" class="h-12 rounded-xl bg-white/5 border border-white/10 flex items-center px-4 backdrop-blur-md hover:bg-white/10 transition-colors">
+                <i class="fa-solid fa-users text-indigo-400 mr-3"></i>
+                <span class="text-sm font-medium text-white/80">{{ _('Foydalanuvchilar') }}</span>
+            </a>
+            <a href="/libraries" onclick="showLoader(event, '/libraries')" class="h-12 rounded-xl bg-white/5 border border-white/10 flex items-center px-4 backdrop-blur-md hover:bg-white/10 transition-colors">
+                <i class="fa-solid fa-building text-emerald-400 mr-3"></i>
+                <span class="text-sm font-medium text-white/80">{{ _('Kutubxonalar') }}</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Interactive Charts Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Doughnut Chart: Kitob formatlari -->
+    <div class="glass-card rounded-2xl p-6 flex flex-col justify-center items-center">
+        <h3 class="text-white font-bold mb-4 w-full text-center tracking-wide">{{ _('Kitob Formatlari') }}</h3>
+        <div class="w-full h-48 relative">
+            <canvas id="formatChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Bar Charts (Span 2 columns) -->
+    <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Chart 1: Kitob Turlari Distribution -->
+        <div class="glass-card rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="font-bold text-white text-lg">{{ _('Turlar bo\'yicha ro\'yxat') }}</h2>
+                <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+            </div>
+            <div class="w-full h-48 relative">
+                <canvas id="bookTypesChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 2: Kutubxonalar kesimida nusxalar -->
+        <div class="glass-card rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="font-bold text-white text-lg">{{ _('Kutubaxonalar hajmi') }}</h2>
+                <div class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+                    <i class="fa-solid fa-chart-bar"></i>
+                </div>
+            </div>
+            <div class="w-full h-48 relative">
+                <canvas id="libraryCopiesChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js inclusion and initialization -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Shared chart styling config for dark/glass theme
+    const textColor = 'rgba(255, 255, 255, 0.7)';
+    const gridColor = 'rgba(255, 255, 255, 0.1)';
+    const fontFamily = "'Inter', sans-serif";
+
+    Chart.defaults.color = textColor;
+    Chart.defaults.font.family = fontFamily;
+
+    // Data from Backend
+    const printBooksNum = {{ s.get('total_print_books', 0) }};
+    const onlineBooksNum = {{ s.get('total_online_books', 0) }};
+    
+    const bTypeLabels = {{ s.get('book_type_labels', []) | tojson }};
+    const bTypeCounts = {{ s.get('book_type_counts', []) | tojson }};
+    
+    const libLabels = {{ s.get('lib_labels', []) | tojson }};
+    const libCounts = {{ s.get('lib_counts', []) | tojson }};
+
+    // 1. Format Doughnut Chart
+    new Chart(document.getElementById('formatChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Bosma', 'Elektron'],
+            datasets: [{
+                data: [printBooksNum, onlineBooksNum],
+                backgroundColor: ['#3b82f6', '#8b5cf6'],
+                hoverBackgroundColor: ['#60a5fa', '#a78bfa'],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } }
+            }
+        }
+    });
+
+    // 2. Book Types Bar Chart
+    new Chart(document.getElementById('bookTypesChart'), {
+        type: 'bar',
+        data: {
+            labels: bTypeLabels,
+            datasets: [{
+                label: '{{ _("Kitoblar soni") }}',
+                data: bTypeCounts,
+                backgroundColor: 'rgba(99, 102, 241, 0.6)',
+                borderColor: 'rgba(99, 102, 241, 1)',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, grid: { color: gridColor }, ticks: { stepSize: 1 } },
+                x: { grid: { display: false } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // 3. Library Copies Bar Chart
+    new Chart(document.getElementById('libraryCopiesChart'), {
+        type: 'bar',
+        data: {
+            labels: libLabels,
+            datasets: [{
+                label: '{{ _("Nusxalar soni") }}',
+                data: libCounts,
+                backgroundColor: 'rgba(14, 165, 233, 0.6)',
+                borderColor: 'rgba(14, 165, 233, 1)',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            indexAxis: 'y', // horizontal bar chart
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { beginAtZero: true, grid: { color: gridColor }, ticks: { stepSize: 5 } },
+                y: { grid: { display: false } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+});
+</script>
+
+{% endblock %}

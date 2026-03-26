@@ -1,0 +1,380 @@
+{% extends "base.html" %}
+
+{% block title %}Hisobotlar | Glass Pro{% endblock %}
+
+{% block content %}
+{% set printed_colspan = 2 + (language_groups|length * 2) + 2 %}
+{% set online_colspan = 2 + (language_groups|length) + 1 %}
+
+<div class="report-topbar">
+    <div class="report-tabs">
+        <a href="/reports?tab=printed" onclick="showLoader(event,'/reports?tab=printed')" class="report-tab {% if selected_tab == 'printed' %}active{% endif %}">
+            Bosma kitob hisobotlari
+        </a>
+        <a href="/reports?tab=online" onclick="showLoader(event,'/reports?tab=online')" class="report-tab {% if selected_tab == 'online' %}active{% endif %}">
+            Online kitoblar hisobotlari
+        </a>
+    </div>
+    <a href="{% if selected_tab == 'printed' %}/reports/export/printed-word{% else %}/reports/export/online-word{% endif %}" class="word-btn">
+        <i class="fa-solid fa-file-word"></i> Wordga eksport
+    </a>
+</div>
+
+<div class="paper-stage">
+    <section class="a4-paper">
+        {% if selected_tab == 'printed' %}
+        <header class="a4-head">
+            <h2>KITOB STATISTIKASI</h2>
+            <p>Shakllantirilgan vaqt: {{ generated_at }}</p>
+        </header>
+
+        <table class="a4-table">
+            <thead>
+                <tr>
+                    <th rowspan="2" class="w-no">#</th>
+                    <th rowspan="2" class="w-type">Kitob turi</th>
+                    {% for group in language_groups %}
+                    <th colspan="2">{{ group.label }}</th>
+                    {% endfor %}
+                    <th colspan="2">Jami</th>
+                </tr>
+                <tr>
+                    {% for _group in language_groups %}
+                    <th>NOMDA</th>
+                    <th>SONDA</th>
+                    {% endfor %}
+                    <th>NOMDA</th>
+                    <th>SONDA</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in printed_stats.rows %}
+                <tr>
+                    <td class="ta-c">{{ row.index }}</td>
+                    <td class="ta-l fw-600">{{ row.type_name }}</td>
+                    {% for cell in row.cells %}
+                    <td class="ta-c">{{ cell.nomda }}</td>
+                    <td class="ta-c">{{ cell.sonda }}</td>
+                    {% endfor %}
+                    <td class="ta-c fw-700">{{ row.jami_nomda }}</td>
+                    <td class="ta-c fw-700">{{ row.jami_sonda }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="{{ printed_colspan }}" class="ta-c empty-cell">Ma'lumot topilmadi.</td>
+                </tr>
+                {% endfor %}
+                <tr class="sum-row">
+                    <td colspan="2" class="ta-l fw-700">JAMI</td>
+                    {% for cell in printed_stats.totals.cells %}
+                    <td class="ta-c fw-700">{{ cell.nomda }}</td>
+                    <td class="ta-c fw-700">{{ cell.sonda }}</td>
+                    {% endfor %}
+                    <td class="ta-c fw-700">{{ printed_stats.totals.jami_nomda }}</td>
+                    <td class="ta-c fw-700">{{ printed_stats.totals.jami_sonda }}</td>
+                </tr>
+            </tbody>
+        </table>
+        {% else %}
+        <header class="a4-head">
+            <h2>ELEKTRON KITOBLAR STATISTIKASI</h2>
+            <p>Shakllantirilgan vaqt: {{ generated_at }}</p>
+        </header>
+
+        <table class="a4-table">
+            <thead>
+                <tr>
+                    <th class="w-no">#</th>
+                    <th class="w-type">Kitob turi</th>
+                    {% for group in language_groups %}
+                    <th>{{ group.label }}</th>
+                    {% endfor %}
+                    <th>Jami</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in online_stats.rows %}
+                <tr>
+                    <td class="ta-c">{{ row.index }}</td>
+                    <td class="ta-l fw-600">{{ row.type_name }}</td>
+                    {% for cell in row.cells %}
+                    <td class="ta-c">{{ cell.count }}</td>
+                    {% endfor %}
+                    <td class="ta-c fw-700">{{ row.jami }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="{{ online_colspan }}" class="ta-c empty-cell">Ma'lumot topilmadi.</td>
+                </tr>
+                {% endfor %}
+                <tr class="sum-row">
+                    <td colspan="2" class="ta-l fw-700">JAMI</td>
+                    {% for cell in online_stats.totals.cells %}
+                    <td class="ta-c fw-700">{{ cell.count }}</td>
+                    {% endfor %}
+                    <td class="ta-c fw-700">{{ online_stats.totals.jami }}</td>
+                </tr>
+            </tbody>
+        </table>
+        {% endif %}
+
+        <footer class="a4-foot">
+            Axborot-kutubxona resurslarini butlash, kataloglashtirish va tizimlashtirish bo'limi mudiri: ___________
+        </footer>
+    </section>
+</div>
+
+<style>
+.paper-stage {
+    width: 100%;
+    overflow-x: auto;
+    padding: 20px 0 30px;
+    background: transparent;
+    border-radius: 2px;
+}
+
+.report-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.report-tabs {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.report-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 14px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.45);
+    color: #475569;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.report-tab:hover {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.report-tab.active {
+    background: #ffffff;
+    color: #1e293b;
+    border-color: #94a3b8;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.word-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 12px;
+    border-radius: 7px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #334155;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 700;
+    transition: all 0.2s ease;
+}
+
+.word-btn:hover {
+    background: #ffffff;
+}
+
+.a4-paper {
+    width: min(100%, 1260px);
+    min-height: 760px;
+    margin: 0 auto;
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 30px 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+}
+
+.a4-head {
+    margin-bottom: 10px;
+}
+
+.a4-head h2 {
+    margin: 0;
+    font-size: clamp(34px, 3.6vw, 50px);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    text-align: center;
+    color: #000000 !important;
+}
+
+.a4-head p {
+    margin: 5px 0 0 0;
+    font-size: 13px;
+    color: #333333 !important;
+    text-align: right;
+    font-weight: 500;
+}
+
+.a4-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.a4-table th,
+.a4-table td {
+    border: 1px solid #94a3b8 !important;
+    padding: 12px 10px;
+    font-size: 14px;
+    line-height: 1.25;
+    color: #000000 !important;
+}
+
+.a4-table th {
+    font-weight: 700;
+    text-align: center;
+    background: #f1f5f9 !important;
+    color: #000000 !important;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.a4-table .w-no {
+    width: 32px;
+}
+
+.a4-table .w-type {
+    width: 197px;
+}
+
+.ta-c {
+    text-align: center;
+}
+
+.ta-l {
+    text-align: left;
+}
+
+.fw-600 {
+    font-weight: 600;
+}
+
+.fw-700 {
+    font-weight: 700;
+}
+
+.sum-row td {
+    background: #e2e8f0 !important;
+    color: #000000 !important;
+}
+
+.empty-cell {
+    padding: 24px 8px;
+}
+
+.a4-foot {
+    margin-top: 20px;
+    font-size: 16px;
+    color: #000000 !important;
+    font-weight: 700;
+}
+
+@media (max-width: 1200px) {
+    .paper-stage {
+        background: transparent;
+        border: 0;
+    }
+
+    .a4-paper {
+        width: 100%;
+        min-height: auto;
+        padding: 12px;
+        border-radius: 14px;
+    }
+
+    .a4-table th,
+    .a4-table td {
+        font-size: 13px;
+        padding: 8px 5px;
+    }
+
+    .a4-table th {
+        font-size: 11px;
+    }
+
+    .a4-foot {
+        font-size: 13px;
+    }
+}
+
+@media print {
+    .report-topbar {
+        display: none !important;
+    }
+
+    .paper-stage {
+        overflow: visible;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+    }
+
+    .a4-paper {
+        width: 297mm;
+        min-height: 210mm;
+        margin: 0;
+        box-shadow: none;
+        border-radius: 0;
+        background: #fff;
+        color: #000;
+        border: 0;
+        padding: 12mm 10mm 9mm;
+    }
+
+    .a4-head h2 {
+        font-size: 20pt;
+        color: #000;
+    }
+
+    .a4-head p {
+        font-size: 10pt;
+        color: #000;
+    }
+
+    .a4-table th,
+    .a4-table td {
+        color: #000;
+        border-color: #000;
+        font-size: 10pt;
+        padding: 3px 3px;
+    }
+
+    .a4-table th {
+        font-size: 9pt;
+        background: #f4f4f4;
+    }
+
+    .sum-row td {
+        background: #ececec;
+    }
+
+    .a4-foot {
+        margin-top: 8mm;
+        font-size: 11pt;
+        color: #000;
+    }
+}
+</style>
+{% endblock %}

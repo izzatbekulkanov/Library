@@ -1,0 +1,617 @@
+{% extends "base.html" %}
+
+{% block title %}Kitob batafsil: {{ book.title }} | Glass Pro{% endblock %}
+
+{% block content %}
+{% set lang = (book.language or '')|lower %}
+
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+    <div>
+        <a href="/books" class="text-white/40 hover:text-white mb-2 inline-flex items-center gap-2 text-sm transition-colors">
+            <i class="fa-solid fa-arrow-left"></i> Orqaga qaytish
+        </a>
+        <h1 class="text-2xl font-bold tracking-tight text-white mb-1">Kitob Ma'lumotlari</h1>
+        <p class="text-[0.8rem] text-white/50">"{{ book.title }}" haqida batafsil ma'lumot va mavjud nusxalar</p>
+    </div>
+    <div class="flex items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
+        <a href="/books/edit/{{ book.id }}"
+           class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-orange-400 border border-orange-500/30 bg-orange-500/10 hover:bg-orange-500/20 transition-all shadow-[0_4px_12px_rgba(249,115,22,0.15)]"
+           title="Tahrirlash">
+            <i class="fa-solid fa-pen text-xs"></i> Tahrirlash
+        </a>
+        <button onclick="confirmDelete(this.dataset.title, '/books/delete/{{ book.id }}', 'GET')"
+                data-title="{{ book.title }}"
+                class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-red-500 border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 hover:border-red-500/50 hover:text-red-100 hover:-translate-y-0.5 hover:shadow-[0_0_25px_rgba(239,68,68,0.45)] transition-all shadow-[0_4px_12px_rgba(239,68,68,0.15)] overflow-hidden relative group"
+                title="O'chirish">
+            <div class="absolute inset-0 bg-red-500/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-xl"></div>
+            <i class="fa-solid fa-trash-can text-xs relative z-10"></i>
+            <span class="relative z-10">O'chirish</span>
+        </button>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
+    <div class="lg:col-span-2 glass-card rounded-2xl border border-white/10 p-6 shadow-2xl relative overflow-hidden flex flex-col sm:flex-row gap-6">
+        <div class="shrink-0 relative group rounded-xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.5)] bg-white/5 border border-white/10" style="width: 200px; height: 300px;">
+            {% if book.image %}
+            <img src="{{ book.image }}" alt="{{ book.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            {% else %}
+            <div class="w-full h-full flex items-center justify-center bg-blue-500/10">
+                <i class="fa-solid fa-book text-6xl text-blue-500/30"></i>
+            </div>
+            {% endif %}
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60"></div>
+        </div>
+
+        <div class="flex-1 flex flex-col justify-center">
+            <div class="mb-4">
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 font-bold text-[0.65rem] uppercase tracking-wider mb-2">
+                    {{ book.book_type.name if book.book_type else 'Turi ko\'rsatilmagan' }}
+                </div>
+                <h2 class="text-2xl font-bold text-white leading-tight mb-2">{{ book.title }}</h2>
+                <div class="text-white/60 text-sm flex items-center gap-2 flex-wrap">
+                    <i class="fa-solid fa-user-pen text-white/40"></i>
+                    {% if book.authors %}
+                        {% for a in book.authors %}<span class="font-medium text-white/80">{{ a.name }}</span>{% if not loop.last %}, {% endif %}{% endfor %}
+                    {% else %}
+                        Noma'lum muallif
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-y-4 gap-x-6 mb-4">
+                <div>
+                    <label class="text-[0.65rem] text-white/40 uppercase tracking-widest block mb-1">BBK / Kategoriya</label>
+                    <p class="text-sm font-medium text-white">
+                        {% if book.bbk %}
+                            {{ book.bbk.code }}{% if book.bbk.name %} - {{ book.bbk.name }}{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                        <span class="text-white/30 mx-1">|</span>
+                        {{ book.book_type.name if book.book_type else 'Kategoriya yo\'q' }}
+                    </p>
+                </div>
+                <div>
+                    <label class="text-[0.65rem] text-white/40 uppercase tracking-widest block mb-1">Til</label>
+                    <div class="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5">
+                        {% if lang in ['uz', 'oz'] %}
+                        <img src="https://flagcdn.com/w20/uz.png" alt="uz" class="w-5 h-auto rounded-[2px]">
+                        {% elif lang == 'ru' %}
+                        <img src="https://flagcdn.com/w20/ru.png" alt="ru" class="w-5 h-auto rounded-[2px]">
+                        {% elif lang == 'en' %}
+                        <img src="https://flagcdn.com/w20/gb.png" alt="en" class="w-5 h-auto rounded-[2px]">
+                        {% elif lang == 'tr' %}
+                        <img src="https://flagcdn.com/w20/tr.png" alt="tr" class="w-5 h-auto rounded-[2px]">
+                        {% elif lang == 'de' %}
+                        <img src="https://flagcdn.com/w20/de.png" alt="de" class="w-5 h-auto rounded-[2px]">
+                        {% elif lang == 'fr' %}
+                        <img src="https://flagcdn.com/w20/fr.png" alt="fr" class="w-5 h-auto rounded-[2px]">
+                        {% elif lang == 'kk' %}
+                        <img src="https://flagcdn.com/w20/kz.png" alt="kk" class="w-5 h-auto rounded-[2px]">
+                        {% elif lang == 'ky' %}
+                        <img src="https://flagcdn.com/w20/kg.png" alt="ky" class="w-5 h-auto rounded-[2px]">
+                        {% else %}
+                        <i class="fa-solid fa-language text-white/60"></i>
+                        {% endif %}
+                        <span class="text-sm font-medium text-white uppercase">{{ lang or '-' }}</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[0.65rem] text-white/40 uppercase tracking-widest block mb-1">Sahifalar</label>
+                    <p class="text-sm font-medium text-white">{{ book.pages or '-' }} ta</p>
+                </div>
+                <div>
+                    <label class="text-[0.65rem] text-white/40 uppercase tracking-widest block mb-1">ISBN</label>
+                    <p class="text-sm font-mono text-white/70">{{ book.isbn or '-' }}</p>
+                </div>
+                <div>
+                    <label class="text-[0.65rem] text-white/40 uppercase tracking-widest block mb-1">Nashriyot</label>
+                    <p class="text-sm font-medium text-white">{{ book.publisher.name if book.publisher else '-' }}</p>
+                </div>
+                <div>
+                    <label class="text-[0.65rem] text-white/40 uppercase tracking-widest block mb-1">Nashr Yili / Shahri</label>
+                    <p class="text-sm font-medium text-white">
+                        {{ book.publication_year.year if book.publication_year else '-' }},
+                        {{ book.published_city.name if book.published_city else '-' }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-auto">
+                <label class="text-[0.65rem] text-white/40 uppercase tracking-widest block mb-1">Narxi</label>
+                <div class="inline-block px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-extrabold text-lg">
+                    {{ "{:,.2f}".format(book.price).replace(',', ' ') }} <span class="text-sm font-medium">UZS</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card rounded-2xl border border-white/10 p-6 shadow-2xl relative flex flex-col">
+        <h3 class="text-sm font-bold text-white/70 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-align-left text-blue-400"></i> Annotatsiya
+        </h3>
+        <div class="flex-1 text-sm text-white/60 leading-relaxed overflow-y-auto pr-2 custom-scrollbar">
+            {{ book.annotation or "Annotatsiya kiritilmagan." }}
+        </div>
+    </div>
+</div>
+
+<div class="mt-6 glass-card rounded-2xl border border-white/10 shadow-2xl relative z-10 overflow-hidden">
+    <div class="p-5 border-b border-white/10 bg-white/5">
+        <h3 class="text-sm font-bold text-white/70 uppercase tracking-widest flex items-center gap-2">
+            <i class="fa-solid fa-print text-blue-400"></i> Chop etish markazi
+        </h3>
+    </div>
+    <div class="p-5 grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <button
+            type="button"
+            onclick="openPrintInWindow('/books/print/id-card/{{ book.id }}/select')"
+            class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-blue-300 border border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 hover:-translate-y-0.5 transition-all"
+        >
+            <i class="fa-regular fa-id-card"></i> ID kartani chop etish
+        </button>
+        <button
+            type="button"
+            onclick="openPrintInWindow('/books/print/qr-codes/{{ book.id }}/select')"
+            class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-indigo-300 border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 hover:-translate-y-0.5 transition-all"
+        >
+            <i class="fa-solid fa-qrcode"></i> QR codlarni chop etish
+        </button>
+        <form method="POST" action="/books/print/id-card/{{ book.id }}/reset-status" onsubmit="return confirm('ID karta chop etish statusi tozalansinmi?')">
+            <button
+                type="submit"
+                class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-amber-300 border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 hover:-translate-y-0.5 transition-all"
+            >
+                <i class="fa-solid fa-rotate-left"></i> ID karta statusini tozalash
+            </button>
+        </form>
+        <form method="POST" action="/books/print/qr-codes/{{ book.id }}/reset-status" onsubmit="return confirm('QR chop etish statusi tozalansinmi?')">
+            <button
+                type="submit"
+                class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-orange-300 border border-orange-500/30 bg-orange-500/10 hover:bg-orange-500/20 hover:-translate-y-0.5 transition-all"
+            >
+                <i class="fa-solid fa-rotate-left"></i> QR statusini tozalash
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="mt-6 glass-card rounded-2xl border border-white/10 shadow-2xl relative z-10 overflow-hidden">
+    <div class="p-5 border-b border-white/10">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-3">
+            <h3 class="text-lg font-bold text-white flex items-center gap-3">
+                <i class="fa-solid fa-layer-group text-indigo-400"></i> Kitob Nusxalari
+                <span class="text-xs px-2 py-0.5 rounded-full bg-white/10 text-white/60">{{ book.total_copies }} ta mavjud</span>
+            </h3>
+            <div class="pro-input-wrap w-full lg:w-[320px]" style="margin:0;">
+                <span class="pro-icon"><i class="fa-solid fa-magnifying-glass text-[0.85rem]"></i></span>
+                <input id="copySearchInput" type="text" placeholder="Nusxa bo'yicha qidirish..." class="pro-input" style="padding-top:0.65rem;padding-bottom:0.65rem;">
+            </div>
+        </div>
+
+        <form id="addCopiesForm" method="POST" action="/books/{{ book.id }}/copies/add" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <div class="pro-input-wrap w-full sm:w-[220px]" style="margin:0;">
+                <span class="pro-icon"><i class="fa-solid fa-hashtag text-[0.85rem]"></i></span>
+                <input id="copyPrefixInput" type="text" name="inventory_prefix" value="" placeholder="Inventar prefiksi (msl: ABC)" class="pro-input" required style="padding-top:0.65rem;padding-bottom:0.65rem;">
+            </div>
+            <div class="pro-input-wrap w-full sm:w-[160px]" style="margin:0;">
+                <span class="pro-icon"><i class="fa-solid fa-clone text-[0.85rem]"></i></span>
+                <input id="copyCountInput" type="number" name="copy_count" min="1" value="1" placeholder="Nusxa soni" class="pro-input" required style="padding-top:0.65rem;padding-bottom:0.65rem;">
+            </div>
+            <button type="submit"
+                    class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white whitespace-nowrap transition-all w-full sm:w-auto"
+                    style="background:linear-gradient(135deg,#16a34a,#15803d); border:1px solid rgba(22,163,74,0.4);">
+                <i class="fa-solid fa-plus text-xs"></i> Nusxa qo'shish
+            </button>
+        </form>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[980px]">
+            <thead>
+                <tr class="bg-white/5 border-b border-white/10 text-[0.7rem] uppercase tracking-widest text-white/50">
+                    <th class="py-4 px-6 font-bold w-12 text-center">T/r</th>
+                    <th class="py-4 px-6 font-bold">Inventar Kod</th>
+                    <th class="py-4 px-6 font-bold">Biriktirilgan Kutubxona</th>
+                    <th class="py-4 px-6 font-bold text-center">Holat</th>
+                    <th class="py-4 px-6 font-bold text-center">Mavjudlik</th>
+                    <th class="py-4 px-6 font-bold text-center w-32">ID Karta</th>
+                    <th class="py-4 px-6 font-bold text-center w-32">QR</th>
+                    <th class="py-4 px-6 font-bold text-right w-40">Amallar</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 text-sm" id="copiesTableBody">
+                {% for copy in book.copies %}
+                {% set ns = namespace(status_label=copy.status, have_label=copy.have_status) %}
+                {% for code, label in copy_statuses %}
+                    {% if code == copy.status %}{% set ns.status_label = label %}{% endif %}
+                {% endfor %}
+                {% for code, label in copy_have_statuses %}
+                    {% if code == copy.have_status %}{% set ns.have_label = label %}{% endif %}
+                {% endfor %}
+                <tr class="hover:bg-white/[0.03] transition-colors copy-search-row" data-inventory="{{ copy.inventory_number or '' }}">
+                    <td class="py-4 px-6 text-center text-white/40 font-mono text-xs">{{ loop.index }}</td>
+                    <td class="py-4 px-6">
+                        <span class="font-mono font-medium text-white/80"><i class="fa-solid fa-qrcode text-white/30 mr-2 text-[0.7rem]"></i>{{ copy.inventory_number }}</span>
+                    </td>
+                    <td class="py-4 px-6 text-white/70">
+                        {% if copy.library %}
+                        <i class="fa-solid fa-building-columns text-white/30 mr-2"></i>{{ copy.library.name }}
+                        {% else %}
+                        <span class="text-yellow-400/80 italic">Bosh kutubxona</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-6 text-center">
+                        {% if copy.status in ['active', 'accepted'] %}
+                        <span class="px-2.5 py-1 rounded-full text-[0.65rem] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase">{{ ns.status_label }}</span>
+                        {% elif copy.status in ['lost', 'not_accepted'] %}
+                        <span class="px-2.5 py-1 rounded-full text-[0.65rem] font-bold bg-red-500/10 text-red-500 border border-red-500/20 uppercase">{{ ns.status_label }}</span>
+                        {% elif copy.status == 'sent' %}
+                        <span class="px-2.5 py-1 rounded-full text-[0.65rem] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase">{{ ns.status_label }}</span>
+                        {% else %}
+                        <span class="px-2.5 py-1 rounded-full text-[0.65rem] font-bold bg-white/10 text-white/40 border border-white/20 uppercase">{{ ns.status_label }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-6 text-center">
+                        {% if copy.have_status == 'yes' %}
+                        <span class="px-2.5 py-1 rounded-full text-[0.65rem] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase">{{ ns.have_label }}</span>
+                        {% elif copy.have_status == 'busy' %}
+                        <span class="px-2.5 py-1 rounded-full text-[0.65rem] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase">{{ ns.have_label }}</span>
+                        {% else %}
+                        <span class="px-2.5 py-1 rounded-full text-[0.65rem] font-bold bg-red-500/10 text-red-400 border border-red-500/20 uppercase">{{ ns.have_label }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-6 text-center">
+                        {% if copy.id_card_printed %}
+                        <span class="inline-flex whitespace-nowrap px-2 py-1 rounded-full text-[0.62rem] font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">Chop etilgan</span>
+                        {% else %}
+                        <span class="inline-flex whitespace-nowrap px-2 py-1 rounded-full text-[0.62rem] font-semibold bg-white/10 text-white/40 border border-white/20">Chop etilmagan</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-6 text-center">
+                        {% if copy.qr_printed %}
+                        <span class="inline-flex whitespace-nowrap px-2 py-1 rounded-full text-[0.62rem] font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">Chop etilgan</span>
+                        {% else %}
+                        <span class="inline-flex whitespace-nowrap px-2 py-1 rounded-full text-[0.62rem] font-semibold bg-white/10 text-white/40 border border-white/20">Chop etilmagan</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-6 text-right">
+                        <div class="inline-flex flex-nowrap items-center justify-end gap-2">
+                            <button type="button"
+                               onclick="openPrintInWindow('/books/{{ book.id }}/copies/{{ copy.id }}/print-id-card')"
+                               class="w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 inline-flex items-center justify-center transition-colors border border-blue-500/0 hover:border-blue-500/30"
+                               title="ID kartani chop etish">
+                                <i class="fa-regular fa-id-card text-[11px]"></i>
+                            </button>
+                            <button type="button"
+                               onclick="openPrintInWindow('/books/{{ book.id }}/copies/{{ copy.id }}/print-qr')"
+                               class="w-8 h-8 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 inline-flex items-center justify-center transition-colors border border-indigo-500/0 hover:border-indigo-500/30"
+                               title="QR chop etish">
+                                <i class="fa-solid fa-qrcode text-[11px]"></i>
+                            </button>
+                            <button type="button"
+                                    onclick="openCopyEdit(this)"
+                                    data-edit-url="/books/{{ book.id }}/copies/edit/{{ copy.id }}"
+                                    data-copy-id="{{ copy.id }}"
+                                    data-inventory="{{ copy.inventory_number or '' }}"
+                                    data-status="{{ copy.status or 'not_sended' }}"
+                                    data-have-status="{{ copy.have_status or 'yes' }}"
+                                    data-library-id="{{ copy.library_id or '' }}"
+                                    class="w-8 h-8 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 inline-flex items-center justify-center transition-colors border border-orange-500/0 hover:border-orange-500/30"
+                                    title="Nusxani tahrirlash">
+                                <i class="fa-solid fa-pen text-[11px]"></i>
+                            </button>
+                            {% if copy.library_id %}
+                            <button type="button"
+                                    class="w-8 h-8 rounded-lg bg-white/5 text-white/30 inline-flex items-center justify-center border border-white/10 cursor-not-allowed"
+                                    title="Nusxa kutubxonaga biriktirilgan. Avval biriktirishni olib tashlang.">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                            {% else %}
+                            <button type="button"
+                                    onclick="confirmDelete(`{{ copy.inventory_number }}`, '/books/{{ book.id }}/copies/delete/{{ copy.id }}', 'GET')"
+                                    class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 inline-flex items-center justify-center transition-colors border border-red-500/0 hover:border-red-500/30"
+                                    title="Nusxani o'chirish">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="py-10 text-center text-white/40">
+                        <i class="fa-solid fa-box-open text-3xl mb-3 opacity-20 block"></i>
+                        Hozircha bironta nusxa kitob omborida mavjud emas.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+</div>
+</div>
+
+<div id="copyEditModal" class="fixed inset-0 z-[120] hidden items-start sm:items-center justify-center bg-black/70 backdrop-blur-sm p-4 pt-8 sm:pt-4 overflow-y-auto">
+    <div class="mx-auto my-auto w-full max-w-xl rounded-2xl border border-white/10 bg-[#141824] shadow-2xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-white/10 bg-white/5 flex items-center justify-between">
+            <h4 class="text-sm font-bold uppercase tracking-widest text-white/70 flex items-center gap-2">
+                <i class="fa-solid fa-pen text-orange-400"></i> Nusxani tahrirlash
+            </h4>
+            <button type="button" onclick="closeCopyEdit()" class="w-8 h-8 rounded-lg border border-white/10 bg-white/5 text-white/60 hover:text-white hover:bg-white/10 transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <form id="copyEditForm" method="POST" class="p-5 space-y-3">
+            <div>
+                <label class="text-[11px] uppercase tracking-widest text-white/40 mb-1.5 block">Inventar kodi</label>
+                <div class="pro-input-wrap">
+                    <span class="pro-icon"><i class="fa-solid fa-qrcode text-[0.8rem]"></i></span>
+                    <input type="text" id="copyEditInventory" name="inventory_number" class="pro-input" required>
+                </div>
+                <p id="copyInventoryHint" class="mt-1 text-[11px] text-white/40">Inventar raqamini kiriting.</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="text-[11px] uppercase tracking-widest text-white/40 mb-1.5 block">Holat</label>
+                    <div class="pro-input-wrap">
+                        <span class="pro-icon"><i class="fa-solid fa-circle-check text-[0.8rem]"></i></span>
+                        <select id="copyEditStatus" name="status" class="pro-select">
+                            <option value="not_sended">Yuborilmagan</option>
+                            <option value="sent">Yuborilgan</option>
+                            <option value="accepted">Qabul qilingan</option>
+                            <option value="not_accepted">Qabul qilinmagan</option>
+                            <option value="active">Faol</option>
+                            <option value="lost">Yo'qotilgan</option>
+                        </select>
+                        <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[11px] uppercase tracking-widest text-white/40 mb-1.5 block">Mavjudlik</label>
+                    <div class="pro-input-wrap">
+                        <span class="pro-icon"><i class="fa-solid fa-boxes-stacked text-[0.8rem]"></i></span>
+                        <select id="copyEditHaveStatus" name="have_status" class="pro-select">
+                            <option value="yes">Mavjud</option>
+                            <option value="busy">Band</option>
+                            <option value="no">Mavjud emas</option>
+                        </select>
+                        <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <label class="text-[11px] uppercase tracking-widest text-white/40 mb-1.5 block">Biriktirilgan kutubxona</label>
+                <div class="pro-input-wrap">
+                    <span class="pro-icon"><i class="fa-solid fa-building-columns text-[0.8rem]"></i></span>
+                    <select id="copyEditLibrary" name="library_id" class="pro-select">
+                        <option value="">Bosh kutubxona</option>
+                        {% for lib in libraries %}
+                        <option value="{{ lib.id }}">{{ lib.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+                </div>
+            </div>
+            <div class="pt-2 flex items-center justify-end gap-2">
+                <button type="button" onclick="closeCopyEdit()" class="px-4 py-2 rounded-xl text-xs font-semibold border border-white/10 text-white/70 bg-white/5 hover:bg-white/10 hover:text-white transition-colors">
+                    Bekor qilish
+                </button>
+                <button type="submit" class="px-4 py-2 rounded-xl text-xs font-semibold border border-orange-500/40 text-orange-300 bg-orange-500/10 hover:bg-orange-500/20 transition-colors">
+                    Saqlash
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openPrintInWindow(url) {
+    const printWindow = window.open(url, "_blank", "width=1100,height=820");
+    if (!printWindow) {
+        window.location.href = url;
+    }
+}
+
+const copySearchInput = document.getElementById("copySearchInput");
+if (copySearchInput) {
+    copySearchInput.addEventListener("input", function () {
+        const q = this.value.trim().toLowerCase();
+        document.querySelectorAll("#copiesTableBody .copy-search-row").forEach((row) => {
+            row.style.display = row.textContent.toLowerCase().includes(q) ? "" : "none";
+        });
+    });
+}
+
+const addCopiesForm = document.getElementById("addCopiesForm");
+const copyPrefixInput = document.getElementById("copyPrefixInput");
+const copyCountInput = document.getElementById("copyCountInput");
+let allowAddCopiesSubmit = false;
+
+function escapeRegExp(value) {
+    return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function predictCopyRange(prefix, count) {
+    const pattern = new RegExp(`^${escapeRegExp(prefix)}/(\\d+)$`);
+    let maxN = 0;
+    document.querySelectorAll("#copiesTableBody .copy-search-row").forEach((row) => {
+        const inv = (row.dataset.inventory || "").trim();
+        const found = inv.match(pattern);
+        if (!found) return;
+        const n = parseInt(found[1], 10);
+        if (Number.isFinite(n) && n > maxN) maxN = n;
+    });
+    const start = maxN + 1;
+    const end = start + count - 1;
+    return {
+        start,
+        end,
+        preview: count === 1 ? `${prefix}/${start}` : `${prefix}/${start} ... ${prefix}/${end}`,
+    };
+}
+
+if (addCopiesForm) {
+    addCopiesForm.addEventListener("submit", async function (e) {
+        if (allowAddCopiesSubmit) return;
+        e.preventDefault();
+
+        const prefix = (copyPrefixInput?.value || "").trim();
+        const count = parseInt((copyCountInput?.value || "0").trim(), 10);
+        if (!prefix || !Number.isFinite(count) || count < 1) {
+            return;
+        }
+
+        const range = predictCopyRange(prefix, count);
+        let ok = true;
+        if (typeof confirmDialog === "function") {
+            ok = await confirmDialog({
+                title: "Nusxa qo'shishni tasdiqlang",
+                message:
+                    `<strong>${count}</strong> ta nusxa yaratiladi.<br>` +
+                    `Prefiks: <strong>${prefix}</strong><br>` +
+                    `Taxminiy diapazon: <strong>${range.preview}</strong>`,
+                confirmText: "Ha, saqlash",
+                type: "info",
+            });
+        } else {
+            ok = window.confirm(`${count} ta nusxa qo'shilsinmi?\\n${range.preview}`);
+        }
+        if (!ok) return;
+
+        allowAddCopiesSubmit = true;
+        addCopiesForm.submit();
+    });
+}
+
+const copyEditModal = document.getElementById("copyEditModal");
+const copyEditForm = document.getElementById("copyEditForm");
+const copyEditInventory = document.getElementById("copyEditInventory");
+const copyInventoryHint = document.getElementById("copyInventoryHint");
+const copyEditStatus = document.getElementById("copyEditStatus");
+const copyEditHaveStatus = document.getElementById("copyEditHaveStatus");
+const copyEditLibrary = document.getElementById("copyEditLibrary");
+let currentEditCopyId = "";
+let allowCopyFormSubmit = false;
+let inventoryCheckTimer = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+    if (copyEditModal && copyEditModal.parentElement !== document.body) {
+        document.body.appendChild(copyEditModal);
+    }
+});
+
+function setCopyInventoryHint(message, tone) {
+    if (!copyInventoryHint) return;
+    copyInventoryHint.textContent = message;
+    copyInventoryHint.className = `mt-1 text-[11px] ${tone}`;
+}
+
+async function checkInventoryUnique() {
+    if (!copyEditInventory) return false;
+    const inv = (copyEditInventory.value || "").trim();
+    if (!inv) {
+        setCopyInventoryHint("Inventar raqamini kiriting.", "text-white/40");
+        return false;
+    }
+
+    const params = new URLSearchParams();
+    params.set("inventory_number", inv);
+    if (currentEditCopyId) params.set("exclude_copy_id", currentEditCopyId);
+
+    try {
+        const res = await fetch(`/books/copies/inventory/check?${params.toString()}`, {
+            method: "GET",
+            headers: { "Accept": "application/json" },
+        });
+        if (!res.ok) {
+            setCopyInventoryHint("Tekshiruvda xatolik. Qayta urinib ko'ring.", "text-amber-300");
+            return false;
+        }
+        const data = await res.json();
+        if (data.exists) {
+            setCopyInventoryHint("Bu inventar raqami bazada band.", "text-red-300");
+            return false;
+        }
+        setCopyInventoryHint("Inventar raqami bo'sh. Saqlash mumkin.", "text-emerald-300");
+        return true;
+    } catch {
+        setCopyInventoryHint("Tarmoq xatosi: tekshiruv bajarilmadi.", "text-amber-300");
+        return false;
+    }
+}
+
+function openCopyEdit(btn) {
+    if (!copyEditModal || !copyEditForm) return;
+    allowCopyFormSubmit = false;
+    copyEditForm.action = btn.dataset.editUrl || "";
+    currentEditCopyId = btn.dataset.copyId || "";
+    copyEditInventory.value = btn.dataset.inventory || "";
+    copyEditStatus.value = btn.dataset.status || "not_sended";
+    copyEditHaveStatus.value = btn.dataset.haveStatus || "yes";
+    copyEditLibrary.value = btn.dataset.libraryId || "";
+    copyEditModal.classList.add("flex");
+    copyEditModal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+    setTimeout(() => { checkInventoryUnique(); }, 30);
+}
+
+function closeCopyEdit() {
+    if (!copyEditModal) return;
+    currentEditCopyId = "";
+    allowCopyFormSubmit = false;
+    copyEditModal.classList.add("hidden");
+    copyEditModal.classList.remove("flex");
+    document.body.style.overflow = "";
+}
+
+if (copyEditInventory) {
+    copyEditInventory.addEventListener("input", function () {
+        clearTimeout(inventoryCheckTimer);
+        setCopyInventoryHint("Tekshirilmoqda...", "text-blue-300");
+        inventoryCheckTimer = setTimeout(() => {
+            checkInventoryUnique();
+        }, 280);
+    });
+}
+
+if (copyEditForm) {
+    copyEditForm.addEventListener("submit", async function (e) {
+        if (allowCopyFormSubmit) return;
+        e.preventDefault();
+        const ok = await checkInventoryUnique();
+        if (!ok) return;
+        allowCopyFormSubmit = true;
+        copyEditForm.submit();
+    });
+}
+
+if (copyEditModal) {
+    copyEditModal.addEventListener("click", function (e) {
+        if (e.target === copyEditModal) {
+            closeCopyEdit();
+        }
+    });
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") closeCopyEdit();
+    });
+}
+</script>
+
+<style>
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(37, 99, 235, 0.8);
+}
+</style>
+{% endblock %}

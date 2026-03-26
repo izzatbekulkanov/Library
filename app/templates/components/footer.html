@@ -1,0 +1,15 @@
+<footer class="glass-header border-t border-white/10 py-4 px-6 lg:px-8 text-xs flex flex-col sm:flex-row items-center justify-between text-white/50 mt-auto transition-all">
+    {% set root_path = request.scope.get('root_path', '') %}
+    {% if root_path and root_path.endswith('/') %}{% set root_path = root_path[:-1] %}{% endif %}
+    {% set privacy_url = (root_path ~ '/privacy-policy') if root_path else '/privacy-policy' %}
+    {% set help_url = (root_path ~ '/help') if root_path else '/help' %}
+    <div class="mb-2 sm:mb-0 text-center sm:text-left">
+        <span class="font-medium text-white/80">ProAdmin Panel</span>
+        &copy; 2026 Barcha huquqlar himoyalangan.
+    </div>
+    <div class="flex gap-6 items-center">
+        <a href="{{ privacy_url }}" onclick="showLoader(event, '{{ privacy_url }}')" class="hover:text-white transition-colors">Maxfiylik siyosati</a>
+        <a href="{{ help_url }}" onclick="showLoader(event, '{{ help_url }}')" class="hover:text-white transition-colors">Yordam bo'limi</a>
+        <span class="text-white/40 px-2 py-0.5 bg-white/5 rounded-md border border-white/10 backdrop-blur-md">v2.0-glass</span>
+    </div>
+</footer>

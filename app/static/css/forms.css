@@ -1,0 +1,342 @@
+/* ==========================================================
+   forms.css — ProAdmin Panel'dagi forma elementlari uchun
+   professional CSS stillar to'plami
+   ========================================================== */
+
+/* --- Umumiy input / textarea / select bazaviy stillar --- */
+.pro-input,
+.pro-select {
+    display: block;
+    width: 100%;
+    border-radius: 0.85rem;
+    padding: 0.75rem 1.25rem 0.75rem 2.85rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.5;
+    color: #f1f5f9;
+    background-color: rgba(15, 23, 42, 0.4); /* To'qroq orqa fon */
+    border: 1px solid rgba(148, 163, 184, 0.4); /* Aniqroq chegara */
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    outline: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(8px);
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.pro-input::placeholder {
+    color: rgba(148, 163, 184, 0.55);
+    font-size: 0.875rem;
+}
+
+.pro-input:focus,
+.pro-select:focus {
+    border-color: rgba(99, 102, 241, 0.9);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: rgba(15, 23, 42, 0.6);
+}
+
+.pro-input:hover,
+.pro-select:hover {
+    border-color: rgba(96, 165, 250, 0.8);
+    background-color: rgba(15, 23, 42, 0.55);
+}
+
+html.theme-light .pro-input,
+html.theme-light .pro-select {
+    color: #0f172a;
+    background-color: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(15, 23, 42, 0.16);
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+html.theme-light .pro-input::placeholder {
+    color: rgba(71, 85, 105, 0.8);
+}
+
+html.theme-light .pro-input:focus,
+html.theme-light .pro-select:focus {
+    border-color: rgba(37, 99, 235, 0.62);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14), inset 0 1px 2px rgba(15, 23, 42, 0.06);
+    background-color: #ffffff;
+}
+
+html.theme-light .pro-input:hover,
+html.theme-light .pro-select:hover {
+    border-color: rgba(37, 99, 235, 0.45);
+    background-color: #ffffff;
+}
+
+/* --- Select dropdown qorong'i ko'rinishda --- */
+.pro-select {
+    background-image: none; /* Browser default arrow'ni yashirish */
+    color: #e2e8f0;
+    background-color: rgba(15, 23, 42, 0.7);
+    cursor: pointer;
+    padding-right: 2.5rem; /* o'ng tomondan custom chevron uchun joy */
+}
+
+.pro-select option {
+    background-color: #0f172a;
+    color: #e2e8f0;
+    padding: 8px 12px;
+}
+
+html.theme-light .pro-select {
+    color: #0f172a;
+    background-color: #ffffff;
+}
+
+html.theme-light .pro-select option {
+    background-color: #ffffff;
+    color: #0f172a;
+}
+
+/* --- Icon wrapper — input chap ikonosi uchun --- */
+.pro-input-wrap {
+    position: relative;
+    display: block;
+}
+
+.pro-input-wrap:hover .pro-icon {
+    color: rgba(125, 211, 252, 0.95);
+}
+
+.pro-input-wrap .pro-icon {
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    padding-left: 1rem;
+    pointer-events: none;
+    color: rgba(148, 163, 184, 0.8);
+    font-size: 1rem;
+    z-index: 5;
+    width: 2.85rem;
+    justify-content: flex-start;
+}
+
+html.theme-light .pro-input-wrap .pro-icon {
+    color: rgba(51, 65, 85, 0.8);
+}
+
+.pro-input-wrap .pro-chevron {
+    position: absolute;
+    inset-block: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    padding-right: 0.875rem;
+    pointer-events: none;
+    color: rgba(100, 116, 139, 0.8);
+    font-size: 0.7rem;
+    z-index: 5;
+}
+
+html.theme-light .pro-input-wrap .pro-chevron {
+    color: rgba(71, 85, 105, 0.8);
+}
+
+/* --- Label stillar --- */
+.pro-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(241, 245, 249, 0.9);
+    letter-spacing: 0.03em;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+html.theme-light .pro-label {
+    color: rgba(15, 23, 42, 0.9);
+    text-shadow: none;
+}
+.pro-label.required::after {
+    content: " *";
+    color: #ef4444;
+}
+
+/* --- Form section sarlavhasi --- */
+.pro-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(148, 163, 184, 0.6);
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+html.theme-light .pro-section-title {
+    color: rgba(71, 85, 105, 0.8);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.pro-section-title i {
+    font-size: 0.8rem;
+}
+
+/* --- Form container card --- */
+.pro-form-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 1.25rem;
+    padding: 2rem;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+html.theme-light .pro-form-card {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(15, 23, 42, 0.11);
+}
+
+/* --- Saqlash tugmasi --- */
+.pro-btn-save {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 2rem;
+    border-radius: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    border: 1px solid rgba(99, 102, 241, 0.45);
+    box-shadow: 0 4px 18px rgba(99, 102, 241, 0.35);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.pro-btn-save:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 24px rgba(99, 102, 241, 0.5);
+}
+
+.pro-btn-save:active {
+    transform: scale(0.97);
+}
+
+/* --- Bekor qilish tugmasi --- */
+.pro-btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.5rem;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgba(148, 163, 184, 0.85);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.pro-btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.07);
+    color: #e2e8f0;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+html.theme-light .pro-btn-cancel {
+    color: rgba(15, 23, 42, 0.75);
+    border-color: rgba(15, 23, 42, 0.18);
+}
+
+html.theme-light .pro-btn-cancel:hover {
+    background: rgba(15, 23, 42, 0.05);
+    color: rgba(15, 23, 42, 0.9);
+    border-color: rgba(15, 23, 42, 0.28);
+}
+
+/* --- Checkbox stillar --- */
+.pro-checkbox-area {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    height: 100%;
+}
+
+html.theme-light .pro-checkbox-area {
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(15, 23, 42, 0.13);
+}
+
+.pro-checkbox-area label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #e2e8f0;
+    cursor: pointer;
+    user-select: none;
+}
+
+html.theme-light .pro-checkbox-area label {
+    color: #1e293b;
+}
+
+.pro-checkbox-area p {
+    margin-top: 0.2rem;
+    font-size: 0.775rem;
+    color: rgba(148, 163, 184, 0.55);
+}
+
+html.theme-light .pro-checkbox-area p {
+    color: rgba(71, 85, 105, 0.72);
+}
+
+/* --- Breadcrumb --- */
+.pro-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: rgba(148, 163, 184, 0.5);
+    padding-top: 0.2rem;
+}
+
+html.theme-light .pro-breadcrumb {
+    color: rgba(71, 85, 105, 0.7);
+}
+
+.pro-breadcrumb a {
+    color: rgba(148, 163, 184, 0.5);
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+html.theme-light .pro-breadcrumb a {
+    color: rgba(71, 85, 105, 0.75);
+}
+
+.pro-breadcrumb a:hover {
+    color: rgba(226, 232, 240, 0.85);
+}
+
+html.theme-light .pro-breadcrumb a:hover {
+    color: rgba(15, 23, 42, 0.95);
+}
+
+.pro-breadcrumb .sep {
+    font-size: 0.6rem;
+}
+
+.pro-breadcrumb .current {
+    color: rgba(226, 232, 240, 0.7);
+}
+
+html.theme-light .pro-breadcrumb .current {
+    color: rgba(15, 23, 42, 0.72);
+}

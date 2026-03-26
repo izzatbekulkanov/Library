@@ -1,0 +1,393 @@
+{% extends "base.html" %}
+{% block title %}Foydalanuvchini Tahrirlash | Glass Pro{% endblock %}
+
+{% block content %}
+<div class="h-full overflow-y-auto custom-scrollbar relative" style="padding: 1.5rem 2rem;">
+
+    <div style="position:absolute; top:-40px; right:80px; width:260px; height:260px; background:rgba(59,130,246,0.1); border-radius:50%; filter:blur(80px); pointer-events:none; z-index:0;"></div>
+
+    <div style="position:relative; z-index:10; width: 100%; display:flex; flex-direction:column; gap:1.25rem;">
+
+        <!-- Breadcrumb -->
+        <nav class="pro-breadcrumb">
+            <a href="/" onclick="showLoader(event,'/')"><i class="fa-solid fa-house" style="font-size:0.7rem;"></i> Bosh sahifa</a>
+            <i class="fa-solid fa-chevron-right sep"></i>
+            <a href="/users" onclick="showLoader(event,'/users')">Foydalanuvchilar</a>
+            <i class="fa-solid fa-chevron-right sep"></i>
+            <span class="current">Tahrirlash — {{ user.username }}</span>
+        </nav>
+
+        <!-- Sarlavha -->
+        <div style="display:flex; align-items:center; gap:1rem;">
+            <a href="/users" onclick="showLoader(event,'/users')"
+               style="width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.12); color:rgba(148,163,184,0.7); text-decoration:none; transition:all 0.2s; flex-shrink:0;"
+               onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.color='#fff';"
+               onmouseout="this.style.background='transparent'; this.style.color='rgba(148,163,184,0.7)';">
+                <i class="fa-solid fa-arrow-left" style="font-size:0.85rem;"></i>
+            </a>
+
+            <!-- Avatar + Ism + Default parol -->
+            <div style="display:flex; align-items:center; gap:1rem; flex:1;">
+                <!-- Avatar preview -->
+                <div style="position:relative; flex-shrink:0;">
+                    <div id="avatarPreview" style="width:54px; height:54px; border-radius:14px; overflow:hidden; background:linear-gradient(135deg,#3b82f6,#6366f1); display:flex; align-items:center; justify-content:center;">
+                        {% if user.image %}
+                        <img src="{{ user.image }}" alt="avatar" style="width:100%; height:100%; object-fit:cover;" id="avatarImg">
+                        {% else %}
+                        <span style="font-size:1.3rem; font-weight:700; color:#fff;" id="avatarLetter">{{ (user.full_name or user.username or 'U')[0] | upper }}</span>
+                        {% endif %}
+                    </div>
+                    <label for="imageUpload" title="Rasm o'zgartirish"
+                           style="position:absolute; bottom:-4px; right:-4px; width:20px; height:20px; border-radius:50%; background:#6366f1; border:2px solid #0f172a; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                        <i class="fa-solid fa-camera" style="font-size:0.55rem; color:#fff;"></i>
+                    </label>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-800 dark:text-white mb-0 mt-0 transition-colors">{{ user.full_name or user.username }}</h1>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 mb-0 transition-colors">Foydalanuvchi #{{ user.id }}</p>
+                </div>
+                <div style="margin-left:auto; display:flex; gap:0.5rem; align-items:center;">
+                    <button onclick="resetPassword()" type="button"
+                        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/20 border border-blue-400/50">
+                        <i class="fa-solid fa-key"></i> Default parol
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {% if error %}
+        <div style="display:flex; align-items:center; gap:0.75rem; padding:0.875rem 1.25rem; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); border-radius:0.75rem; color:#fca5a5; font-size:0.875rem;">
+            <i class="fa-solid fa-circle-exclamation" style="flex-shrink:0;"></i>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <!-- ═══════════ FORMA ═══════════ -->
+        <div class="pro-form-card">
+            <form action="/users/{{ user.id }}/edit" method="POST" enctype="multipart/form-data" autocomplete="off">
+
+                <!-- ─── Asosiy ma'lumotlar ─── -->
+                <div class="pro-section-title">
+                    <i class="fa-regular fa-user" style="color:#60a5fa;"></i> Asosiy ma'lumotlar
+                </div>
+                <!-- Rasm yuklash (yashirin) -->
+                <input type="file" name="image" id="imageUpload" accept="image/*" style="display:none;" onchange="previewAvatar(this)">
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.1rem; margin-bottom:1.75rem;">
+
+                    <div>
+                        <label class="pro-label">To'liq ism</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-id-card"></i></span>
+                            <input type="text" name="full_name" class="pro-input" value="{{ user.full_name or '' }}" placeholder="To'liq ism">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="pro-label">Qisqa ism</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-signature"></i></span>
+                            <input type="text" name="short_name" class="pro-input" value="{{ user.short_name or '' }}" placeholder="Qisqa ism">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="pro-label">Familiya</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-user-tag"></i></span>
+                            <input type="text" name="first_name" class="pro-input" value="{{ user.first_name or '' }}" placeholder="Familiya">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="pro-label">Ism</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-user"></i></span>
+                            <input type="text" name="second_name" class="pro-input" value="{{ user.second_name or '' }}" placeholder="Ism">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="pro-label">Otasining ismi</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-users"></i></span>
+                            <input type="text" name="third_name" class="pro-input" value="{{ user.third_name or '' }}" placeholder="Otasining ismi">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="pro-label">Tug'ilgan sana</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-cake-candles"></i></span>
+                            <input type="date" name="birth_date" class="pro-input"
+                                   value="{{ user.birth_date.strftime('%Y-%m-%d') if user.birth_date else '' }}"
+                                   style="color-scheme: dark;">
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ─── Aloqa ma'lumotlari ─── -->
+                <div class="pro-section-title">
+                    <i class="fa-solid fa-address-card" style="color:#34d399;"></i> Aloqa ma'lumotlari
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.1rem; margin-bottom:1.75rem;">
+
+                    <div>
+                        <label class="pro-label">Login (Username)</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-at"></i></span>
+                            <input type="text" name="username" class="pro-input" value="{{ user.username or '' }}" placeholder="username" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="pro-label">Email manzili</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-regular fa-envelope"></i></span>
+                            <input type="email" name="email" class="pro-input" value="{{ user.email or '' }}" placeholder="email@misol.uz" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="pro-label">Telefon raqami</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-phone"></i></span>
+                            <input type="tel" name="phone_number" id="phoneInput" class="pro-input" value="{{ user.phone_number or '' }}" placeholder="+998 90 123 45 67" maxlength="17">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="pro-label">Hemis ID</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-hashtag"></i></span>
+                            <input type="text" name="hemis_id" class="pro-input" value="{{ user.hemis_id or '' }}" placeholder="Hemis tizim ID">
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ─── Ijtimoiy tarmoqlar ─── -->
+                <div class="pro-section-title">
+                    <i class="fa-solid fa-share-nodes" style="color:#fb7185;"></i> Ijtimoiy tarmoqlar
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.1rem; margin-bottom:1.75rem;">
+
+                    <div>
+                        <label class="pro-label">Telegram</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-brands fa-telegram" style="color:#29a7e0;"></i></span>
+                            <input type="text" name="telegram" class="pro-input" value="{{ user.telegram or '' }}" placeholder="@telegram">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="pro-label">Instagram</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-brands fa-instagram" style="color:#e1306c;"></i></span>
+                            <input type="text" name="instagram" class="pro-input" value="{{ user.instagram or '' }}" placeholder="@instagram">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="pro-label">Facebook</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-brands fa-facebook" style="color:#1877f2;"></i></span>
+                            <input type="text" name="facebook" class="pro-input" value="{{ user.facebook or '' }}" placeholder="facebook.com/...">
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ─── Rol va kategoriya ─── -->
+                <div class="pro-section-title">
+                    <i class="fa-solid fa-shield-halved" style="color:#a78bfa;"></i> Rol va kategoriya
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.1rem; margin-bottom:1.75rem;">
+
+                    <div>
+                        <label class="pro-label">Jinsi</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-venus-mars"></i></span>
+                            <select name="gender" class="pro-select">
+                                <option value="">— Tanlang —</option>
+                                <option value="Erkak" {% if user.gender and user.gender.value == 'Erkak' %}selected{% endif %}>Erkak</option>
+                                <option value="Ayol"  {% if user.gender and user.gender.value == 'Ayol'  %}selected{% endif %}>Ayol</option>
+                            </select>
+                            <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="pro-label">Foydalanuvchi turi</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-briefcase"></i></span>
+                            <select name="user_type" class="pro-select">
+                                {% set cur_type = user.user_type.value if user.user_type else '' %}
+                                <option value="Foydalanuvchi"    {% if cur_type == 'Foydalanuvchi'    %}selected{% endif %}>Foydalanuvchi</option>
+                                <option value="Administrator"     {% if cur_type == 'Administrator'    %}selected{% endif %}>Administrator</option>
+                                <option value="Kutubxona xodimi" {% if cur_type == 'Kutubxona xodimi' %}selected{% endif %}>Kutubxona xodimi</option>
+                                <option value="Kutubxona Raxbari"{% if cur_type == 'Kutubxona Raxbari'%}selected{% endif %}>Kutubxona Raxbari</option>
+                                <option value="Mehmon"            {% if cur_type == 'Mehmon'            %}selected{% endif %}>Mehmon</option>
+                            </select>
+                            <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="pro-label">Tizim roli</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon" style="color:rgba(167,139,250,0.8);"><i class="fa-solid fa-user-shield"></i></span>
+                            <select name="system_role" class="pro-select">
+                                <option value="user"       {% if not user.is_staff and not user.is_verified %}selected{% endif %}>Oddiy foydalanuvchi</option>
+                                <option value="lib_staff"  {% if user.is_staff and not user.is_verified    %}selected{% endif %}>Kutubxona xodimi</option>
+                                <option value="staff"      {% if user.is_staff and not user.is_verified    %}selected{% endif %}>Admin (Staff)</option>
+                                <option value="superadmin" {% if user.is_verified %}selected{% endif %}>Super Administrator</option>
+                            </select>
+                            <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="pro-label">Kirish yili</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-graduation-cap"></i></span>
+                            <input type="text" name="year_of_enter" class="pro-input" value="{{ user.year_of_enter or '' }}" placeholder="2023">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="pro-label">Yoshi</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-hourglass-half"></i></span>
+                            <input type="number" name="age" class="pro-input" value="{{ user.age or '' }}" placeholder="25" min="1" max="120">
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ─── MENYU RUXSATLARI ─── -->
+                <div class="pro-section-title">
+                    <i class="fa-solid fa-list-check" style="color:#38bdf8;"></i> Menyu ruxsatlari
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0.75rem 1rem; margin-bottom:1.75rem;">
+                    {% for key, label, path in menu_items %}
+                    <div class="pro-checkbox-area" style="margin:0;">
+                        <input type="checkbox"
+                               name="menu_permissions"
+                               id="menu_perm_{{ key }}"
+                               value="{{ key }}"
+                               {% if key in selected_menu_keys %}checked{% endif %}
+                               style="width:1rem; height:1rem; accent-color:#0ea5e9; flex-shrink:0; cursor:pointer; margin-top:0.15rem;">
+                        <div>
+                            <label for="menu_perm_{{ key }}">{{ label }}</label>
+                            <p>{{ path }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <p style="font-size:0.72rem; color:rgba(148,163,184,0.55); margin-top:-1.1rem; margin-bottom:1.8rem;">
+                    Eslatma: <strong>Foydalanuvchilar</strong> bo'limiga kirish faqat Admin/Super Admin uchun ishlaydi.
+                </p>
+
+                <!-- ─── Kirish va holat ─── -->
+                <div class="pro-section-title">
+                    <i class="fa-solid fa-lock" style="color:#fbbf24;"></i> Kirish ma'lumotlari va holat
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.1rem; margin-bottom:2rem; align-items:end;">
+
+                    <div>
+                        <label class="pro-label">Yangi parol <span style="color:rgba(148,163,184,0.5); font-weight:400;">(bo'sh qolsa o'zgarmaydi)</span></label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-lock"></i></span>
+                            <input type="password" name="password" id="passwordInput" class="pro-input" placeholder="Yangi parol kiriting..." style="padding-right:3rem;">
+                            <button type="button" onclick="togglePassword()"
+                                style="position:absolute; inset-block:0; right:0; display:flex; align-items:center; padding-right:0.9rem; background:none; border:none; color:rgba(100,116,139,0.8); cursor:pointer; font-size:0.85rem; z-index:5;">
+                                <i class="fa-regular fa-eye" id="eyeIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Checkboxlar -->
+                    <div style="display:flex; flex-direction:column; gap:0.65rem;">
+                        <div class="pro-checkbox-area">
+                            <input type="checkbox" name="is_active" id="isActiveCheck" {% if user.is_active %}checked{% endif %}
+                                style="width:1rem; height:1rem; accent-color:#6366f1; flex-shrink:0; cursor:pointer; margin-top:0.15rem;">
+                            <div>
+                                <label for="isActiveCheck">Faol holat</label>
+                                <p>Tizimga kirish huquqi berilsin</p>
+                            </div>
+                        </div>
+                        <div class="pro-checkbox-area">
+                            <input type="checkbox" name="is_followers_book" id="isFollowersBook" {% if user.is_followers_book %}checked{% endif %}
+                                style="width:1rem; height:1rem; accent-color:#6366f1; flex-shrink:0; cursor:pointer; margin-top:0.15rem;">
+                            <div>
+                                <label for="isFollowersBook">Kitoblar kuzatuvchisi</label>
+                                <p>Kitoblar ro'yxatini kuzatib boradi</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Amallar -->
+                <div style="display:flex; justify-content:flex-end; gap:0.75rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,0.07);">
+                    <a href="/users" onclick="showLoader(event,'/users')" class="pro-btn-cancel">Bekor qilish</a>
+                    <button type="submit" class="pro-btn-save">
+                        <i class="fa-solid fa-floppy-disk"></i> Saqlash
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePassword() {
+    const input = document.getElementById('passwordInput');
+    const icon  = document.getElementById('eyeIcon');
+    if (input.type === 'password') { input.type = 'text'; icon.classList.replace('fa-eye','fa-eye-slash'); }
+    else { input.type = 'password'; icon.classList.replace('fa-eye-slash','fa-eye'); }
+}
+
+async function resetPassword() {
+    const ok = await confirmDialog({
+        title: "Default parolni o'rnatish",
+        message: "Bu foydalanuvchi paroli <strong>user1231</strong> ga o'zgartiriladi.",
+        confirmText: "Ha, o'rnatish",
+        type: 'warning'
+    });
+    if (ok) {
+        const inp = document.getElementById('passwordInput');
+        inp.value = 'user1231';
+        inp.type  = 'text';
+        document.getElementById('eyeIcon').className = 'fa-regular fa-eye-slash';
+        notifyInfo("Parol 'user1231' ga o'rnatildi. Saqlash tugmasini bosing.");
+    }
+}
+
+function previewAvatar(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const preview = document.getElementById('avatarPreview');
+        const letter  = document.getElementById('avatarLetter');
+        const img     = document.getElementById('avatarImg') || document.createElement('img');
+        img.id  = 'avatarImg';
+        img.src = e.target.result;
+        img.style.cssText = 'width:100%; height:100%; object-fit:cover;';
+        if (letter) letter.remove();
+        if (!document.getElementById('avatarImg')) preview.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+    notifyInfo('Rasm tanlandi. Saqlash tugmasini bosing.');
+}
+
+// Telefon niqobi
+(function() {
+    const phone = document.getElementById('phoneInput');
+    if (!phone) return;
+    phone.addEventListener('input', function() {
+        let d = this.value.replace(/\D/g,'');
+        if (d.startsWith('998')) d = d.substring(3);
+        d = d.slice(0,9);
+        let r = '+998';
+        if (d.length>0) r+=' '+d.slice(0,2);
+        if (d.length>2) r+=' '+d.slice(2,5);
+        if (d.length>5) r+=' '+d.slice(5,7);
+        if (d.length>7) r+=' '+d.slice(7,9);
+        this.value = r;
+    });
+    phone.addEventListener('focus', function() { if (!this.value) this.value='+998 '; });
+    phone.addEventListener('keydown', function(e) { if(e.key==='Backspace'&&this.value.length<=6) e.preventDefault(); });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,795 @@
+{% extends "base.html" %}
+
+{% block title %}Sozlamalar | {{ system_name }}{% endblock %}
+
+{% block content %}
+<div class="settings-page w-full space-y-6">
+    <section class="glass-card rounded-2xl border border-white/10 p-5 sm:p-6">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-blue-300"></i>
+                    Tizim sozlamalari
+                </h1>
+                <p class="mt-1 text-sm text-white/60">
+                    Tizim nomi, logotiplar, xavfsizlik rejimi, o‘chirish siyosati va baza ulanishlarini bitta sahifada boshqaring.
+                </p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+                <button
+                    id="reloadAllBtn"
+                    type="button"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-500/40 bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+                >
+                    <i class="fa-solid fa-rotate text-xs"></i>
+                    Yangilash
+                </button>
+                <div class="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs text-white/70">
+                    Oxirgi ko‘rish: <span id="lastRefreshAt" class="ml-1 font-semibold text-blue-300">--:--</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div class="stat-chip">
+                <div class="stat-chip-label">Jami kitoblar</div>
+                <div id="summaryBooksTotal" class="stat-chip-value">0</div>
+            </div>
+            <div class="stat-chip">
+                <div class="stat-chip-label">Jami nusxa/versiya</div>
+                <div id="summaryCopiesAndEditions" class="stat-chip-value">0</div>
+            </div>
+            <div class="stat-chip">
+                <div class="stat-chip-label">Jami foydalanuvchi</div>
+                <div id="summaryUsers" class="stat-chip-value">0</div>
+            </div>
+            <div class="stat-chip">
+                <div class="stat-chip-label">Faol kutubxonalar</div>
+                <div id="summaryLibraries" class="stat-chip-value">0</div>
+            </div>
+        </div>
+    </section>
+    <div class="grid grid-cols-1 gap-6 2xl:grid-cols-3">
+        <section class="glass-card rounded-2xl border border-white/10 p-5 sm:p-6 2xl:col-span-2">
+            <div class="mb-4 flex items-center justify-between">
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-building-shield text-emerald-300"></i>
+                    Tizim identifikatsiyasi va xavfsizlik
+                </h2>
+            </div>
+
+            <form id="systemConfigForm" class="space-y-5">
+                <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    <div class="lg:col-span-2">
+                        <label for="systemNameInput" class="pro-label">Tizim nomi</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-font"></i></span>
+                            <input id="systemNameInput" name="system_name" type="text" class="pro-input" placeholder="Masalan: Kutubxona boshqaruvi">
+                        </div>
+                    </div>
+
+                    <label for="logoLargeFile" class="upload-card">
+                        <input id="logoLargeFile" type="file" accept=".png,.jpg,.jpeg,.webp,.svg" class="hidden">
+                        <div class="upload-card-top">
+                            <span class="upload-card-title">Tizim large logotipi</span>
+                            <span class="upload-card-badge">PNG/JPG/SVG</span>
+                        </div>
+                        <div class="upload-card-body">
+                            <img id="logoLargePreview" src="{{ system_logo_large }}" alt="Large logo preview" class="upload-card-preview">
+                            <div id="logoLargeMeta" class="upload-card-meta">
+                                <i class="fa-solid fa-cloud-arrow-up text-blue-300"></i>
+                                Fayl tanlash uchun bosing
+                            </div>
+                        </div>
+                    </label>
+
+                    <label for="logoSmallFile" class="upload-card">
+                        <input id="logoSmallFile" type="file" accept=".png,.jpg,.jpeg,.webp,.svg" class="hidden">
+                        <div class="upload-card-top">
+                            <span class="upload-card-title">Tizim small logotipi</span>
+                            <span class="upload-card-badge">PNG/JPG/SVG</span>
+                        </div>
+                        <div class="upload-card-body">
+                            <img id="logoSmallPreview" src="{{ system_logo_small }}" alt="Small logo preview" class="upload-card-preview">
+                            <div id="logoSmallMeta" class="upload-card-meta">
+                                <i class="fa-solid fa-cloud-arrow-up text-blue-300"></i>
+                                Fayl tanlash uchun bosing
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    <div class="switch-card">
+                        <div>
+                            <div class="switch-title">Maintenance rejimi</div>
+                            <p class="switch-desc">Oddiy foydalanuvchilar uchun tizimni texnik rejimga o‘tkazadi.</p>
+                        </div>
+                        <label class="setting-switch">
+                            <input id="maintenanceToggle" type="checkbox" name="maintenance_mode">
+                            <span class="setting-switch-track"></span>
+                        </label>
+                    </div>
+                    <div class="switch-card">
+                        <div>
+                            <div class="switch-title">Kitob o‘chirishni taqiqlash</div>
+                            <p class="switch-desc">Kitob va nusxa/versiya o‘chirish endpointlari bloklanadi.</p>
+                        </div>
+                        <label class="setting-switch">
+                            <input id="blockDeleteToggle" type="checkbox" name="block_book_delete">
+                            <span class="setting-switch-track"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="maintenanceMessageInput" class="pro-label">Maintenance xabari</label>
+                    <textarea
+                        id="maintenanceMessageInput"
+                        name="maintenance_message"
+                        rows="3"
+                        class="pro-input"
+                        style="padding-left:1rem;padding-right:1rem;"
+                        placeholder="Masalan: Tizimda texnik ishlar olib borilmoqda."
+                    ></textarea>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 pt-1">
+                    <button
+                        id="saveSystemBtn"
+                        type="submit"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-500/40 bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+                    >
+                        <i class="fa-solid fa-floppy-disk text-xs"></i>
+                        Tizim sozlamalarini saqlash
+                    </button>
+                    <button
+                        id="reloadSystemBtn"
+                        type="button"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white/85 transition-colors hover:bg-white/15"
+                    >
+                        <i class="fa-solid fa-rotate-right text-xs"></i>
+                        Qayta yuklash
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="glass-card rounded-2xl border border-white/10 p-5 sm:p-6">
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-chart-line text-cyan-300"></i>
+                Joriy holat
+            </h2>
+
+            <div class="mt-4 space-y-2">
+                <div class="status-row">
+                    <span class="status-row-label">Tizim nomi</span>
+                    <span id="statusSystemName" class="status-row-value">{{ system_name }}</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-row-label">Maintenance</span>
+                    <span id="statusMaintenance" class="status-row-value badge-off">O‘chiq</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-row-label">O‘chirish bloklash</span>
+                    <span id="statusDeleteBlock" class="status-row-value badge-off">O‘chiq</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-row-label">DB turi</span>
+                    <span id="statusDbType" class="status-row-value">sqlite</span>
+                </div>
+            </div>
+
+            <div class="mt-5 rounded-xl border border-white/10 bg-white/5 p-3">
+                <p class="text-xs text-white/65 leading-5">
+                    Bu sahifadagi o‘zgarishlar real vaqtda saqlanadi. Baza ulanishi o‘zgarsa, yangi ulanish darhol tekshiriladi.
+                </p>
+            </div>
+        </section>
+    </div>
+    <section class="glass-card rounded-2xl border border-white/10 p-5 sm:p-6">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-database text-indigo-300"></i>
+            Ma'lumotlar bazasi sozlamalari
+        </h2>
+
+        <form id="dbConfigForm" class="mt-4 space-y-4">
+            <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
+                <div>
+                    <label for="dbTypeSelect" class="pro-label">DB turi</label>
+                    <div class="pro-input-wrap">
+                        <span class="pro-icon"><i class="fa-solid fa-server"></i></span>
+                        <select id="dbTypeSelect" class="pro-select">
+                            <option value="sqlite">SQLite</option>
+                            <option value="postgresql">PostgreSQL</option>
+                        </select>
+                        <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+                    </div>
+                </div>
+
+                <div id="sqliteWrap" class="xl:col-span-2">
+                    <label for="sqlitePathInput" class="pro-label">SQLite fayl yo‘li</label>
+                    <div class="pro-input-wrap">
+                        <span class="pro-icon"><i class="fa-solid fa-file-lines"></i></span>
+                        <input id="sqlitePathInput" type="text" class="pro-input" placeholder="./sql_app.db">
+                    </div>
+                </div>
+            </div>
+
+            <div id="postgresWrap" class="hidden grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-5">
+                <div class="xl:col-span-2">
+                    <label for="pgHostInput" class="pro-label">Host</label>
+                    <div class="pro-input-wrap">
+                        <span class="pro-icon"><i class="fa-solid fa-network-wired"></i></span>
+                        <input id="pgHostInput" type="text" class="pro-input" placeholder="localhost">
+                    </div>
+                </div>
+                <div>
+                    <label for="pgPortInput" class="pro-label">Port</label>
+                    <div class="pro-input-wrap">
+                        <span class="pro-icon"><i class="fa-solid fa-plug"></i></span>
+                        <input id="pgPortInput" type="number" class="pro-input" placeholder="5432">
+                    </div>
+                </div>
+                <div class="xl:col-span-2">
+                    <label for="pgDatabaseInput" class="pro-label">Database</label>
+                    <div class="pro-input-wrap">
+                        <span class="pro-icon"><i class="fa-solid fa-database"></i></span>
+                        <input id="pgDatabaseInput" type="text" class="pro-input" placeholder="library">
+                    </div>
+                </div>
+                <div class="xl:col-span-2">
+                    <label for="pgUsernameInput" class="pro-label">Username</label>
+                    <div class="pro-input-wrap">
+                        <span class="pro-icon"><i class="fa-solid fa-user"></i></span>
+                        <input id="pgUsernameInput" type="text" class="pro-input" placeholder="postgres">
+                    </div>
+                </div>
+                <div class="xl:col-span-3">
+                    <label for="pgPasswordInput" class="pro-label">Password</label>
+                    <div class="pro-input-wrap">
+                        <span class="pro-icon"><i class="fa-solid fa-lock"></i></span>
+                        <input id="pgPasswordInput" type="password" class="pro-input" placeholder="Bo‘sh qoldirilsa oldingi parol saqlanadi">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 pt-1">
+                <button
+                    id="testDbBtn"
+                    type="button"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-500/40 bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+                >
+                    <i class="fa-solid fa-vial-circle-check text-xs"></i>
+                    PostgreSQL ulanishini tekshirish
+                </button>
+                <button
+                    id="saveDbBtn"
+                    type="submit"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-500/40 bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+                >
+                    <i class="fa-solid fa-floppy-disk text-xs"></i>
+                    DB sozlamalarini saqlash
+                </button>
+            </div>
+        </form>
+    </section>
+    <section class="glass-card rounded-2xl border border-white/10 p-5 sm:p-6">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-table-cells-large text-blue-300"></i>
+            Barcha ma'lumotlar statistikasi
+        </h2>
+        <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+            <div class="metric-card"><span class="metric-label">Bosma kitob</span><span id="countPrintedBooks" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">Bosma nusxa</span><span id="countPrintedCopies" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">Online kitob</span><span id="countOnlineBooks" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">Online versiya</span><span id="countOnlineEditions" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">Mualliflar</span><span id="countAuthors" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">Kitob turlari</span><span id="countBookTypes" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">BBK</span><span id="countBbk" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">Nashriyotlar</span><span id="countPublishers" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">Nashr shaharlari</span><span id="countPublishedCities" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">Nashr yillari</span><span id="countPublicationYears" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">Jami foydalanuvchi</span><span id="countTotalUsers" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">Faol foydalanuvchi</span><span id="countActiveUsers" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">Hodimlar soni</span><span id="countStaffUsers" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">Jami kutubxona</span><span id="countTotalLibraries" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">Faol kutubxona</span><span id="countActiveLibraries" class="metric-value">0</span></div>
+        </div>
+    </section>
+
+    <section class="glass-card rounded-2xl border border-red-500/35 p-5 sm:p-6">
+        <h2 class="text-lg font-bold text-red-300 flex items-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            Xavfli amallar
+        </h2>
+        <p class="mt-2 text-sm text-white/70">
+            Bu bo‘limdagi o‘chirish amallari qaytarib bo‘lmaydi. Amal bajarilishidan oldin tasdiqlash so‘raladi.
+        </p>
+        <div class="mt-4 flex flex-wrap gap-2">
+            <button
+                id="deletePrintedBtn"
+                type="button"
+                class="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/40 bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-700"
+            >
+                <i class="fa-solid fa-trash-can text-xs"></i>
+                Bosma kitoblarni tozalash
+            </button>
+            <button
+                id="deleteOnlineBtn"
+                type="button"
+                class="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/40 bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-700"
+            >
+                <i class="fa-solid fa-trash-can text-xs"></i>
+                Online kitoblarni tozalash
+            </button>
+        </div>
+    </section>
+</div>
+
+<style>
+    .settings-page .stat-chip {
+        border: 1px solid rgba(59, 130, 246, 0.25);
+        background: rgba(59, 130, 246, 0.12);
+        border-radius: 0.85rem;
+        padding: 0.75rem 0.9rem;
+    }
+    .settings-page .stat-chip-label {
+        font-size: 0.72rem;
+        opacity: 0.78;
+        line-height: 1.2;
+    }
+    .settings-page .stat-chip-value {
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin-top: 0.2rem;
+    }
+    .settings-page .upload-card {
+        border: 1px dashed rgba(148, 163, 184, 0.45);
+        border-radius: 0.9rem;
+        padding: 0.8rem;
+        background: rgba(255, 255, 255, 0.03);
+        cursor: pointer;
+        transition: border-color 0.2s ease, background 0.2s ease;
+        display: block;
+    }
+    .settings-page .upload-card:hover {
+        border-color: rgba(59, 130, 246, 0.7);
+        background: rgba(59, 130, 246, 0.08);
+    }
+    .settings-page .upload-card-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+    .settings-page .upload-card-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+    .settings-page .upload-card-badge {
+        font-size: 0.62rem;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        border-radius: 9999px;
+        padding: 0.1rem 0.45rem;
+        opacity: 0.85;
+    }
+    .settings-page .upload-card-body {
+        margin-top: 0.65rem;
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+    }
+    .settings-page .upload-card-preview {
+        width: 3.2rem;
+        height: 3.2rem;
+        border-radius: 0.75rem;
+        object-fit: contain;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        padding: 0.2rem;
+        flex-shrink: 0;
+    }
+    .settings-page .upload-card-meta {
+        font-size: 0.76rem;
+        line-height: 1.3;
+        opacity: 0.84;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+    .settings-page .switch-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 0.9rem;
+        padding: 0.85rem;
+    }
+    .settings-page .switch-title {
+        font-size: 0.86rem;
+        font-weight: 700;
+    }
+    .settings-page .switch-desc {
+        margin-top: 0.2rem;
+        font-size: 0.74rem;
+        opacity: 0.72;
+        line-height: 1.35;
+    }
+    .settings-page .setting-switch input {
+        display: none;
+    }
+    .settings-page .setting-switch-track {
+        display: block;
+        position: relative;
+        width: 2.9rem;
+        height: 1.65rem;
+        border-radius: 9999px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        background: rgba(71, 85, 105, 0.45);
+        transition: all 0.2s ease;
+    }
+    .settings-page .setting-switch-track::before {
+        content: "";
+        position: absolute;
+        top: 0.15rem;
+        left: 0.18rem;
+        width: 1.15rem;
+        height: 1.15rem;
+        border-radius: 9999px;
+        background: #ffffff;
+        box-shadow: 0 2px 8px rgba(2, 6, 23, 0.45);
+        transition: transform 0.2s ease;
+    }
+    .settings-page .setting-switch input:checked + .setting-switch-track {
+        background: rgba(59, 130, 246, 0.7);
+        border-color: rgba(59, 130, 246, 0.85);
+    }
+    .settings-page .setting-switch input:checked + .setting-switch-track::before {
+        transform: translateX(1.2rem);
+    }
+    .settings-page .status-row {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.8rem;
+        padding: 0.55rem 0.7rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.04);
+    }
+    .settings-page .status-row-label {
+        font-size: 0.77rem;
+        opacity: 0.74;
+    }
+    .settings-page .status-row-value {
+        font-size: 0.76rem;
+        font-weight: 700;
+    }
+    .settings-page .badge-on {
+        color: #10b981;
+    }
+    .settings-page .badge-off {
+        color: #f59e0b;
+    }
+    .settings-page .metric-card {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 0.85rem;
+        background: rgba(255, 255, 255, 0.04);
+        padding: 0.75rem 0.8rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+    .settings-page .metric-label {
+        font-size: 0.73rem;
+        opacity: 0.73;
+    }
+    .settings-page .metric-value {
+        font-size: 1.03rem;
+        font-weight: 700;
+    }
+    html.theme-light .settings-page .upload-card,
+    html.theme-light .settings-page .switch-card,
+    html.theme-light .settings-page .status-row,
+    html.theme-light .settings-page .metric-card {
+        background: rgba(255, 255, 255, 0.82);
+        border-color: rgba(15, 23, 42, 0.14);
+    }
+</style>
+
+<script>
+    const $ = (id) => document.getElementById(id);
+    const countMap = {
+        printed_books: "countPrintedBooks",
+        printed_copies: "countPrintedCopies",
+        online_books: "countOnlineBooks",
+        online_editions: "countOnlineEditions",
+        authors: "countAuthors",
+        book_types: "countBookTypes",
+        bbk: "countBbk",
+        publishers: "countPublishers",
+        published_cities: "countPublishedCities",
+        publication_years: "countPublicationYears",
+        total_users: "countTotalUsers",
+        active_users: "countActiveUsers",
+        staff_users: "countStaffUsers",
+        total_libraries: "countTotalLibraries",
+        active_libraries: "countActiveLibraries",
+    };
+
+    function toInt(value) {
+        const parsed = Number.parseInt(value, 10);
+        return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function formatNumber(value) {
+        return toInt(value).toLocaleString("uz-UZ");
+    }
+
+    function setButtonBusy(btn, busy, busyText) {
+        if (!btn) return;
+        if (!btn.dataset.label) {
+            btn.dataset.label = btn.innerHTML;
+        }
+        btn.disabled = busy;
+        if (busy && busyText) {
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i> ${busyText}`;
+            return;
+        }
+        btn.innerHTML = btn.dataset.label;
+    }
+
+    async function fetchJson(url, options = {}) {
+        const response = await fetch(url, options);
+        let payload = {};
+        try {
+            payload = await response.json();
+        } catch (_) {
+            payload = {};
+        }
+        if (!response.ok || payload.ok === false) {
+            const detail = payload.detail || payload.message || `So'rov xatoligi (${response.status})`;
+            throw new Error(detail);
+        }
+        return payload;
+    }
+
+    function updateDbVisibility() {
+        const isPg = $("dbTypeSelect").value === "postgresql";
+        $("sqliteWrap").classList.toggle("hidden", isPg);
+        $("postgresWrap").classList.toggle("hidden", !isPg);
+    }
+
+    function setLogoPreview(previewId, metaId, source, fallbackText) {
+        const preview = $(previewId);
+        const meta = $(metaId);
+        if (!preview || !meta) return;
+        if (source) {
+            preview.src = source;
+            meta.innerHTML = `<i class="fa-solid fa-check text-emerald-300"></i> ${fallbackText}`;
+            return;
+        }
+        meta.innerHTML = `<i class="fa-solid fa-cloud-arrow-up text-blue-300"></i> Fayl tanlash uchun bosing`;
+    }
+
+    function renderSystemStatus(config) {
+        $("statusSystemName").textContent = String(config.system_name || "Noma'lum");
+        const maintenanceOn = Boolean(config.maintenance_mode);
+        $("statusMaintenance").textContent = maintenanceOn ? "Yoqilgan" : "O‘chiq";
+        $("statusMaintenance").className = `status-row-value ${maintenanceOn ? "badge-on" : "badge-off"}`;
+        const blockOn = Boolean(config.block_book_delete);
+        $("statusDeleteBlock").textContent = blockOn ? "Yoqilgan" : "O‘chiq";
+        $("statusDeleteBlock").className = `status-row-value ${blockOn ? "badge-on" : "badge-off"}`;
+    }
+
+    function applySystemConfig(config) {
+        $("systemNameInput").value = String(config.system_name || "");
+        $("maintenanceMessageInput").value = String(config.maintenance_message || "");
+        $("maintenanceToggle").checked = Boolean(config.maintenance_mode);
+        $("blockDeleteToggle").checked = Boolean(config.block_book_delete);
+        setLogoPreview("logoLargePreview", "logoLargeMeta", config.logo_large || "", "Joriy large logo");
+        setLogoPreview("logoSmallPreview", "logoSmallMeta", config.logo_small || "", "Joriy small logo");
+        renderSystemStatus(config);
+    }
+
+    function applyDbConfig(config) {
+        const dbType = String(config.db_type || "sqlite");
+        $("dbTypeSelect").value = dbType;
+        $("sqlitePathInput").value = String(config.sqlite_path || "./sql_app.db");
+        const pg = config.postgresql || {};
+        $("pgHostInput").value = String(pg.host || "");
+        $("pgPortInput").value = String(pg.port || 5432);
+        $("pgDatabaseInput").value = String(pg.database || "");
+        $("pgUsernameInput").value = String(pg.username || "");
+        $("pgPasswordInput").value = "";
+        $("statusDbType").textContent = dbType;
+        updateDbVisibility();
+    }
+
+    function collectDbPayload() {
+        return {
+            db_type: $("dbTypeSelect").value,
+            sqlite_path: $("sqlitePathInput").value.trim(),
+            pg_host: $("pgHostInput").value.trim(),
+            pg_port: $("pgPortInput").value.trim(),
+            pg_database: $("pgDatabaseInput").value.trim(),
+            pg_username: $("pgUsernameInput").value.trim(),
+            pg_password: $("pgPasswordInput").value,
+        };
+    }
+
+    function renderCounts(counts) {
+        Object.entries(countMap).forEach(([key, id]) => {
+            const el = $(id);
+            if (el) el.textContent = formatNumber(counts[key] || 0);
+        });
+
+        const printed = toInt(counts.printed_books);
+        const online = toInt(counts.online_books);
+        const copies = toInt(counts.printed_copies);
+        const editions = toInt(counts.online_editions);
+        $("summaryBooksTotal").textContent = formatNumber(printed + online);
+        $("summaryCopiesAndEditions").textContent = formatNumber(copies + editions);
+        $("summaryUsers").textContent = formatNumber(counts.total_users || 0);
+        $("summaryLibraries").textContent = formatNumber(counts.active_libraries || 0);
+    }
+
+    function updateLastRefreshTime() {
+        const now = new Date();
+        $("lastRefreshAt").textContent = now.toLocaleTimeString("uz-UZ", {
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    }
+
+    async function loadCounts() {
+        const data = await fetchJson("/sozlamalar/api/counts");
+        renderCounts(data);
+    }
+
+    async function loadSystemConfig() {
+        const data = await fetchJson("/sozlamalar/api/system-config");
+        applySystemConfig(data);
+    }
+
+    async function loadDbConfig() {
+        const data = await fetchJson("/sozlamalar/api/db-config");
+        applyDbConfig(data);
+    }
+
+    async function loadAll({silent = false} = {}) {
+        const reloadBtn = $("reloadAllBtn");
+        setButtonBusy(reloadBtn, true, "Yuklanmoqda...");
+        try {
+            await Promise.all([loadCounts(), loadSystemConfig(), loadDbConfig()]);
+            updateLastRefreshTime();
+            if (!silent) {
+                notifySuccess("Sozlamalar ma'lumotlari yangilandi.");
+            }
+        } catch (error) {
+            notifyError(error.message || "Ma'lumotlarni yuklab bo‘lmadi.");
+        } finally {
+            setButtonBusy(reloadBtn, false);
+        }
+    }
+
+    async function saveSystemConfig(event) {
+        event.preventDefault();
+        const btn = $("saveSystemBtn");
+        setButtonBusy(btn, true, "Saqlanmoqda...");
+        try {
+            const formData = new FormData();
+            formData.append("system_name", $("systemNameInput").value.trim());
+            formData.append("maintenance_mode", $("maintenanceToggle").checked ? "1" : "0");
+            formData.append("block_book_delete", $("blockDeleteToggle").checked ? "1" : "0");
+            formData.append("maintenance_message", $("maintenanceMessageInput").value.trim());
+            const largeFile = $("logoLargeFile").files[0];
+            const smallFile = $("logoSmallFile").files[0];
+            if (largeFile) formData.append("logo_large_file", largeFile);
+            if (smallFile) formData.append("logo_small_file", smallFile);
+
+            const payload = await fetchJson("/sozlamalar/api/system-config", {
+                method: "POST",
+                body: formData,
+            });
+            applySystemConfig(payload.config || payload);
+            updateLastRefreshTime();
+            notifySuccess(payload.message || "Tizim sozlamalari saqlandi.");
+        } catch (error) {
+            notifyError(error.message || "Tizim sozlamalarini saqlashda xatolik.");
+        } finally {
+            setButtonBusy(btn, false);
+        }
+    }
+
+    async function testDbConfig() {
+        const btn = $("testDbBtn");
+        setButtonBusy(btn, true, "Tekshirilmoqda...");
+        try {
+            const payload = collectDbPayload();
+            const result = await fetchJson("/sozlamalar/api/db-config/test", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload),
+            });
+            notifySuccess(result.message || "Ulanish muvaffaqiyatli tekshirildi.");
+        } catch (error) {
+            notifyError(error.message || "Ulanishni tekshirishda xatolik.");
+        } finally {
+            setButtonBusy(btn, false);
+        }
+    }
+
+    async function saveDbConfig(event) {
+        event.preventDefault();
+        const btn = $("saveDbBtn");
+        setButtonBusy(btn, true, "Saqlanmoqda...");
+        try {
+            const payload = collectDbPayload();
+            const result = await fetchJson("/sozlamalar/api/db-config", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload),
+            });
+            applyDbConfig(result.config || result);
+            updateLastRefreshTime();
+            notifySuccess(result.message || "DB sozlamalari saqlandi.");
+        } catch (error) {
+            notifyError(error.message || "DB sozlamalarini saqlashda xatolik.");
+        } finally {
+            setButtonBusy(btn, false);
+        }
+    }
+
+    async function deleteAllBooks(bookType) {
+        const label = bookType === "printed" ? "bosma kitoblar" : "online kitoblar";
+        const ok = await confirmDialog({
+            title: "Tasdiqlang",
+            message: `Haqiqatan ham barcha ${label}ni o‘chirmoqchimisiz?`,
+            confirmText: "Ha, o‘chirish",
+            type: "danger",
+        });
+        if (!ok) return;
+        const targetBtn = bookType === "printed" ? $("deletePrintedBtn") : $("deleteOnlineBtn");
+        setButtonBusy(targetBtn, true, "O‘chirilmoqda...");
+        try {
+            const result = await fetchJson(`/sozlamalar/api/delete-all/${bookType}`, {method: "POST"});
+            notifySuccess(result.message || "O‘chirish yakunlandi.");
+            await loadCounts();
+            updateLastRefreshTime();
+        } catch (error) {
+            notifyError(error.message || "O‘chirishda xatolik.");
+        } finally {
+            setButtonBusy(targetBtn, false);
+        }
+    }
+
+    function bindUploadPreview(inputId, previewId, metaId) {
+        const input = $(inputId);
+        if (!input) return;
+        input.addEventListener("change", () => {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            const objectUrl = URL.createObjectURL(file);
+            setLogoPreview(previewId, metaId, objectUrl, file.name);
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        bindUploadPreview("logoLargeFile", "logoLargePreview", "logoLargeMeta");
+        bindUploadPreview("logoSmallFile", "logoSmallPreview", "logoSmallMeta");
+        $("dbTypeSelect").addEventListener("change", updateDbVisibility);
+        $("reloadAllBtn").addEventListener("click", () => loadAll());
+        $("reloadSystemBtn").addEventListener("click", loadSystemConfig);
+        $("systemConfigForm").addEventListener("submit", saveSystemConfig);
+        $("testDbBtn").addEventListener("click", testDbConfig);
+        $("dbConfigForm").addEventListener("submit", saveDbConfig);
+        $("deletePrintedBtn").addEventListener("click", () => deleteAllBooks("printed"));
+        $("deleteOnlineBtn").addEventListener("click", () => deleteAllBooks("online"));
+        await loadAll({silent: true});
+    });
+</script>
+{% endblock %}
