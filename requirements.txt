@@ -6,6 +6,7 @@ itsdangerous
 httpx
 jinja2
 sqlalchemy
+psycopg2-binary
 pydantic-settings
 bcrypt
 python-multipart
