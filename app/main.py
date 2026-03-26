@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
+from fastapi import Request
 from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
@@ -152,6 +153,24 @@ async def healthcheck():
 @app.get("/healthz", include_in_schema=False)
 async def healthcheck_alias():
     return await healthcheck()
+
+
+def _is_api_path(request: Request) -> bool:
+    return (request.url.path or "").startswith("/api/")
+
+
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc):
+    if _is_api_path(request):
+        return JSONResponse({"detail": "Sahifa topilmadi."}, status_code=404)
+    return templates.TemplateResponse(
+        "404.html",
+        {
+            "request": request,
+            "detail": "Sahifa topilmadi.",
+        },
+        status_code=404,
+    )
 
 
 @app.on_event("startup")
