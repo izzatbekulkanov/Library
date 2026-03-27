@@ -6,11 +6,12 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, Response
 from app.core.i18n import I18nJinja2Templates as Jinja2Templates
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.auth import build_menu_denied_url, can_access_menu, get_session_user
 from app.core.database import get_db
-from app.models.library import Book, BookType, OnlineBook
+from app.models.library import Book, BookCopy, BookType, OnlineBook
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -72,36 +73,6 @@ def _new_online_cells() -> dict[str, dict]:
     }
 
 
-def _book_sonda_value(book: Book) -> int:
-    candidates = [book.total_copies, book.quantity, book.adad]
-    for value in candidates:
-        try:
-            parsed = int(value or 0)
-        except (TypeError, ValueError):
-            parsed = 0
-        if parsed > 0:
-            return parsed
-    return 0
-
-
-def _report_norm(value: str | None) -> str:
-    return " ".join(str(value or "").split()).casefold()
-
-
-def _book_report_signature(book: Book) -> tuple:
-    norm_isbn = _report_norm(book.isbn)
-    norm_title = _report_norm(book.title)
-    identity = norm_isbn if norm_isbn else f"title:{norm_title}"
-    return (
-        identity,
-        _language_bucket(book.language),
-        int(book.book_type_id or 0),
-        int(book.publication_year_id or 0),
-        int(book.publisher_id or 0),
-        int(book.published_city_id or 0),
-    )
-
-
 def _collect_type_map(db: Session) -> tuple[list[str], dict[int, str]]:
     ordered_names: list[str] = []
     by_id: dict[int, str] = {}
@@ -119,25 +90,29 @@ def _collect_type_map(db: Session) -> tuple[list[str], dict[int, str]]:
 def _build_printed_report(db: Session) -> dict:
     ordered_type_names, type_name_by_id = _collect_type_map(db)
     rows_by_type: dict[str, dict] = {}
-    seen_signatures: set[tuple] = set()
 
     for name in ordered_type_names:
         rows_by_type[name] = {"type_name": name, "cells": _new_print_cells()}
 
-    books = db.query(Book).all()
-    for book in books:
-        signature = _book_report_signature(book)
-        if signature in seen_signatures:
-            continue
-        seen_signatures.add(signature)
-
-        type_name = type_name_by_id.get(book.book_type_id) or "Noma'lum turi"
+    rows = (
+        db.query(
+            Book.id,
+            Book.language,
+            Book.book_type_id,
+            func.count(BookCopy.id).label("copies_count"),
+        )
+        .join(BookCopy, BookCopy.original_book_id == Book.id)
+        .group_by(Book.id, Book.language, Book.book_type_id)
+        .all()
+    )
+    for _, language, book_type_id, copies_count in rows:
+        type_name = type_name_by_id.get(book_type_id) or "Noma'lum turi"
         if type_name not in rows_by_type:
             rows_by_type[type_name] = {"type_name": type_name, "cells": _new_print_cells()}
             ordered_type_names.append(type_name)
 
-        bucket = _language_bucket(book.language)
-        sonda = _book_sonda_value(book)
+        bucket = _language_bucket(language)
+        sonda = int(copies_count or 0)
         rows_by_type[type_name]["cells"][bucket]["nomda"] += 1
         rows_by_type[type_name]["cells"][bucket]["sonda"] += sonda
 
