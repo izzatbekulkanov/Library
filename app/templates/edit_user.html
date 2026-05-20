@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Foydalanuvchini Tahrirlash | Glass Pro{% endblock %}
+{% block title %}{{ _("Foydalanuvchini Tahrirlash") }} | Glass Pro{% endblock %}
 
 {% block content %}
 <div class="h-full overflow-y-auto custom-scrollbar relative" style="padding: 1.5rem 2rem;">
@@ -10,11 +10,11 @@
 
         <!-- Breadcrumb -->
         <nav class="pro-breadcrumb">
-            <a href="/" onclick="showLoader(event,'/')"><i class="fa-solid fa-house" style="font-size:0.7rem;"></i> Bosh sahifa</a>
+            <a href="/" onclick="showLoader(event,'/')"><i class="fa-solid fa-house" style="font-size:0.7rem;"></i> {{ _("Bosh sahifa") }}</a>
             <i class="fa-solid fa-chevron-right sep"></i>
-            <a href="/users" onclick="showLoader(event,'/users')">Foydalanuvchilar</a>
+            <a href="/users" onclick="showLoader(event,'/users')">{{ _("Foydalanuvchilar") }}</a>
             <i class="fa-solid fa-chevron-right sep"></i>
-            <span class="current">Tahrirlash — {{ user.username }}</span>
+            <span class="current">{{ _("Tahrirlash") }} — {{ user.username }}</span>
         </nav>
 
         <!-- Sarlavha -->
@@ -37,19 +37,19 @@
                         <span style="font-size:1.3rem; font-weight:700; color:#fff;" id="avatarLetter">{{ (user.full_name or user.username or 'U')[0] | upper }}</span>
                         {% endif %}
                     </div>
-                    <label for="imageUpload" title="Rasm o'zgartirish"
+                    <label for="imageUpload" title="{{ _("Rasm o'zgartirish") }}"
                            style="position:absolute; bottom:-4px; right:-4px; width:20px; height:20px; border-radius:50%; background:#6366f1; border:2px solid #0f172a; display:flex; align-items:center; justify-content:center; cursor:pointer;">
                         <i class="fa-solid fa-camera" style="font-size:0.55rem; color:#fff;"></i>
                     </label>
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold text-slate-800 dark:text-white mb-0 mt-0 transition-colors">{{ user.full_name or user.username }}</h1>
-                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 mb-0 transition-colors">Foydalanuvchi #{{ user.id }}</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 mb-0 transition-colors">{{ _("Foydalanuvchi") }} #{{ user.id }}</p>
                 </div>
                 <div style="margin-left:auto; display:flex; gap:0.5rem; align-items:center;">
                     <button onclick="resetPassword()" type="button"
                         class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/20 border border-blue-400/50">
-                        <i class="fa-solid fa-key"></i> Default parol
+                        <i class="fa-solid fa-key"></i> {{ _("Default parol") }}
                     </button>
                 </div>
             </div>
@@ -68,7 +68,7 @@
 
                 <!-- ─── Asosiy ma'lumotlar ─── -->
                 <div class="pro-section-title">
-                    <i class="fa-regular fa-user" style="color:#60a5fa;"></i> Asosiy ma'lumotlar
+                    <i class="fa-regular fa-user" style="color:#60a5fa;"></i> {{ _("Asosiy ma'lumotlar") }}
                 </div>
                 <!-- Rasm yuklash (yashirin) -->
                 <input type="file" name="image" id="imageUpload" accept="image/*" style="display:none;" onchange="previewAvatar(this)">
@@ -76,42 +76,42 @@
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.1rem; margin-bottom:1.75rem;">
 
                     <div>
-                        <label class="pro-label">To'liq ism</label>
+                        <label class="pro-label">{{ _("To'liq ism") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-solid fa-id-card"></i></span>
-                            <input type="text" name="full_name" class="pro-input" value="{{ user.full_name or '' }}" placeholder="To'liq ism">
+                            <input type="text" name="full_name" class="pro-input" value="{{ user.full_name or '' }}" placeholder="{{ _("To'liq ism") }}">
                         </div>
                     </div>
                     <div>
-                        <label class="pro-label">Qisqa ism</label>
+                        <label class="pro-label">{{ _("Qisqa ism") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-solid fa-signature"></i></span>
-                            <input type="text" name="short_name" class="pro-input" value="{{ user.short_name or '' }}" placeholder="Qisqa ism">
+                            <input type="text" name="short_name" class="pro-input" value="{{ user.short_name or '' }}" placeholder="{{ _("Qisqa ism") }}">
                         </div>
                     </div>
                     <div>
-                        <label class="pro-label">Familiya</label>
+                        <label class="pro-label">{{ _("Familiya") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-solid fa-user-tag"></i></span>
-                            <input type="text" name="first_name" class="pro-input" value="{{ user.first_name or '' }}" placeholder="Familiya">
+                            <input type="text" name="first_name" class="pro-input" value="{{ user.first_name or '' }}" placeholder="{{ _("Familiya") }}">
                         </div>
                     </div>
                     <div>
-                        <label class="pro-label">Ism</label>
+                        <label class="pro-label">{{ _("Ism") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-solid fa-user"></i></span>
-                            <input type="text" name="second_name" class="pro-input" value="{{ user.second_name or '' }}" placeholder="Ism">
+                            <input type="text" name="second_name" class="pro-input" value="{{ user.second_name or '' }}" placeholder="{{ _("Ism") }}">
                         </div>
                     </div>
                     <div>
-                        <label class="pro-label">Otasining ismi</label>
+                        <label class="pro-label">{{ _("Otasining ismi") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-solid fa-users"></i></span>
-                            <input type="text" name="third_name" class="pro-input" value="{{ user.third_name or '' }}" placeholder="Otasining ismi">
+                            <input type="text" name="third_name" class="pro-input" value="{{ user.third_name or '' }}" placeholder="{{ _("Otasining ismi") }}">
                         </div>
                     </div>
                     <div>
-                        <label class="pro-label">Tug'ilgan sana</label>
+                        <label class="pro-label">{{ _("Tug'ilgan sana") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-solid fa-cake-candles"></i></span>
                             <input type="date" name="birth_date" class="pro-input"
@@ -124,36 +124,36 @@
 
                 <!-- ─── Aloqa ma'lumotlari ─── -->
                 <div class="pro-section-title">
-                    <i class="fa-solid fa-address-card" style="color:#34d399;"></i> Aloqa ma'lumotlari
+                    <i class="fa-solid fa-address-card" style="color:#34d399;"></i> {{ _("Aloqa ma'lumotlari") }}
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.1rem; margin-bottom:1.75rem;">
 
                     <div>
-                        <label class="pro-label">Login (Username)</label>
+                        <label class="pro-label">{{ _("Login (Username)") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-solid fa-at"></i></span>
                             <input type="text" name="username" class="pro-input" value="{{ user.username or '' }}" placeholder="username" required>
                         </div>
                     </div>
                     <div>
-                        <label class="pro-label">Email manzili</label>
+                        <label class="pro-label">{{ _("Email manzili") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-regular fa-envelope"></i></span>
                             <input type="email" name="email" class="pro-input" value="{{ user.email or '' }}" placeholder="email@misol.uz" required>
                         </div>
                     </div>
                     <div>
-                        <label class="pro-label">Telefon raqami</label>
+                        <label class="pro-label">{{ _("Telefon raqami") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-solid fa-phone"></i></span>
                             <input type="tel" name="phone_number" id="phoneInput" class="pro-input" value="{{ user.phone_number or '' }}" placeholder="+998 90 123 45 67" maxlength="17">
                         </div>
                     </div>
                     <div>
-                        <label class="pro-label">Hemis ID</label>
+                        <label class="pro-label">{{ _("Hemis ID") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-solid fa-hashtag"></i></span>
-                            <input type="text" name="hemis_id" class="pro-input" value="{{ user.hemis_id or '' }}" placeholder="Hemis tizim ID">
+                            <input type="text" name="hemis_id" class="pro-input" value="{{ user.hemis_id or '' }}" placeholder="{{ _("Hemis tizim ID") }}">
                         </div>
                     </div>
 
@@ -161,26 +161,26 @@
 
                 <!-- ─── Ijtimoiy tarmoqlar ─── -->
                 <div class="pro-section-title">
-                    <i class="fa-solid fa-share-nodes" style="color:#fb7185;"></i> Ijtimoiy tarmoqlar
+                    <i class="fa-solid fa-share-nodes" style="color:#fb7185;"></i> {{ _("Ijtimoiy tarmoqlar") }}
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.1rem; margin-bottom:1.75rem;">
 
                     <div>
-                        <label class="pro-label">Telegram</label>
+                        <label class="pro-label">{{ _("Telegram") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-brands fa-telegram" style="color:#29a7e0;"></i></span>
                             <input type="text" name="telegram" class="pro-input" value="{{ user.telegram or '' }}" placeholder="@telegram">
                         </div>
                     </div>
                     <div>
-                        <label class="pro-label">Instagram</label>
+                        <label class="pro-label">{{ _("Instagram") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-brands fa-instagram" style="color:#e1306c;"></i></span>
                             <input type="text" name="instagram" class="pro-input" value="{{ user.instagram or '' }}" placeholder="@instagram">
                         </div>
                     </div>
                     <div>
-                        <label class="pro-label">Facebook</label>
+                        <label class="pro-label">{{ _("Facebook") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-brands fa-facebook" style="color:#1877f2;"></i></span>
                             <input type="text" name="facebook" class="pro-input" value="{{ user.facebook or '' }}" placeholder="facebook.com/...">
@@ -191,59 +191,59 @@
 
                 <!-- ─── Rol va kategoriya ─── -->
                 <div class="pro-section-title">
-                    <i class="fa-solid fa-shield-halved" style="color:#a78bfa;"></i> Rol va kategoriya
+                    <i class="fa-solid fa-shield-halved" style="color:#a78bfa;"></i> {{ _("Rol va kategoriya") }}
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.1rem; margin-bottom:1.75rem;">
 
                     <div>
-                        <label class="pro-label">Jinsi</label>
+                        <label class="pro-label">{{ _("Jinsi") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-solid fa-venus-mars"></i></span>
                             <select name="gender" class="pro-select">
-                                <option value="">— Tanlang —</option>
-                                <option value="Erkak" {% if user.gender and user.gender.value == 'Erkak' %}selected{% endif %}>Erkak</option>
-                                <option value="Ayol"  {% if user.gender and user.gender.value == 'Ayol'  %}selected{% endif %}>Ayol</option>
+                                <option value="">— {{ _("Tanlang") }} —</option>
+                                <option value="Erkak" {% if user.gender and user.gender.value == 'Erkak' %}selected{% endif %}>{{ _("Erkak") }}</option>
+                                <option value="Ayol"  {% if user.gender and user.gender.value == 'Ayol'  %}selected{% endif %}>{{ _("Ayol") }}</option>
                             </select>
                             <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
                         </div>
                     </div>
                     <div>
-                        <label class="pro-label">Foydalanuvchi turi</label>
+                        <label class="pro-label">{{ _("Foydalanuvchi turi") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-solid fa-briefcase"></i></span>
                             <select name="user_type" class="pro-select">
                                 {% set cur_type = user.user_type.value if user.user_type else '' %}
-                                <option value="Foydalanuvchi"    {% if cur_type == 'Foydalanuvchi'    %}selected{% endif %}>Foydalanuvchi</option>
-                                <option value="Administrator"     {% if cur_type == 'Administrator'    %}selected{% endif %}>Administrator</option>
-                                <option value="Kutubxona xodimi" {% if cur_type == 'Kutubxona xodimi' %}selected{% endif %}>Kutubxona xodimi</option>
-                                <option value="Kutubxona Raxbari"{% if cur_type == 'Kutubxona Raxbari'%}selected{% endif %}>Kutubxona Raxbari</option>
-                                <option value="Mehmon"            {% if cur_type == 'Mehmon'            %}selected{% endif %}>Mehmon</option>
+                                <option value="Foydalanuvchi"    {% if cur_type == 'Foydalanuvchi'    %}selected{% endif %}>{{ _("Foydalanuvchi") }}</option>
+                                <option value="Administrator"     {% if cur_type == 'Administrator'    %}selected{% endif %}>{{ _("Administrator") }}</option>
+                                <option value="Kutubxona xodimi" {% if cur_type == 'Kutubxona xodimi' %}selected{% endif %}>{{ _("Kutubxona xodimi") }}</option>
+                                <option value="Kutubxona Raxbari"{% if cur_type == 'Kutubxona Raxbari'%}selected{% endif %}>{{ _("Kutubxona Raxbari") }}</option>
+                                <option value="Mehmon"            {% if cur_type == 'Mehmon'            %}selected{% endif %}>{{ _("Mehmon") }}</option>
                             </select>
                             <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
                         </div>
                     </div>
                     <div>
-                        <label class="pro-label">Tizim roli</label>
+                        <label class="pro-label">{{ _("Tizim roli") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon" style="color:rgba(167,139,250,0.8);"><i class="fa-solid fa-user-shield"></i></span>
                             <select name="system_role" class="pro-select">
-                                <option value="user"       {% if not user.is_staff and not user.is_verified %}selected{% endif %}>Oddiy foydalanuvchi</option>
-                                <option value="lib_staff"  {% if user.is_staff and not user.is_verified    %}selected{% endif %}>Kutubxona xodimi</option>
-                                <option value="staff"      {% if user.is_staff and not user.is_verified    %}selected{% endif %}>Admin (Staff)</option>
-                                <option value="superadmin" {% if user.is_verified %}selected{% endif %}>Super Administrator</option>
+                                <option value="user"       {% if not user.is_staff and not user.is_verified %}selected{% endif %}>{{ _("Oddiy foydalanuvchi") }}</option>
+                                <option value="lib_staff"  {% if user.is_staff and not user.is_verified    %}selected{% endif %}>{{ _("Kutubxona xodimi") }}</option>
+                                <option value="staff"      {% if user.is_staff and not user.is_verified    %}selected{% endif %}>{{ _("Admin (Staff)") }}</option>
+                                <option value="superadmin" {% if user.is_verified %}selected{% endif %}>{{ _("Super Administrator") }}</option>
                             </select>
                             <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
                         </div>
                     </div>
                     <div>
-                        <label class="pro-label">Kirish yili</label>
+                        <label class="pro-label">{{ _("Kirish yili") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-solid fa-graduation-cap"></i></span>
                             <input type="text" name="year_of_enter" class="pro-input" value="{{ user.year_of_enter or '' }}" placeholder="2023">
                         </div>
                     </div>
                     <div>
-                        <label class="pro-label">Yoshi</label>
+                        <label class="pro-label">{{ _("Yoshi") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-solid fa-hourglass-half"></i></span>
                             <input type="number" name="age" class="pro-input" value="{{ user.age or '' }}" placeholder="25" min="1" max="120">
@@ -254,7 +254,7 @@
 
                 <!-- ─── MENYU RUXSATLARI ─── -->
                 <div class="pro-section-title">
-                    <i class="fa-solid fa-list-check" style="color:#38bdf8;"></i> Menyu ruxsatlari
+                    <i class="fa-solid fa-list-check" style="color:#38bdf8;"></i> {{ _("Menyu ruxsatlari") }}
                 </div>
                 <div style="display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0.75rem 1rem; margin-bottom:1.75rem;">
                     {% for key, label, path in menu_items %}
@@ -266,27 +266,27 @@
                                {% if key in selected_menu_keys %}checked{% endif %}
                                style="width:1rem; height:1rem; accent-color:#0ea5e9; flex-shrink:0; cursor:pointer; margin-top:0.15rem;">
                         <div>
-                            <label for="menu_perm_{{ key }}">{{ label }}</label>
+                            <label for="menu_perm_{{ key }}">{{ _(label) }}</label>
                             <p>{{ path }}</p>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
                 <p style="font-size:0.72rem; color:rgba(148,163,184,0.55); margin-top:-1.1rem; margin-bottom:1.8rem;">
-                    Eslatma: <strong>Foydalanuvchilar</strong> bo'limiga kirish faqat Admin/Super Admin uchun ishlaydi.
+                    {{ _("Eslatma: Foydalanuvchilar bo'limiga kirish faqat Admin/Super Admin uchun ishlaydi.") }}
                 </p>
 
                 <!-- ─── Kirish va holat ─── -->
                 <div class="pro-section-title">
-                    <i class="fa-solid fa-lock" style="color:#fbbf24;"></i> Kirish ma'lumotlari va holat
+                    <i class="fa-solid fa-lock" style="color:#fbbf24;"></i> {{ _("Kirish ma'lumotlari va holat") }}
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.1rem; margin-bottom:2rem; align-items:end;">
 
                     <div>
-                        <label class="pro-label">Yangi parol <span style="color:rgba(148,163,184,0.5); font-weight:400;">(bo'sh qolsa o'zgarmaydi)</span></label>
+                        <label class="pro-label">{{ _("Yangi parol") }} <span style="color:rgba(148,163,184,0.5); font-weight:400;">({{ _("bo'sh qolsa o'zgarmaydi") }})</span></label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-solid fa-lock"></i></span>
-                            <input type="password" name="password" id="passwordInput" class="pro-input" placeholder="Yangi parol kiriting..." style="padding-right:3rem;">
+                            <input type="password" name="password" id="passwordInput" class="pro-input" placeholder="{{ _("Yangi parol kiriting...") }}" style="padding-right:3rem;">
                             <button type="button" onclick="togglePassword()"
                                 style="position:absolute; inset-block:0; right:0; display:flex; align-items:center; padding-right:0.9rem; background:none; border:none; color:rgba(100,116,139,0.8); cursor:pointer; font-size:0.85rem; z-index:5;">
                                 <i class="fa-regular fa-eye" id="eyeIcon"></i>
@@ -300,16 +300,16 @@
                             <input type="checkbox" name="is_active" id="isActiveCheck" {% if user.is_active %}checked{% endif %}
                                 style="width:1rem; height:1rem; accent-color:#6366f1; flex-shrink:0; cursor:pointer; margin-top:0.15rem;">
                             <div>
-                                <label for="isActiveCheck">Faol holat</label>
-                                <p>Tizimga kirish huquqi berilsin</p>
+                                <label for="isActiveCheck">{{ _("Faol holat") }}</label>
+                                <p>{{ _("Tizimga kirish huquqi berilsin") }}</p>
                             </div>
                         </div>
                         <div class="pro-checkbox-area">
                             <input type="checkbox" name="is_followers_book" id="isFollowersBook" {% if user.is_followers_book %}checked{% endif %}
                                 style="width:1rem; height:1rem; accent-color:#6366f1; flex-shrink:0; cursor:pointer; margin-top:0.15rem;">
                             <div>
-                                <label for="isFollowersBook">Kitoblar kuzatuvchisi</label>
-                                <p>Kitoblar ro'yxatini kuzatib boradi</p>
+                                <label for="isFollowersBook">{{ _("Kitoblar kuzatuvchisi") }}</label>
+                                <p>{{ _("Kitoblar ro'yxatini kuzatib boradi") }}</p>
                             </div>
                         </div>
                     </div>
@@ -318,9 +318,9 @@
 
                 <!-- Amallar -->
                 <div style="display:flex; justify-content:flex-end; gap:0.75rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,0.07);">
-                    <a href="/users" onclick="showLoader(event,'/users')" class="pro-btn-cancel">Bekor qilish</a>
+                    <a href="/users" onclick="showLoader(event,'/users')" class="pro-btn-cancel">{{ _("Bekor qilish") }}</a>
                     <button type="submit" class="pro-btn-save">
-                        <i class="fa-solid fa-floppy-disk"></i> Saqlash
+                        <i class="fa-solid fa-floppy-disk"></i> {{ _("Saqlash") }}
                     </button>
                 </div>
 
@@ -339,9 +339,9 @@ function togglePassword() {
 
 async function resetPassword() {
     const ok = await confirmDialog({
-        title: "Default parolni o'rnatish",
-        message: "Bu foydalanuvchi paroli <strong>user1231</strong> ga o'zgartiriladi.",
-        confirmText: "Ha, o'rnatish",
+        title: "{{ _("Default parolni o'rnatish") }}",
+        message: "{{ _("Bu foydalanuvchi paroli user1231 ga o'zgartiriladi.") }}",
+        confirmText: "{{ _("Ha, o'rnatish") }}",
         type: 'warning'
     });
     if (ok) {
@@ -349,7 +349,7 @@ async function resetPassword() {
         inp.value = 'user1231';
         inp.type  = 'text';
         document.getElementById('eyeIcon').className = 'fa-regular fa-eye-slash';
-        notifyInfo("Parol 'user1231' ga o'rnatildi. Saqlash tugmasini bosing.");
+        notifyInfo("{{ _("Parol user1231 ga o'rnatildi. Saqlash tugmasini bosing.") }}");
     }
 }
 
@@ -368,7 +368,7 @@ function previewAvatar(input) {
         if (!document.getElementById('avatarImg')) preview.appendChild(img);
     };
     reader.readAsDataURL(file);
-    notifyInfo('Rasm tanlandi. Saqlash tugmasini bosing.');
+    notifyInfo("{{ _("Rasm tanlandi. Saqlash tugmasini bosing.") }}");
 }
 
 // Telefon niqobi

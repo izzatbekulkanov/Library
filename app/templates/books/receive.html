@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Kitob qabul qilish") }} | Glass Pro{% endblock %}
+
+{% block content %}
+<div class="mb-6 relative z-10">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-white mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-box-open text-emerald-400"></i> {{ _("Kitob qabul qilish") }}
+            </h1>
+            <p class="text-[0.8rem] text-white/50">{{ _("Kutubxonaga yuborilgan kitob nusxalarini qabul qilish") }}</p>
+        </div>
+        <a href="/books" onclick="showLoader(event,'/books')"
+           class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white/80 hover:text-white whitespace-nowrap transition-all bg-white/5 hover:bg-white/10 border border-white/10">
+            <i class="fa-solid fa-arrow-left text-xs"></i> {{ _("Kitoblar") }}
+        </a>
+    </div>
+</div>
+
+<!-- Filtr -->
+<form method="GET" action="/books/copies/receive" class="mb-4 relative z-10 p-4 rounded-2xl glass-card border border-white/10 shadow-2xl">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="pro-input-wrap min-w-0">
+            <span class="pro-icon"><i class="fa-solid fa-search text-[0.85rem]"></i></span>
+            <input type="text" name="q" value="{{ q }}" placeholder="{{ _("Kitob nomi yoki inventar raqami...") }}" class="pro-input" style="padding-top:0.65rem;padding-bottom:0.65rem;">
+        </div>
+
+        <div class="pro-input-wrap min-w-0">
+            <span class="pro-icon"><i class="fa-solid fa-building-columns text-[0.85rem]"></i></span>
+            <select name="library_id" class="pro-select" style="padding-top:0.65rem;padding-bottom:0.65rem;" onchange="this.form.submit()">
+                <option value="">{{ _("Barcha kutubxonalar") }}</option>
+                {% for lib in libraries %}
+                <option value="{{ lib.id }}" {% if library_id|string == lib.id|string %}selected{% endif %}>{{ lib.name }}</option>
+                {% endfor %}
+            </select>
+            <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button type="submit"
+                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white whitespace-nowrap transition-all"
+                    style="background:linear-gradient(135deg,#0891b2,#0e7490); border:1px solid rgba(6,182,212,0.35);">
+                <i class="fa-solid fa-filter text-xs"></i> {{ _("Filtrlash") }}
+            </button>
+            <a href="/books/copies/receive"
+               class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white/80 hover:text-white whitespace-nowrap transition-all bg-white/5 hover:bg-white/10 border border-white/10">
+                <i class="fa-solid fa-rotate-left text-xs"></i> {{ _("Tozalash") }}
+            </a>
+        </div>
+    </div>
+</form>
+
+<!-- Qabul qilish formasi -->
+<form id="receiveForm" method="POST" action="/books/copies/receive" class="relative z-10">
+    <input type="hidden" name="q" value="{{ q }}">
+    <input type="hidden" name="library_id" value="{{ library_id }}">
+    <input type="hidden" name="page" value="{{ page }}">
+
+    <div class="mb-3 p-3 rounded-xl glass-card border border-white/10 shadow-xl flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div class="text-xs text-white/50">
+            {{ _("Tanlangan:") }} <span id="selectedCount" class="text-white font-semibold">0</span>
+        </div>
+        <div class="flex-1"></div>
+        <button id="acceptBtn" type="submit"
+                class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white whitespace-nowrap transition-all"
+                style="background:linear-gradient(135deg,#16a34a,#15803d); border:1px solid rgba(22,163,74,0.4);">
+            <i class="fa-solid fa-check text-xs"></i> {{ _("Tanlanganlarni qabul qilish") }}
+        </button>
+    </div>
+
+    <!-- Jadval -->
+    <div class="glass-card rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse min-w-[800px]">
+                <thead>
+                    <tr class="border-b border-white/10 bg-white/5">
+                        <th class="py-4 px-4 text-center w-12">
+                            <input id="selectAll" type="checkbox" class="w-4 h-4 rounded border-white/30 bg-white/10 text-emerald-500 focus:ring-emerald-500/40">
+                        </th>
+                        <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest w-20 text-center">ID</th>
+                        <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">{{ _("Inventar") }}</th>
+                        <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">{{ _("Kitob") }}</th>
+                        <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest">{{ _("Kutubxona") }}</th>
+                        <th class="py-4 px-5 text-[0.7rem] font-bold text-white/50 uppercase tracking-widest text-center">{{ _("Holat") }}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5 text-sm">
+                    {% for copy in copies %}
+                    <tr class="hover:bg-white/[0.03] transition-colors">
+                        <td class="py-3.5 px-4 text-center">
+                            <input type="checkbox" name="copy_ids" value="{{ copy.id }}" class="copy-check w-4 h-4 rounded border-white/30 bg-white/10 text-emerald-500 focus:ring-emerald-500/40">
+                        </td>
+                        <td class="py-3.5 px-5 text-center text-white/50 font-mono">#{{ copy.id }}</td>
+                        <td class="py-3.5 px-5 text-white/85 font-mono">{{ copy.inventory_number or '-' }}</td>
+                        <td class="py-3.5 px-5">
+                            <a href="/books/{{ copy.original_book_id }}" onclick="showLoader(event,'/books/{{ copy.original_book_id }}')" class="text-blue-300 hover:text-blue-200 transition-colors">
+                                {{ copy.book.title if copy.book else '-' }}
+                            </a>
+                        </td>
+                        <td class="py-3.5 px-5">
+                            {% if copy.library %}
+                            <span class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-500/10 border border-blue-500/25 text-blue-300">
+                                <i class="fa-solid fa-building-columns text-[10px]"></i> {{ copy.library.name }}
+                            </span>
+                            {% else %}
+                            <span class="text-white/40">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3.5 px-5 text-center">
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold border bg-amber-500/10 border-amber-500/25 text-amber-300">
+                                {{ status_labels.get(copy.status, copy.status or '-') }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="py-16 text-center text-white/40">
+                            <i class="fa-solid fa-box-open text-4xl mb-4 block text-white/20"></i>
+                            {{ _("Qabul qilish uchun yuborilgan nusxalar topilmadi.") }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="p-4 border-t border-white/10 bg-black/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="text-xs text-white/40">
+                {{ _("Jami:") }} <span class="font-medium text-white/70">{{ total_items }}</span> {{ _("ta nusxa") }}
+            </div>
+
+            {% if total_pages > 1 %}
+            <div class="flex items-center gap-1.5">
+                {% if page > 1 %}
+                <a href="{{ page_url_base }}{{ page - 1 }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white transition-colors">
+                    <i class="fa-solid fa-chevron-left text-[0.65rem]"></i>
+                </a>
+                {% endif %}
+                <div class="flex items-center px-2">
+                    <span class="text-xs text-white/70 font-semibold">{{ page }}</span>
+                    <span class="text-xs text-white/30 mx-1">/</span>
+                    <span class="text-xs text-white/40">{{ total_pages }}</span>
+                </div>
+                {% if page < total_pages %}
+                <a href="{{ page_url_base }}{{ page + 1 }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white transition-colors">
+                    <i class="fa-solid fa-chevron-right text-[0.65rem]"></i>
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</form>
+
+<script>
+const selectAll = document.getElementById('selectAll');
+const checks = Array.from(document.querySelectorAll('.copy-check'));
+const countEl = document.getElementById('selectedCount');
+const form = document.getElementById('receiveForm');
+
+function syncCount() {
+    const n = checks.filter(c => c.checked).length;
+    countEl.textContent = n;
+    selectAll.checked = n > 0 && n === checks.length;
+    selectAll.indeterminate = n > 0 && n < checks.length;
+}
+
+selectAll?.addEventListener('change', () => {
+    checks.forEach(c => c.checked = selectAll.checked);
+    syncCount();
+});
+checks.forEach(c => c.addEventListener('change', syncCount));
+syncCount();
+
+form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const n = checks.filter(c => c.checked).length;
+    if (n === 0) {
+        if (typeof showNotification === 'function') showNotification('Ogohlantirish', 'Kamida bitta nusxani tanlang.', 'warning');
+        else alert('Kamida bitta nusxani tanlang.');
+        return;
+    }
+    let ok = true;
+    if (typeof confirmDialog === 'function') {
+        ok = await confirmDialog({
+            title: "Qabul qilishni tasdiqlang",
+            message: `${n} ta nusxa qabul qilinadi. Davom etilsinmi?`,
+            confirmText: "Ha, qabul qilish",
+            type: "info"
+        });
+    }
+    if (ok) form.submit();
+});
+</script>
+{% endblock %}

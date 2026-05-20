@@ -27,8 +27,6 @@ npm-debug.log*
 app_log.txt
 
 # Runtime DB/files
-*.db
-*.db-*
 app/core/db_config.json
 app/core/system_settings.json
 app/static/uploads/

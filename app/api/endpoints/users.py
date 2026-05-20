@@ -48,10 +48,14 @@ def _guard(request: Request, menu_key: str = "users", require_admin: bool = True
 
 
 def _ctx(request: Request, **extra):
+    qp = request.query_params
     return {
         "request": request,
         "session_user": get_session_user(request),
         "menu_items": MENU_ITEMS,
+        "flash_type": qp.get("flash_type"),
+        "flash_title": qp.get("flash_title"),
+        "flash_message": qp.get("flash_msg"),
         **_CTX,
         **extra,
     }

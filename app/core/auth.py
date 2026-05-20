@@ -20,7 +20,6 @@ MENU_ITEMS: tuple[tuple[str, str, str], ...] = (
     ("publishers", "Nashriyotlar", "/publishers"),
     ("books", "Kitoblar", "/books"),
     ("online_books", "Online kitoblar", "/online-books"),
-    ("external_books", "Tashqi baza", "/external-books"),
     ("reports", "Hisobotlar", "/reports"),
     ("sozlamalar", "Sozlamalar", "/sozlamalar"),
     ("about", "Men haqimda", "/about"),

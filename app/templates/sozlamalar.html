@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Sozlamalar | {{ system_name }}{% endblock %}
+{% block title %}{{ _("Tizim sozlamalari") }} | {{ system_name }}{% endblock %}
 
 {% block content %}
 <div class="settings-page w-full space-y-6">
@@ -9,10 +9,10 @@
             <div>
                 <h1 class="text-2xl font-bold text-white flex items-center gap-2">
                     <i class="fa-solid fa-sliders text-blue-300"></i>
-                    Tizim sozlamalari
+                    {{ _("Tizim sozlamalari") }}
                 </h1>
                 <p class="mt-1 text-sm text-white/60">
-                    Tizim nomi, logotiplar, xavfsizlik rejimi, o‘chirish siyosati va baza ulanishlarini bitta sahifada boshqaring.
+                    {{ _("Tizim nomi, logotiplar, xavfsizlik rejimi, o'chirish siyosati va baza ulanishlarini bitta sahifada boshqaring.") }}
                 </p>
             </div>
             <div class="grid grid-cols-2 gap-2 sm:flex sm:items-center">
@@ -22,29 +22,29 @@
                     class="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-500/40 bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
                 >
                     <i class="fa-solid fa-rotate text-xs"></i>
-                    Yangilash
+                    {{ _("Yangilash") }}
                 </button>
                 <div class="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs text-white/70">
-                    Oxirgi ko‘rish: <span id="lastRefreshAt" class="ml-1 font-semibold text-blue-300">--:--</span>
+                    {{ _("Oxirgi ko'rish:") }} <span id="lastRefreshAt" class="ml-1 font-semibold text-blue-300">--:--</span>
                 </div>
             </div>
         </div>
 
         <div class="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
             <div class="stat-chip">
-                <div class="stat-chip-label">Jami kitoblar</div>
+                <div class="stat-chip-label">{{ _("Jami kitoblar") }}</div>
                 <div id="summaryBooksTotal" class="stat-chip-value">0</div>
             </div>
             <div class="stat-chip">
-                <div class="stat-chip-label">Jami nusxa/versiya</div>
+                <div class="stat-chip-label">{{ _("Jami nusxa/versiya") }}</div>
                 <div id="summaryCopiesAndEditions" class="stat-chip-value">0</div>
             </div>
             <div class="stat-chip">
-                <div class="stat-chip-label">Jami foydalanuvchi</div>
+                <div class="stat-chip-label">{{ _("Jami foydalanuvchi") }}</div>
                 <div id="summaryUsers" class="stat-chip-value">0</div>
             </div>
             <div class="stat-chip">
-                <div class="stat-chip-label">Faol kutubxonalar</div>
+                <div class="stat-chip-label">{{ _("Faol kutubxonalar") }}</div>
                 <div id="summaryLibraries" class="stat-chip-value">0</div>
             </div>
         </div>
@@ -54,14 +54,14 @@
             <div class="mb-4 flex items-center justify-between">
                 <h2 class="text-lg font-bold text-white flex items-center gap-2">
                     <i class="fa-solid fa-building-shield text-emerald-300"></i>
-                    Tizim identifikatsiyasi va xavfsizlik
+                    {{ _("Tizim identifikatsiyasi va xavfsizlik") }}
                 </h2>
             </div>
 
             <form id="systemConfigForm" class="space-y-5">
                 <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                     <div class="lg:col-span-2">
-                        <label for="systemNameInput" class="pro-label">Tizim nomi</label>
+                        <label for="systemNameInput" class="pro-label">{{ _("Tizim nomi") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-solid fa-font"></i></span>
                             <input id="systemNameInput" name="system_name" type="text" class="pro-input" placeholder="Masalan: Kutubxona boshqaruvi">
@@ -71,14 +71,14 @@
                     <label for="logoLargeFile" class="upload-card">
                         <input id="logoLargeFile" type="file" accept=".png,.jpg,.jpeg,.webp,.svg" class="hidden">
                         <div class="upload-card-top">
-                            <span class="upload-card-title">Tizim large logotipi</span>
+                            <span class="upload-card-title">{{ _("Tizim large logotipi") }}</span>
                             <span class="upload-card-badge">PNG/JPG/SVG</span>
                         </div>
                         <div class="upload-card-body">
                             <img id="logoLargePreview" src="{{ system_logo_large }}" alt="Large logo preview" class="upload-card-preview">
                             <div id="logoLargeMeta" class="upload-card-meta">
                                 <i class="fa-solid fa-cloud-arrow-up text-blue-300"></i>
-                                Fayl tanlash uchun bosing
+                                {{ _("Fayl tanlash uchun bosing") }}
                             </div>
                         </div>
                     </label>
@@ -86,14 +86,14 @@
                     <label for="logoSmallFile" class="upload-card">
                         <input id="logoSmallFile" type="file" accept=".png,.jpg,.jpeg,.webp,.svg" class="hidden">
                         <div class="upload-card-top">
-                            <span class="upload-card-title">Tizim small logotipi</span>
+                            <span class="upload-card-title">{{ _("Tizim small logotipi") }}</span>
                             <span class="upload-card-badge">PNG/JPG/SVG</span>
                         </div>
                         <div class="upload-card-body">
                             <img id="logoSmallPreview" src="{{ system_logo_small }}" alt="Small logo preview" class="upload-card-preview">
                             <div id="logoSmallMeta" class="upload-card-meta">
                                 <i class="fa-solid fa-cloud-arrow-up text-blue-300"></i>
-                                Fayl tanlash uchun bosing
+                                {{ _("Fayl tanlash uchun bosing") }}
                             </div>
                         </div>
                     </label>
@@ -102,8 +102,8 @@
                 <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                     <div class="switch-card">
                         <div>
-                            <div class="switch-title">Maintenance rejimi</div>
-                            <p class="switch-desc">Oddiy foydalanuvchilar uchun tizimni texnik rejimga o‘tkazadi.</p>
+                            <div class="switch-title">{{ _("Maintenance rejimi") }}</div>
+                            <p class="switch-desc">{{ _("Oddiy foydalanuvchilar uchun tizimni texnik rejimga o'tkazadi.") }}</p>
                         </div>
                         <label class="setting-switch">
                             <input id="maintenanceToggle" type="checkbox" name="maintenance_mode">
@@ -112,8 +112,8 @@
                     </div>
                     <div class="switch-card">
                         <div>
-                            <div class="switch-title">Kitob o‘chirishni taqiqlash</div>
-                            <p class="switch-desc">Kitob va nusxa/versiya o‘chirish endpointlari bloklanadi.</p>
+                            <div class="switch-title">{{ _("Kitob o'chirishni taqiqlash") }}</div>
+                            <p class="switch-desc">{{ _("Kitob va nusxa/versiya o'chirish endpointlari bloklanadi.") }}</p>
                         </div>
                         <label class="setting-switch">
                             <input id="blockDeleteToggle" type="checkbox" name="block_book_delete">
@@ -123,7 +123,7 @@
                 </div>
 
                 <div>
-                    <label for="maintenanceMessageInput" class="pro-label">Maintenance xabari</label>
+                    <label for="maintenanceMessageInput" class="pro-label">{{ _("Maintenance xabari") }}</label>
                     <textarea
                         id="maintenanceMessageInput"
                         name="maintenance_message"
@@ -141,7 +141,7 @@
                         class="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-500/40 bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
                     >
                         <i class="fa-solid fa-floppy-disk text-xs"></i>
-                        Tizim sozlamalarini saqlash
+                        {{ _("Tizim sozlamalarini saqlash") }}
                     </button>
                     <button
                         id="reloadSystemBtn"
@@ -149,7 +149,7 @@
                         class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white/85 transition-colors hover:bg-white/15"
                     >
                         <i class="fa-solid fa-rotate-right text-xs"></i>
-                        Qayta yuklash
+                        {{ _("Qayta yuklash") }}
                     </button>
                 </div>
             </form>
@@ -158,24 +158,24 @@
         <section class="glass-card rounded-2xl border border-white/10 p-5 sm:p-6">
             <h2 class="text-lg font-bold text-white flex items-center gap-2">
                 <i class="fa-solid fa-chart-line text-cyan-300"></i>
-                Joriy holat
+                {{ _("Joriy holat") }}
             </h2>
 
             <div class="mt-4 space-y-2">
                 <div class="status-row">
-                    <span class="status-row-label">Tizim nomi</span>
+                    <span class="status-row-label">{{ _("Tizim nomi") }}</span>
                     <span id="statusSystemName" class="status-row-value">{{ system_name }}</span>
                 </div>
                 <div class="status-row">
-                    <span class="status-row-label">Maintenance</span>
-                    <span id="statusMaintenance" class="status-row-value badge-off">O‘chiq</span>
+                    <span class="status-row-label">{{ _("Maintenance") }}</span>
+                    <span id="statusMaintenance" class="status-row-value badge-off">{{ _("O'chiq") }}</span>
                 </div>
                 <div class="status-row">
-                    <span class="status-row-label">O‘chirish bloklash</span>
-                    <span id="statusDeleteBlock" class="status-row-value badge-off">O‘chiq</span>
+                    <span class="status-row-label">{{ _("O'chirish bloklash") }}</span>
+                    <span id="statusDeleteBlock" class="status-row-value badge-off">{{ _("O'chiq") }}</span>
                 </div>
                 <div class="status-row">
-                    <span class="status-row-label">DB turi</span>
+                    <span class="status-row-label">{{ _("DB turi") }}</span>
                     <span id="statusDbType" class="status-row-value">sqlite</span>
                 </div>
             </div>
@@ -190,13 +190,13 @@
     <section class="glass-card rounded-2xl border border-white/10 p-5 sm:p-6">
         <h2 class="text-lg font-bold text-white flex items-center gap-2">
             <i class="fa-solid fa-database text-indigo-300"></i>
-            Ma'lumotlar bazasi sozlamalari
+            {{ _("Ma'lumotlar bazasi sozlamalari") }}
         </h2>
 
         <form id="dbConfigForm" class="mt-4 space-y-4">
             <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
                 <div>
-                    <label for="dbTypeSelect" class="pro-label">DB turi</label>
+                    <label for="dbTypeSelect" class="pro-label">{{ _("DB turi") }}</label>
                     <div class="pro-input-wrap">
                         <span class="pro-icon"><i class="fa-solid fa-server"></i></span>
                         <select id="dbTypeSelect" class="pro-select">
@@ -208,7 +208,7 @@
                 </div>
 
                 <div id="sqliteWrap" class="xl:col-span-2">
-                    <label for="sqlitePathInput" class="pro-label">SQLite fayl yo‘li</label>
+                    <label for="sqlitePathInput" class="pro-label">{{ _("SQLite fayl yo'li") }}</label>
                     <div class="pro-input-wrap">
                         <span class="pro-icon"><i class="fa-solid fa-file-lines"></i></span>
                         <input id="sqlitePathInput" type="text" class="pro-input" placeholder="./sql_app.db">
@@ -261,7 +261,7 @@
                     class="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-500/40 bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
                 >
                     <i class="fa-solid fa-vial-circle-check text-xs"></i>
-                    PostgreSQL ulanishini tekshirish
+                    {{ _("PostgreSQL ulanishini tekshirish") }}
                 </button>
                 <button
                     id="saveDbBtn"
@@ -269,7 +269,7 @@
                     class="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-500/40 bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
                 >
                     <i class="fa-solid fa-floppy-disk text-xs"></i>
-                    DB sozlamalarini saqlash
+                    {{ _("DB sozlamalarini saqlash") }}
                 </button>
             </div>
         </form>
@@ -277,34 +277,34 @@
     <section class="glass-card rounded-2xl border border-white/10 p-5 sm:p-6">
         <h2 class="text-lg font-bold text-white flex items-center gap-2">
             <i class="fa-solid fa-table-cells-large text-blue-300"></i>
-            Barcha ma'lumotlar statistikasi
+            {{ _("Barcha ma'lumotlar statistikasi") }}
         </h2>
         <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-            <div class="metric-card"><span class="metric-label">Bosma kitob</span><span id="countPrintedBooks" class="metric-value">0</span></div>
-            <div class="metric-card"><span class="metric-label">Bosma nusxa</span><span id="countPrintedCopies" class="metric-value">0</span></div>
-            <div class="metric-card"><span class="metric-label">Online kitob</span><span id="countOnlineBooks" class="metric-value">0</span></div>
-            <div class="metric-card"><span class="metric-label">Online versiya</span><span id="countOnlineEditions" class="metric-value">0</span></div>
-            <div class="metric-card"><span class="metric-label">Mualliflar</span><span id="countAuthors" class="metric-value">0</span></div>
-            <div class="metric-card"><span class="metric-label">Kitob turlari</span><span id="countBookTypes" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">{{ _("Bosma kitob") }}</span><span id="countPrintedBooks" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">{{ _("Bosma nusxa") }}</span><span id="countPrintedCopies" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">{{ _("Online kitob") }}</span><span id="countOnlineBooks" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">{{ _("Online versiya") }}</span><span id="countOnlineEditions" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">{{ _("Mualliflar") }}</span><span id="countAuthors" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">{{ _("Kitob turlari") }}</span><span id="countBookTypes" class="metric-value">0</span></div>
             <div class="metric-card"><span class="metric-label">BBK</span><span id="countBbk" class="metric-value">0</span></div>
-            <div class="metric-card"><span class="metric-label">Nashriyotlar</span><span id="countPublishers" class="metric-value">0</span></div>
-            <div class="metric-card"><span class="metric-label">Nashr shaharlari</span><span id="countPublishedCities" class="metric-value">0</span></div>
-            <div class="metric-card"><span class="metric-label">Nashr yillari</span><span id="countPublicationYears" class="metric-value">0</span></div>
-            <div class="metric-card"><span class="metric-label">Jami foydalanuvchi</span><span id="countTotalUsers" class="metric-value">0</span></div>
-            <div class="metric-card"><span class="metric-label">Faol foydalanuvchi</span><span id="countActiveUsers" class="metric-value">0</span></div>
-            <div class="metric-card"><span class="metric-label">Hodimlar soni</span><span id="countStaffUsers" class="metric-value">0</span></div>
-            <div class="metric-card"><span class="metric-label">Jami kutubxona</span><span id="countTotalLibraries" class="metric-value">0</span></div>
-            <div class="metric-card"><span class="metric-label">Faol kutubxona</span><span id="countActiveLibraries" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">{{ _("Nashriyotlar") }}</span><span id="countPublishers" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">{{ _("Nashr shaharlari") }}</span><span id="countPublishedCities" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">{{ _("Nashr yillari") }}</span><span id="countPublicationYears" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">{{ _("Jami foydalanuvchi") }}</span><span id="countTotalUsers" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">{{ _("Faol foydalanuvchi") }}</span><span id="countActiveUsers" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">{{ _("Hodimlar soni") }}</span><span id="countStaffUsers" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">{{ _("Jami kutubxona") }}</span><span id="countTotalLibraries" class="metric-value">0</span></div>
+            <div class="metric-card"><span class="metric-label">{{ _("Faol kutubxona") }}</span><span id="countActiveLibraries" class="metric-value">0</span></div>
         </div>
     </section>
 
     <section class="glass-card rounded-2xl border border-red-500/35 p-5 sm:p-6">
         <h2 class="text-lg font-bold text-red-300 flex items-center gap-2">
             <i class="fa-solid fa-triangle-exclamation"></i>
-            Xavfli amallar
+            {{ _("Xavfli amallar") }}
         </h2>
         <p class="mt-2 text-sm text-white/70">
-            Bu bo‘limdagi o‘chirish amallari qaytarib bo‘lmaydi. Amal bajarilishidan oldin tasdiqlash so‘raladi.
+            {{ _("Bu bo'limdagi o'chirish amallari qaytarib bo'lmaydi. Amal bajarilishidan oldin tasdiqlash so'raladi.") }}
         </p>
         <div class="mt-4 flex flex-wrap gap-2">
             <button
@@ -313,7 +313,7 @@
                 class="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/40 bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-700"
             >
                 <i class="fa-solid fa-trash-can text-xs"></i>
-                Bosma kitoblarni tozalash
+                {{ _("Bosma kitoblarni tozalash") }}
             </button>
             <button
                 id="deleteOnlineBtn"
@@ -321,7 +321,7 @@
                 class="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/40 bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-700"
             >
                 <i class="fa-solid fa-trash-can text-xs"></i>
-                Online kitoblarni tozalash
+                {{ _("Online kitoblarni tozalash") }}
             </button>
         </div>
     </section>
@@ -572,16 +572,16 @@
             meta.innerHTML = `<i class="fa-solid fa-check text-emerald-300"></i> ${fallbackText}`;
             return;
         }
-        meta.innerHTML = `<i class="fa-solid fa-cloud-arrow-up text-blue-300"></i> Fayl tanlash uchun bosing`;
+        meta.innerHTML = `<i class="fa-solid fa-cloud-arrow-up text-blue-300"></i> {{ _("Fayl tanlash uchun bosing") }}`;
     }
 
     function renderSystemStatus(config) {
         $("statusSystemName").textContent = String(config.system_name || "Noma'lum");
         const maintenanceOn = Boolean(config.maintenance_mode);
-        $("statusMaintenance").textContent = maintenanceOn ? "Yoqilgan" : "O‘chiq";
+        $("statusMaintenance").textContent = maintenanceOn ? "{{ _("Yoqilgan") }}" : "{{ _("O'chiq") }}";
         $("statusMaintenance").className = `status-row-value ${maintenanceOn ? "badge-on" : "badge-off"}`;
         const blockOn = Boolean(config.block_book_delete);
-        $("statusDeleteBlock").textContent = blockOn ? "Yoqilgan" : "O‘chiq";
+        $("statusDeleteBlock").textContent = blockOn ? "{{ _("Yoqilgan") }}" : "{{ _("O'chiq") }}";
         $("statusDeleteBlock").className = `status-row-value ${blockOn ? "badge-on" : "badge-off"}`;
     }
 

@@ -151,3 +151,56 @@
 .confirm-dialog.shake {
     animation: confirmShake 0.35s ease;
 }
+
+/* ─── Light Theme ─── */
+html.theme-light .confirm-overlay {
+    background: rgba(15, 23, 42, 0.35);
+}
+
+html.theme-light .confirm-dialog {
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+}
+
+html.theme-light .confirm-dialog::before {
+    background: linear-gradient(90deg, transparent, rgba(15, 23, 42, 0.08), transparent);
+}
+
+html.theme-light .confirm-title {
+    color: #0f172a;
+}
+
+html.theme-light .confirm-body {
+    color: #475569;
+}
+
+html.theme-light .confirm-body strong {
+    color: #1e293b;
+}
+
+html.theme-light .confirm-btn-cancel {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+html.theme-light .confirm-btn-cancel:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+/* Confirm dialog — switch card va toggle area */
+html.theme-light .confirm-dialog .switch-card,
+html.theme-light [id$="Modal"] .glass-card .switch-card {
+    background: rgba(248, 250, 252, 0.9) !important;
+    border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+html.theme-light [id$="Modal"] .glass-card .switch-card .switch-title {
+    color: #1e293b !important;
+}
+
+html.theme-light [id$="Modal"] .glass-card .switch-card .switch-desc {
+    color: #64748b !important;
+}

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Hisobotlar | Glass Pro{% endblock %}
+{% block title %}{{ _("Hisobotlar") }} | Glass Pro{% endblock %}
 
 {% block content %}
 {% set printed_colspan = 2 + (language_groups|length * 2) + 2 %}
@@ -9,14 +9,14 @@
 <div class="report-topbar">
     <div class="report-tabs">
         <a href="/reports?tab=printed" onclick="showLoader(event,'/reports?tab=printed')" class="report-tab {% if selected_tab == 'printed' %}active{% endif %}">
-            Bosma kitob hisobotlari
+            {{ _("Bosma kitob hisobotlari") }}
         </a>
         <a href="/reports?tab=online" onclick="showLoader(event,'/reports?tab=online')" class="report-tab {% if selected_tab == 'online' %}active{% endif %}">
-            Online kitoblar hisobotlari
+            {{ _("Online kitoblar hisobotlari") }}
         </a>
     </div>
     <a href="{% if selected_tab == 'printed' %}/reports/export/printed-word{% else %}/reports/export/online-word{% endif %}" class="word-btn">
-        <i class="fa-solid fa-file-word"></i> Wordga eksport
+        <i class="fa-solid fa-file-word"></i> {{ _("Wordga eksport") }}
     </a>
 </div>
 
@@ -24,27 +24,27 @@
     <section class="a4-paper">
         {% if selected_tab == 'printed' %}
         <header class="a4-head">
-            <h2>KITOB STATISTIKASI</h2>
-            <p>Shakllantirilgan vaqt: {{ generated_at }}</p>
+            <h2>{{ _("KITOB STATISTIKASI") }}</h2>
+            <p>{{ _("Shakllantirilgan vaqt:") }} {{ generated_at }}</p>
         </header>
 
         <table class="a4-table">
             <thead>
                 <tr>
                     <th rowspan="2" class="w-no">#</th>
-                    <th rowspan="2" class="w-type">Kitob turi</th>
+                    <th rowspan="2" class="w-type">{{ _("Kitob turi") }}</th>
                     {% for group in language_groups %}
                     <th colspan="2">{{ group.label }}</th>
                     {% endfor %}
-                    <th colspan="2">Jami</th>
+                    <th colspan="2">{{ _("Jami") }}</th>
                 </tr>
                 <tr>
                     {% for _group in language_groups %}
-                    <th>NOMDA</th>
-                    <th>SONDA</th>
+                    <th>{{ _("NOMDA") }}</th>
+                    <th>{{ _("SONDA") }}</th>
                     {% endfor %}
-                    <th>NOMDA</th>
-                    <th>SONDA</th>
+                    <th>{{ _("NOMDA") }}</th>
+                    <th>{{ _("SONDA") }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -61,11 +61,11 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="{{ printed_colspan }}" class="ta-c empty-cell">Ma'lumot topilmadi.</td>
+                    <td colspan="{{ printed_colspan }}" class="ta-c empty-cell">{{ _("Ma'lumot topilmadi.") }}</td>
                 </tr>
                 {% endfor %}
                 <tr class="sum-row">
-                    <td colspan="2" class="ta-l fw-700">JAMI</td>
+                    <td colspan="2" class="ta-l fw-700">{{ _("JAMI") }}</td>
                     {% for cell in printed_stats.totals.cells %}
                     <td class="ta-c fw-700">{{ cell.nomda }}</td>
                     <td class="ta-c fw-700">{{ cell.sonda }}</td>
@@ -77,19 +77,19 @@
         </table>
         {% else %}
         <header class="a4-head">
-            <h2>ELEKTRON KITOBLAR STATISTIKASI</h2>
-            <p>Shakllantirilgan vaqt: {{ generated_at }}</p>
+            <h2>{{ _("ELEKTRON KITOBLAR STATISTIKASI") }}</h2>
+            <p>{{ _("Shakllantirilgan vaqt:") }} {{ generated_at }}</p>
         </header>
 
         <table class="a4-table">
             <thead>
                 <tr>
                     <th class="w-no">#</th>
-                    <th class="w-type">Kitob turi</th>
+                    <th class="w-type">{{ _("Kitob turi") }}</th>
                     {% for group in language_groups %}
                     <th>{{ group.label }}</th>
                     {% endfor %}
-                    <th>Jami</th>
+                    <th>{{ _("Jami") }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -104,11 +104,11 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="{{ online_colspan }}" class="ta-c empty-cell">Ma'lumot topilmadi.</td>
+                    <td colspan="{{ online_colspan }}" class="ta-c empty-cell">{{ _("Ma'lumot topilmadi.") }}</td>
                 </tr>
                 {% endfor %}
                 <tr class="sum-row">
-                    <td colspan="2" class="ta-l fw-700">JAMI</td>
+                    <td colspan="2" class="ta-l fw-700">{{ _("JAMI") }}</td>
                     {% for cell in online_stats.totals.cells %}
                     <td class="ta-c fw-700">{{ cell.count }}</td>
                     {% endfor %}
@@ -119,7 +119,7 @@
         {% endif %}
 
         <footer class="a4-foot">
-            Axborot-kutubxona resurslarini butlash, kataloglashtirish va tizimlashtirish bo'limi mudiri: ___________
+            {{ _("Axborot-kutubxona resurslarini butlash, kataloglashtirish va tizimlashtirish bo'limi mudiri:") }} ___________
         </footer>
     </section>
 </div>

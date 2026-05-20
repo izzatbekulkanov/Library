@@ -1,18 +1,18 @@
 {% extends "base.html" %}
-{% block title %}Yangi Kitob | Glass Pro{% endblock %}
+{% block title %}{{ _("Yangi Kitob") }} | Glass Pro{% endblock %}
 
 {% block content %}
 <!-- Header -->
 <div class="mb-6 flex items-center justify-between gap-4">
     <div>
         <h1 class="text-2xl font-bold text-white flex items-center gap-2">
-            <i class="fa-solid fa-book-medical text-blue-400"></i> Yangi Kitob Qo'shish
+            <i class="fa-solid fa-book-medical text-blue-400"></i> {{ _("Yangi Kitob Qo'shish") }}
         </h1>
-        <p class="text-[0.8rem] text-white/50 mt-0.5">Bosma kitob ma'lumotlarini kiriting</p>
+        <p class="text-[0.8rem] text-white/50 mt-0.5">{{ _("Bosma kitob ma'lumotlarini kiriting") }}</p>
     </div>
     <a href="/books" onclick="showLoader(event,'/books')"
        class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm text-white/70 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-colors whitespace-nowrap">
-        <i class="fa-solid fa-arrow-left text-xs"></i> Orqaga
+        <i class="fa-solid fa-arrow-left text-xs"></i> {{ _("Orqaga") }}
     </a>
 </div>
 
@@ -23,10 +23,10 @@
     <!-- ── 1: Kitob turi + BBK ── -->
     <div style="display:flex; flex-wrap:wrap; gap:1rem;">
         <div style="flex:1; min-width:250px;">
-            <label class="pro-label">Kitob turi <span class="text-red-400">*</span></label>
+            <label class="pro-label">{{ _("Kitob turi") }} <span class="text-red-400">*</span></label>
             <div class="pro-input-wrap mt-1 custom-dropdown-container">
                 <span class="pro-icon"><i class="fa-solid fa-layer-group"></i></span>
-                <input type="text" class="pro-input custom-dropdown-input" placeholder="Qidirish va tanlash..." autocomplete="off">
+                <input type="text" class="pro-input custom-dropdown-input" placeholder="{{ _("Qidirish va tanlash...") }}" autocomplete="off">
                 <input type="hidden" name="book_type_id" required>
                 <div class="custom-dropdown-list">
                     {% for bt in book_types %}
@@ -36,10 +36,10 @@
             </div>
         </div>
         <div style="flex:1; min-width:250px;">
-            <label class="pro-label">BBK kategoriyasi <span class="text-red-400">*</span></label>
+            <label class="pro-label">{{ _("BBK kategoriyasi") }} <span class="text-red-400">*</span></label>
             <div class="pro-input-wrap mt-1 custom-dropdown-container">
                 <span class="pro-icon"><i class="fa-solid fa-list-ol"></i></span>
-                <input type="text" class="pro-input custom-dropdown-input" placeholder="Qidirish va tanlash..." autocomplete="off">
+                <input type="text" class="pro-input custom-dropdown-input" placeholder="{{ _("Qidirish va tanlash...") }}" autocomplete="off">
                 <input type="hidden" name="bbk_id" required>
                 <div class="custom-dropdown-list">
                     {% for b in bbks %}
@@ -52,7 +52,7 @@
 
     <!-- ── 2: Sarlavha ── -->
     <div>
-        <label class="pro-label">Kitob sarlavhasi <span class="text-red-400">*</span></label>
+        <label class="pro-label">{{ _("Kitob sarlavhasi") }} <span class="text-red-400">*</span></label>
         <div class="pro-input-wrap mt-1">
             <span class="pro-icon"><i class="fa-solid fa-book-open"></i></span>
             <input type="text" name="title" class="pro-input" placeholder="Kitob sarlavhasini kiriting" required>
@@ -61,12 +61,12 @@
 
     <!-- ── 3: Muallif (qidirish + modal qo'shish) ── -->
     <div>
-        <label class="pro-label">Muallif(lar)</label>
+        <label class="pro-label">{{ _("Muallif(lar)") }}</label>
         <div style="display:flex; gap:0.5rem; margin-top:0.25rem;">
             <div class="custom-dropdown-container" style="flex:1; position: relative; z-index: 50;">
                 <div class="pro-input-wrap">
                     <span class="pro-icon"><i class="fa-solid fa-magnifying-glass text-xs"></i></span>
-                    <input type="text" id="authorSearchInput" class="pro-input" placeholder="Muallif qidirish..." autocomplete="off">
+                    <input type="text" id="authorSearchInput" class="pro-input" placeholder="{{ _("Muallif qidirish...") }}" autocomplete="off">
                 </div>
                 <!-- Shaxsiy dropdown aniq ustma-ust tushishi uchun absolute va qattiq z-index bilan -->
                 <div class="custom-dropdown-list" id="authorSuggestList" style="position:absolute; top:calc(100% + 4px); left:0; right:0; max-height:220px; overflow-y:auto; background:#1e2230; border:1px solid rgba(255,255,255,0.15); border-radius:12px; z-index:9999; display:none; box-shadow:0 10px 30px rgba(0,0,0,0.6); padding:6px 0;">
@@ -91,7 +91,7 @@
     <!-- ── 4: Til + Sahifalar + Adad + Narxi (bir qatorda) ── -->
     <div style="display:flex; flex-wrap:wrap; gap:1rem;">
         <div style="flex:1; min-width:140px;">
-            <label class="pro-label">Tili <span class="text-red-400">*</span></label>
+            <label class="pro-label">{{ _("Tili") }} <span class="text-red-400">*</span></label>
             <div class="pro-input-wrap mt-1 custom-dropdown-container">
                 <span class="pro-icon"><i class="fa-solid fa-language"></i></span>
                 <input type="text" class="pro-input custom-dropdown-input" value="O'zbek (lotin)" placeholder="Til tanlang" autocomplete="off" required>
@@ -123,21 +123,21 @@
             </div>
         </div>
         <div style="flex:1; min-width:140px;">
-            <label class="pro-label">Sahifalar soni <span class="text-red-400">*</span></label>
+            <label class="pro-label">{{ _("Sahifalar soni") }} <span class="text-red-400">*</span></label>
             <div class="pro-input-wrap mt-1">
                 <span class="pro-icon"><i class="fa-solid fa-file-lines"></i></span>
                 <input type="number" name="pages" class="pro-input" placeholder="Msl: 320" min="1" required>
             </div>
         </div>
         <div style="flex:1; min-width:140px;">
-            <label class="pro-label">Adad <span class="text-red-400">*</span></label>
+            <label class="pro-label">{{ _("Adad") }} <span class="text-red-400">*</span></label>
             <div class="pro-input-wrap mt-1">
                 <span class="pro-icon"><i class="fa-solid fa-cubes"></i></span>
                 <input type="number" name="adad" class="pro-input" placeholder="5000" min="0" required>
             </div>
         </div>
         <div style="flex:1; min-width:140px;">
-            <label class="pro-label">Narxi <span class="text-red-400">*</span></label>
+            <label class="pro-label">{{ _("Narxi") }} <span class="text-red-400">*</span></label>
             <div class="pro-input-wrap mt-1">
                 <span class="pro-icon" style="font-weight: bold; font-size: 0.75rem;">UZS</span>
                 <input type="number" name="price" class="pro-input" placeholder="85000.50" min="0" step="0.01" required>
@@ -149,11 +149,11 @@
     <div style="display:flex; flex-wrap:wrap; gap:1rem;">
         <!-- Nashriyot -->
         <div style="flex:1; min-width:220px;">
-            <label class="pro-label">Nashriyot <span class="text-red-400">*</span></label>
+            <label class="pro-label">{{ _("Nashriyot") }} <span class="text-red-400">*</span></label>
             <div style="display:flex; gap:0.5rem; margin-top:0.25rem;">
                 <div class="pro-input-wrap custom-dropdown-container" style="flex:1;">
                     <span class="pro-icon"><i class="fa-solid fa-print"></i></span>
-                    <input type="text" class="pro-input custom-dropdown-input" placeholder="Qidirish va tanlash..." autocomplete="off" required>
+                    <input type="text" class="pro-input custom-dropdown-input" placeholder="{{ _("Qidirish va tanlash...") }}" autocomplete="off" required>
                     <input type="hidden" name="publisher_id" id="val_publisher" required>
                     <div class="custom-dropdown-list" id="list_publisher">
                         {% for p in publishers %}<div class="custom-dropdown-item" data-val="{{ p.id }}" data-lbl="{{ p.name }}">{{ p.name }}</div>{% endfor %}
@@ -167,11 +167,11 @@
         </div>
         <!-- Shahar -->
         <div style="flex:1; min-width:220px;">
-            <label class="pro-label">Nashr shahri <span class="text-red-400">*</span></label>
+            <label class="pro-label">{{ _("Nashr shahri") }} <span class="text-red-400">*</span></label>
             <div style="display:flex; gap:0.5rem; margin-top:0.25rem;">
                 <div class="pro-input-wrap custom-dropdown-container" style="flex:1;">
                     <span class="pro-icon"><i class="fa-solid fa-city"></i></span>
-                    <input type="text" class="pro-input custom-dropdown-input" placeholder="Qidirish va tanlash..." autocomplete="off" required>
+                    <input type="text" class="pro-input custom-dropdown-input" placeholder="{{ _("Qidirish va tanlash...") }}" autocomplete="off" required>
                     <input type="hidden" name="published_city_id" id="val_city" required>
                     <div class="custom-dropdown-list" id="list_city">
                         {% for c in cities %}<div class="custom-dropdown-item" data-val="{{ c.id }}" data-lbl="{{ c.name }}">{{ c.name }}</div>{% endfor %}
@@ -185,7 +185,7 @@
         </div>
         <!-- Yil -->
         <div style="flex:1; min-width:180px;">
-            <label class="pro-label">Nashr yili <span class="text-red-400">*</span></label>
+            <label class="pro-label">{{ _("Nashr yili") }} <span class="text-red-400">*</span></label>
             <div style="display:flex; gap:0.5rem; margin-top:0.25rem;">
                 <div class="pro-input-wrap custom-dropdown-container" style="flex:1;">
                     <span class="pro-icon"><i class="fa-solid fa-calendar"></i></span>
@@ -206,14 +206,14 @@
     <!-- ── 6: ISBN + Inventar prefix + Nusxa soni + Preview ── -->
     <div style="display:flex; flex-wrap:wrap; gap:1rem;">
         <div style="flex:1; min-width:160px;">
-            <label class="pro-label">ISBN <span class="text-red-400">*</span></label>
+            <label class="pro-label">{{ _("ISBN") }} <span class="text-red-400">*</span></label>
             <div class="pro-input-wrap mt-1">
                 <span class="pro-icon"><i class="fa-solid fa-barcode"></i></span>
                 <input type="text" name="isbn" class="pro-input" placeholder="ISBN raqami" required>
             </div>
         </div>
         <div style="flex:1; min-width:160px;">
-            <label class="pro-label">Inventar prefiksi <span class="text-red-400">*</span></label>
+            <label class="pro-label">{{ _("Inventar prefiksi") }} <span class="text-red-400">*</span></label>
             <div class="pro-input-wrap mt-1">
                 <span class="pro-icon"><i class="fa-solid fa-hashtag"></i></span>
                 <input type="text" name="inventory_prefix" id="invPrefix" class="pro-input"
@@ -221,7 +221,7 @@
             </div>
         </div>
         <div style="flex:1; min-width:140px;">
-            <label class="pro-label">Nusxa soni <span class="text-red-400">*</span></label>
+            <label class="pro-label">{{ _("Nusxa soni") }} <span class="text-red-400">*</span></label>
             <div class="pro-input-wrap mt-1">
                 <span class="pro-icon"><i class="fa-solid fa-clone"></i></span>
                 <input type="number" name="copy_count" id="copyCount" class="pro-input"
@@ -229,16 +229,16 @@
             </div>
         </div>
         <div style="flex:2; min-width:250px;">
-            <label class="pro-label">Nusxalar (Preview)</label>
+            <label class="pro-label">{{ _("Nusxalar (Preview)") }}</label>
             <div id="copyPreview" class="mt-1" style="display:flex; flex-wrap:wrap; align-content:flex-start; gap:6px; padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); min-height:44px; max-height:100px; overflow-y:auto;">
-                <span style="color:rgba(255,255,255,0.3); font-size:11px; align-self:center; width:100%; text-align:center;">Prefiks va son kiriting...</span>
+                <span style="color:rgba(255,255,255,0.3); font-size:11px; align-self:center; width:100%; text-align:center;">{{ _("Prefiks va son kiriting...") }}</span>
             </div>
         </div>
     </div>
 
     <!-- ── 7: Annotatsiya ── -->
     <div>
-        <label class="pro-label">Kitob annotatsiyasi <span class="text-red-400">*</span></label>
+        <label class="pro-label">{{ _("Kitob annotatsiyasi") }} <span class="text-red-400">*</span></label>
         <div class="pro-input-wrap mt-1" style="align-items:flex-start;">
             <span class="pro-icon" style="margin-top:12px;"><i class="fa-solid fa-align-left"></i></span>
             <textarea name="annotation" class="pro-input w-full resize-none" rows="3"
@@ -251,7 +251,7 @@
     <div style="display:flex; flex-wrap:wrap; gap:1.25rem;">
         <!-- Rasm -->
         <div style="flex:1; min-width:280px;">
-            <label class="pro-label">Rasm yuklash (ixtiyoriy)</label>
+            <label class="pro-label">{{ _("Rasm yuklash (ixtiyoriy)") }}</label>
             <label for="imageInput" class="block w-full text-center p-6 border-2 border-dashed border-slate-300 dark:border-white/20 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-blue-400 dark:hover:border-blue-500/50 transition-all cursor-pointer group mt-1">
                 <div id="imagePreview" class="flex flex-col items-center justify-center transition-transform group-hover:scale-105">
                     <i class="fa-solid fa-image" class="text-[2.5rem] text-purple-500 mb-2"></i>
@@ -263,7 +263,7 @@
         </div>
         <!-- Fayl -->
         <div style="flex:1; min-width:280px;">
-            <label class="pro-label">Fayl yuklash (ixtiyoriy)</label>
+            <label class="pro-label">{{ _("Fayl yuklash (ixtiyoriy)") }}</label>
             <label for="fileInput" class="block w-full text-center p-6 border-2 border-dashed border-slate-300 dark:border-white/20 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-blue-400 dark:hover:border-blue-500/50 transition-all cursor-pointer group mt-1">
                 <div id="filePreview" class="flex flex-col items-center justify-center transition-transform group-hover:scale-105">
                     <i class="fa-solid fa-file-pdf" class="text-[2.5rem] text-emerald-400 mb-2"></i>
@@ -278,7 +278,7 @@
     <!-- ── Submit ── -->
     <div style="display:flex; justify-content:flex-end; padding-top:10px;">
         <button type="submit" class="submit-btn" onclick="return validateSSelects()">
-            <i class="fa-solid fa-lock" style="font-size:12px;"></i> Kitobni Saqlash
+            <i class="fa-solid fa-lock" style="font-size:12px;"></i> {{ _("Kitobni Saqlash") }}
         </button>
     </div>
 
@@ -323,9 +323,9 @@
             </div>
             
             <div style="display:flex; justify-content:flex-end; gap:10px;">
-                <button type="button" onclick="closeQuick()" style="padding:10px 18px; border-radius:10px; background:rgba(255,255,255,0.05); color:white; border:1px solid rgba(255,255,255,0.1); font-size:14px; cursor:pointer;">Bekor qilish</button>
+                <button type="button" onclick="closeQuick()" style="padding:10px 18px; border-radius:10px; background:rgba(255,255,255,0.05); color:white; border:1px solid rgba(255,255,255,0.1); font-size:14px; cursor:pointer;">{{ _("Bekor qilish") }}</button>
                 <button type="button" id="modalSaveBtn" onclick="saveQuick()" style="padding:10px 20px; border-radius:10px; border:none; color:white; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px;">
-                    <i class="fa-solid fa-check"></i> Qo'shish
+                    <i class="fa-solid fa-check"></i> {{ _("Qo'shish") }}
                 </button>
             </div>
         </div>
@@ -522,7 +522,7 @@ function updatePreview() {
     const cnt = parseInt(document.getElementById('copyCount').value) || 0;
     const box = document.getElementById('copyPreview');
     if(!pre || cnt <= 0) {
-        box.innerHTML = '<span style="color:rgba(255,255,255,0.3); font-size:11px; align-self:center; width:100%; text-align:center;">Prefiks va son kiriting...</span>';
+        box.innerHTML = '<span style="color:rgba(255,255,255,0.3); font-size:11px; align-self:center; width:100%; text-align:center;">{{ _("Prefiks va son kiriting...") }}</span>';
         return;
     }
     let h = '';

@@ -297,3 +297,231 @@ html.theme-light .users-page [style*="color:rgba(148,163,184,0.75)"] {
 html.theme-light .users-page [style*="color:rgba(148,163,184,0.6)"] {
     color: rgba(71, 85, 105, 0.74) !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL DIALOGS — Light Theme Support
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Inline modal overlays (book_types, books/add, etc.) */
+html.theme-light [style*="position:fixed"][style*="background:rgba(0,0,0,0.6)"],
+html.theme-light [style*="position:fixed"][style*="background:rgba(0,0,0,0.65)"] {
+    background: rgba(15, 23, 42, 0.3) !important;
+}
+
+/* Modal content boxes — all dark-bg modals become white in light mode */
+html.theme-light [id$="Modal"] .glass-card,
+html.theme-light #bookTypeModal .glass-card,
+html.theme-light #bbkModal .glass-card {
+    background: #ffffff !important;
+    border-color: rgba(15, 23, 42, 0.12) !important;
+    box-shadow: 0 25px 60px rgba(15, 23, 42, 0.2) !important;
+}
+
+/* Modal header area */
+html.theme-light [id$="Modal"] .glass-card [class*="border-b"] {
+    border-color: rgba(15, 23, 42, 0.1) !important;
+    background: rgba(248, 250, 252, 0.8) !important;
+}
+
+/* Modal title text */
+html.theme-light [id$="Modal"] .glass-card h3 {
+    color: #0f172a !important;
+}
+
+/* Modal body text and labels */
+html.theme-light [id$="Modal"] .glass-card .pro-label {
+    color: #334155 !important;
+}
+
+/* Modal toggle/status area */
+html.theme-light [id$="Modal"] .glass-card [id$="_toggle_label"] {
+    color: #334155 !important;
+}
+
+/* Modal close button */
+html.theme-light [id$="Modal"] .glass-card button[onclick*="closeModals"] {
+    color: #64748b !important;
+}
+
+html.theme-light [id$="Modal"] .glass-card button[onclick*="closeModals"]:hover {
+    color: #0f172a !important;
+    background: rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Modal inner backgrounds (e.g. #13151f, #1e2230) */
+html.theme-light [style*="background:#13151f"],
+html.theme-light [style*="background:#1e2230"] {
+    background: #ffffff !important;
+    border-color: rgba(15, 23, 42, 0.12) !important;
+    color: #0f172a !important;
+}
+
+/* Modal border-b dividers */
+html.theme-light [style*="background:#13151f"] [style*="border-bottom:1px solid rgba(255,255,255"],
+html.theme-light [style*="background:#13151f"] [style*="border-bottom: 1px solid rgba(255,255,255"] {
+    border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+/* Modal text colors */
+html.theme-light [style*="background:#13151f"] [style*="color:white"],
+html.theme-light [style*="background:#13151f"] [style*="color:#fff"],
+html.theme-light [style*="background:#13151f"] h3 {
+    color: #0f172a !important;
+}
+
+html.theme-light [style*="background:#13151f"] [style*="color:rgba(255,255,255,0.5)"],
+html.theme-light [style*="background:#13151f"] [style*="color:rgba(255,255,255,0.4)"],
+html.theme-light [style*="background:#13151f"] [style*="color:rgba(148,163,184"] {
+    color: #64748b !important;
+}
+
+/* Dropdown lists in modals and forms */
+html.theme-light .custom-dropdown-list {
+    background: #ffffff !important;
+    border-color: rgba(15, 23, 42, 0.15) !important;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15) !important;
+}
+
+html.theme-light .custom-dropdown-item,
+html.theme-light .author-suggest-item {
+    color: #334155 !important;
+}
+
+html.theme-light .custom-dropdown-item:hover,
+html.theme-light .author-suggest-item:hover {
+    background: rgba(59, 130, 246, 0.1) !important;
+    color: #1e293b !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COPY TRANSFER PAGE — Professional Dark/Light Styles
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Transfer filter dropdowns — light mode */
+html.theme-light .transfer-filter-dropdown .custom-dropdown-list {
+    background: #ffffff !important;
+    border-color: rgba(15, 23, 42, 0.15) !important;
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12) !important;
+}
+
+html.theme-light .transfer-filter-dropdown .custom-dropdown-item {
+    color: #334155 !important;
+}
+
+html.theme-light .transfer-filter-dropdown .custom-dropdown-item:hover {
+    background: rgba(59, 130, 246, 0.1) !important;
+    color: #1e293b !important;
+}
+
+/* Nusxa biriktirish tugmasi — professional look */
+html.theme-light #copyTransferForm .glass-card,
+html.theme-light #transferTableCard {
+    background: rgba(255, 255, 255, 0.92) !important;
+    border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+/* Checkbox styling for transfer page */
+html.theme-light .copy-check,
+html.theme-light #selectAllCopies {
+    accent-color: #2563eb;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BOOKS ADD/EDIT PAGE — Modal & Dropdown Light Theme
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Quick-add modal (realModalOverlay) */
+html.theme-light #realModalOverlay {
+    background: rgba(15, 23, 42, 0.25) !important;
+}
+
+html.theme-light #realModalOverlay > div,
+html.theme-light #realModalBox {
+    background: #ffffff !important;
+    border-color: rgba(15, 23, 42, 0.12) !important;
+    box-shadow: 0 25px 50px rgba(15, 23, 42, 0.18) !important;
+    color: #0f172a !important;
+}
+
+html.theme-light #realModalBox [style*="color:white"],
+html.theme-light #realModalBox [style*="color:#fff"],
+html.theme-light #realModalBox h3,
+html.theme-light #realModalBox [id="modalTitle"] {
+    color: #0f172a !important;
+}
+
+html.theme-light #realModalBox [style*="border-bottom"] {
+    border-color: rgba(15, 23, 42, 0.1) !important;
+    background: rgba(248, 250, 252, 0.6) !important;
+}
+
+html.theme-light #realModalBox .pro-input {
+    background: #f8fafc !important;
+    border-color: rgba(15, 23, 42, 0.15) !important;
+    color: #0f172a !important;
+}
+
+html.theme-light #realModalBox button[onclick*="closeQuick"] {
+    background: #f1f5f9 !important;
+    color: #334155 !important;
+    border-color: #e2e8f0 !important;
+}
+
+/* Author suggest list */
+html.theme-light #authorSuggestList {
+    background: #ffffff !important;
+    border-color: rgba(15, 23, 42, 0.15) !important;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12) !important;
+}
+
+html.theme-light #authorSuggestList .author-suggest-item {
+    color: #334155 !important;
+}
+
+html.theme-light #authorSuggestList .author-suggest-item:hover {
+    background: rgba(59, 130, 246, 0.08) !important;
+    color: #1e293b !important;
+}
+
+/* Copy preview box */
+html.theme-light #copyPreview {
+    background: rgba(248, 250, 252, 0.9) !important;
+    border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NOTIFICATION — Light Theme
+   ═══════════════════════════════════════════════════════════════ */
+
+html.theme-light .notification-toast {
+    background: #ffffff !important;
+    border-color: rgba(15, 23, 42, 0.12) !important;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15) !important;
+}
+
+html.theme-light .notification-toast .notification-title {
+    color: #0f172a !important;
+}
+
+html.theme-light .notification-toast .notification-message {
+    color: #475569 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   IMAGE MODAL (Zoom) — Light Theme
+   ═══════════════════════════════════════════════════════════════ */
+
+html.theme-light #imageModal {
+    background: rgba(248, 250, 252, 0.9) !important;
+}
+
+html.theme-light #imageModal button {
+    background: rgba(15, 23, 42, 0.08) !important;
+    color: #334155 !important;
+    border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+html.theme-light #imageModal button:hover {
+    background: rgba(15, 23, 42, 0.15) !important;
+    color: #0f172a !important;
+}

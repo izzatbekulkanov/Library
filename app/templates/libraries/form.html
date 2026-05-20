@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-    {% if item %}Edit Library: {{ item.name }}{% else %}Yangi Kutubxona Qo'shish{% endif %} | Glass Pro
+    {% if item %}{{ _("Kutubxonani Tahrirlash") }}: {{ item.name }}{% else %}{{ _("Yangi Kutubxona Qo'shish") }}{% endif %} | Glass Pro
 {% endblock %}
 
 {% block content %}
@@ -15,11 +15,11 @@
 
         <!-- Breadcrumb -->
         <nav class="flex items-center gap-2 text-sm text-white/50 mb-2">
-            <a href="/" onclick="showLoader(event,'/')" class="hover:text-white transition-colors"><i class="fa-solid fa-house text-xs"></i> Bosh sahifa</a>
+            <a href="/" onclick="showLoader(event,'/')" class="hover:text-white transition-colors"><i class="fa-solid fa-house text-xs"></i> {{ _("Bosh sahifa") }}</a>
             <i class="fa-solid fa-chevron-right text-[10px] mx-1"></i>
-            <a href="/libraries" onclick="showLoader(event,'/libraries')" class="hover:text-white transition-colors">Kutubxonalar</a>
+            <a href="/libraries" onclick="showLoader(event,'/libraries')" class="hover:text-white transition-colors">{{ _("Kutubxonalar") }}</a>
             <i class="fa-solid fa-chevron-right text-[10px] mx-1"></i>
-            <span class="text-blue-400 font-medium">{% if item %}Tahrirlash{% else %}Yangi qo'shish{% endif %}</span>
+            <span class="text-blue-400 font-medium">{% if item %}{{ _("Tahrirlash") }}{% else %}{{ _("Yangi qo'shish") }}{% endif %}</span>
         </nav>
 
         <!-- Sarlavha satri -->
@@ -32,9 +32,9 @@
             </a>
             <div>
                 <h1 class="text-2xl font-bold text-white mb-0 tracking-tight">
-                    {% if item %}Kutubxonani Tahrirlash{% else %}Yangi Kutubxona Qo'shish{% endif %}
+                    {% if item %}{{ _("Kutubxonani Tahrirlash") }}{% else %}{{ _("Yangi Kutubxona Qo'shish") }}{% endif %}
                 </h1>
-                <p class="text-[0.82rem] text-white/60 mt-1">Kutubxona ma'lumotlarini kiriting</p>
+                <p class="text-[0.82rem] text-white/60 mt-1">{{ _("Kutubxona ma'lumotlarini kiriting") }}</p>
             </div>
         </div>
 
@@ -43,53 +43,53 @@
                 
                 <div class="pro-section-title">
                     <i class="fa-regular fa-building" style="color:#60a5fa;"></i>
-                    Asosiy ma'lumotlar
+                    {{ _("Asosiy ma'lumotlar") }}
                 </div>
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.75rem;">
                     
                     <!-- Kutubxona Nomi -->
                     <div style="grid-column: span 2;">
-                        <label class="pro-label required">Kutubxona Nomi</label>
+                        <label class="pro-label required">{{ _("Kutubxona Nomi") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-solid fa-building"></i></span>
-                            <input type="text" name="name" value="{{ item.name if item else '' }}" class="pro-input" placeholder="Asosiy markaziy kutubxona..." required>
+                            <input type="text" name="name" value="{{ item.name if item else '' }}" class="pro-input" placeholder="{{ _("Asosiy markaziy kutubxona...") }}" required>
                         </div>
                     </div>
 
                     <!-- Raqami -->
                     <div>
-                        <label class="pro-label required">Kutubxona Raqami (ID)</label>
+                        <label class="pro-label required">{{ _("Kutubxona Raqami (ID)") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-solid fa-hashtag"></i></span>
-                            <input type="text" name="number" value="{{ item.number if item else '' }}" class="pro-input" placeholder="Masalan: LIB-001" required>
+                            <input type="text" name="number" value="{{ item.number if item else '' }}" class="pro-input" placeholder="{{ _("Masalan: LIB-001") }}" required>
                         </div>
                     </div>
 
                      <!-- Telefon -->
                      <div>
-                        <label class="pro-label">Telefon Raqami (Ixtiyoriy)</label>
+                        <label class="pro-label">{{ _("Telefon Raqami (Ixtiyoriy)") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-solid fa-phone"></i></span>
-                            <input type="text" name="phone" value="{{ item.phone if item else '' }}" class="pro-input" placeholder="+998 90 123 45 67">
+                            <input type="text" name="phone" value="{{ item.phone if item else '' }}" class="pro-input" placeholder="{{ _("+998 90 123 45 67") }}">
                         </div>
                     </div>
 
                     <!-- Manzili -->
                     <div style="grid-column: span 2;">
-                        <label class="pro-label required">Manzili</label>
+                        <label class="pro-label required">{{ _("Manzili") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-solid fa-location-dot"></i></span>
-                            <input type="text" name="address" value="{{ item.address if item else '' }}" class="pro-input" placeholder="Viloyat, shahar, ko'cha nomi..." required>
+                            <input type="text" name="address" value="{{ item.address if item else '' }}" class="pro-input" placeholder="{{ _("Viloyat, shahar, ko'cha nomi...") }}" required>
                         </div>
                     </div>
 
                     <!-- Email -->
                     <div>
-                        <label class="pro-label">Email Manzili (Ixtiyoriy)</label>
+                        <label class="pro-label">{{ _("Email Manzili (Ixtiyoriy)") }}</label>
                         <div class="pro-input-wrap">
                             <span class="pro-icon"><i class="fa-solid fa-envelope"></i></span>
-                            <input type="email" name="email" value="{{ item.email if item else '' }}" class="pro-input" placeholder="kutubxona@misol.uz">
+                            <input type="email" name="email" value="{{ item.email if item else '' }}" class="pro-input" placeholder="{{ _("kutubxona@misol.uz") }}">
                         </div>
                     </div>
 
@@ -99,18 +99,104 @@
                             <input type="checkbox" name="active" value="true" id="isActiveCheck" {% if not item or item.active %}checked{% endif %}
                                 style="width:1.1rem; height:1.1rem; accent-color:#6366f1; flex-shrink:0; cursor:pointer; margin-top:0.2rem;">
                             <div>
-                                <label for="isActiveCheck">Faol holat (Active)</label>
-                                <p>Holat faol qilinmasa foydalanuvchilar tanlay olmaydi</p>
+                                <label for="isActiveCheck">{{ _("Faol holat (Active)") }}</label>
+                                <p>{{ _("Holat faol qilinmasa foydalanuvchilar tanlay olmaydi") }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- ─── Kutubxonachilar ─── -->
+                <div class="pro-section-title" style="margin-top:0.5rem;">
+                    <i class="fa-solid fa-user-tie" style="color:#a78bfa;"></i>
+                    {{ _("Kutubxonachilar") }}
+                </div>
+                <p style="font-size:0.78rem; color:rgba(148,163,184,0.7); margin-top:-0.5rem; margin-bottom:1rem;">
+                    {{ _("Faqat 'Kutubxona xodimi' yoki 'Kutubxona Raxbari' turidagi foydalanuvchilarni tanlash mumkin.") }}
+                </p>
+
+                {% if not librarians %}
+                <div style="padding:1rem 1.25rem; border-radius:0.85rem; border:1px solid rgba(245,158,11,0.3); background:rgba(245,158,11,0.08); color:#fbbf24; font-size:0.82rem; margin-bottom:1.25rem; display:flex; align-items:center; gap:0.65rem;">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>{{ _("Tizimda hali kutubxona xodimi roli bilan foydalanuvchilar yo'q. Avval foydalanuvchini 'Kutubxona xodimi' yoki 'Kutubxona Raxbari' turida yarating.") }}</span>
+                </div>
+                {% else %}
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; margin-bottom:1.5rem;">
+                    <!-- Big librarian (raxbar) -->
+                    <div>
+                        <label class="pro-label">{{ _("Kutubxona Raxbari") }}</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-user-shield"></i></span>
+                            <select name="big_librarian_id" class="pro-select">
+                                <option value="">— {{ _("Tanlang") }} —</option>
+                                {% for u in librarians %}
+                                <option value="{{ u.id }}" {% if selected_big_id and selected_big_id == u.id %}selected{% endif %}>
+                                    {{ u.full_name or u.username }} ({{ u.user_type.value if u.user_type else '' }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <span class="pro-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+
+                    <!-- Search input for small librarians -->
+                    <div>
+                        <label class="pro-label">{{ _("Kutubxona xodimlarini qidirish") }}</label>
+                        <div class="pro-input-wrap">
+                            <span class="pro-icon"><i class="fa-solid fa-search"></i></span>
+                            <input type="text" id="librarianSearch" class="pro-input" placeholder="{{ _("Ism yoki username...") }}" autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Small librarians (xodimlar ro'yxati) -->
+                <div>
+                    <label class="pro-label" style="margin-bottom:0.6rem; display:flex; align-items:center; gap:0.5rem;">
+                        <i class="fa-solid fa-users" style="color:#60a5fa;"></i>
+                        {{ _("Kutubxona xodimlari") }}
+                        <span id="smallCount" style="font-size:0.7rem; padding:0.15rem 0.55rem; border-radius:999px; background:rgba(99,102,241,0.15); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3);">0</span>
+                    </label>
+                    <div id="librarianList" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:0.5rem; max-height:280px; overflow-y:auto; padding:0.75rem; border-radius:0.85rem; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.02);">
+                        {% for u in librarians %}
+                        <label class="lib-checkbox-item"
+                               data-name="{{ (u.full_name or u.username or '')|lower }} {{ (u.username or '')|lower }}"
+                               style="display:flex; align-items:flex-start; gap:0.6rem; padding:0.65rem 0.75rem; border-radius:0.65rem; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03); cursor:pointer; transition:all 0.15s;">
+                            <input type="checkbox" name="small_librarian_ids" value="{{ u.id }}"
+                                   {% if u.id in selected_small_ids %}checked{% endif %}
+                                   style="width:1rem; height:1rem; accent-color:#6366f1; flex-shrink:0; cursor:pointer; margin-top:0.15rem;">
+                            <div style="min-width:0; flex:1;">
+                                <p style="font-size:0.85rem; font-weight:600; color:rgba(255,255,255,0.9); margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" class="lib-item-name">
+                                    {{ u.full_name or u.username }}
+                                </p>
+                                <p style="font-size:0.7rem; color:rgba(148,163,184,0.7); margin:0.15rem 0 0 0;" class="lib-item-meta">
+                                    @{{ u.username }} · {{ u.user_type.value if u.user_type else '' }}
+                                </p>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <style>
+                    .lib-checkbox-item:hover { background: rgba(99,102,241,0.08) !important; border-color: rgba(99,102,241,0.3) !important; }
+                    .lib-checkbox-item:has(input:checked) { background: rgba(99,102,241,0.15) !important; border-color: rgba(99,102,241,0.45) !important; }
+                    /* Light theme */
+                    html.theme-light .lib-checkbox-item { background: rgba(248,250,252,0.9) !important; border-color: rgba(15,23,42,0.1) !important; }
+                    html.theme-light .lib-checkbox-item:hover { background: rgba(99,102,241,0.06) !important; border-color: rgba(99,102,241,0.35) !important; }
+                    html.theme-light .lib-checkbox-item:has(input:checked) { background: rgba(99,102,241,0.1) !important; border-color: rgba(99,102,241,0.5) !important; }
+                    html.theme-light .lib-item-name { color: #1e293b !important; }
+                    html.theme-light .lib-item-meta { color: #64748b !important; }
+                    html.theme-light #librarianList { background: rgba(248,250,252,0.7) !important; border-color: rgba(15,23,42,0.1) !important; }
+                </style>
+                {% endif %}
+
+                <div style="height:1.25rem;"></div>
+
                 <!-- Submit Buttons -->
                 <div style="display:flex; justify-content:flex-end; gap:0.75rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,0.07);">
-                    <a href="/libraries" onclick="showLoader(event, '/libraries')" class="pro-btn-cancel">Bekoq qilish</a>
+                    <a href="/libraries" onclick="showLoader(event, '/libraries')" class="pro-btn-cancel">{{ _("Bekor qilish") }}</a>
                     <button type="submit" class="pro-btn-save">
-                        <i class="fa-solid fa-floppy-disk"></i> Saqlash
+                        <i class="fa-solid fa-floppy-disk"></i> {{ _("Saqlash") }}
                     </button>
                 </div>
             </form>
@@ -149,6 +235,57 @@
             e.preventDefault();
         }
     });
+})();
+
+// Librarianlar ro'yxati: qidiruv va counter
+(function() {
+    const search = document.getElementById('librarianSearch');
+    const list = document.getElementById('librarianList');
+    const counter = document.getElementById('smallCount');
+    const bigSelect = document.querySelector('select[name="big_librarian_id"]');
+    if (!list) return;
+
+    const items = Array.from(list.querySelectorAll('.lib-checkbox-item'));
+    const checkboxes = items.map(it => it.querySelector('input[type="checkbox"]'));
+
+    function refreshCount() {
+        const n = checkboxes.filter(cb => cb.checked).length;
+        if (counter) counter.textContent = n;
+    }
+
+    function syncBigSelection() {
+        if (!bigSelect) return;
+        const bigId = bigSelect.value;
+        items.forEach(item => {
+            const cb = item.querySelector('input[type="checkbox"]');
+            if (!cb) return;
+            if (bigId && cb.value === bigId) {
+                cb.checked = false;
+                cb.disabled = true;
+                item.style.opacity = '0.5';
+                item.style.pointerEvents = 'none';
+            } else {
+                cb.disabled = false;
+                item.style.opacity = '';
+                item.style.pointerEvents = '';
+            }
+        });
+        refreshCount();
+    }
+
+    if (search) {
+        search.addEventListener('input', () => {
+            const q = search.value.trim().toLowerCase();
+            items.forEach(item => {
+                const hay = item.dataset.name || '';
+                item.style.display = (!q || hay.indexOf(q) !== -1) ? '' : 'none';
+            });
+        });
+    }
+
+    checkboxes.forEach(cb => cb.addEventListener('change', refreshCount));
+    if (bigSelect) bigSelect.addEventListener('change', syncBigSelection);
+    syncBigSelection();
 })();
 </script>
 {% endblock %}

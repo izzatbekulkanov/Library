@@ -12,9 +12,26 @@
             <p class="text-[0.8rem] text-white/50">{{ _('Tizimdagi barcha bosma kitoblar royxati') }}</p>
         </div>
         <div class="flex items-center gap-2">
+            <a href="/books/inventory" onclick="showLoader(event,'/books/inventory')"
+               class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all border"
+               style="background: linear-gradient(135deg, rgba(168,85,247,0.12), rgba(139,92,246,0.12)); border-color: rgba(168,85,247,0.4); color: #a855f7;"
+               onmouseover="this.style.background='linear-gradient(135deg, rgba(168,85,247,0.2), rgba(139,92,246,0.2))'; this.style.transform='translateY(-1px)'"
+               onmouseout="this.style.background='linear-gradient(135deg, rgba(168,85,247,0.12), rgba(139,92,246,0.12))'; this.style.transform=''">
+                <i class="fa-solid fa-table-list text-xs"></i> <span>{{ _("Inventar jadvali") }}</span>
+            </a>
+            <a href="/books/copies/receive" onclick="showLoader(event,'/books/copies/receive')"
+               class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all border"
+               style="background: linear-gradient(135deg, rgba(22,163,74,0.12), rgba(16,185,129,0.12)); border-color: rgba(22,163,74,0.4); color: #16a34a;"
+               onmouseover="this.style.background='linear-gradient(135deg, rgba(22,163,74,0.2), rgba(16,185,129,0.2))'; this.style.transform='translateY(-1px)'"
+               onmouseout="this.style.background='linear-gradient(135deg, rgba(22,163,74,0.12), rgba(16,185,129,0.12))'; this.style.transform=''">
+                <i class="fa-solid fa-box-open text-xs"></i> <span>{{ _("Kitob qabul qilish") }}</span>
+            </a>
             <a href="/books/copies/transfer" onclick="showLoader(event,'/books/copies/transfer')"
-               class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-blue-200 whitespace-nowrap transition-all bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/35">
-                <i class="fa-solid fa-arrows-left-right text-xs"></i> <span>Nusxa biriktirish</span>
+               class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all border"
+               style="background: linear-gradient(135deg, rgba(37,99,235,0.12), rgba(99,102,241,0.12)); border-color: rgba(37,99,235,0.4); color: #2563eb;"
+               onmouseover="this.style.background='linear-gradient(135deg, rgba(37,99,235,0.2), rgba(99,102,241,0.2))'; this.style.transform='translateY(-1px)'"
+               onmouseout="this.style.background='linear-gradient(135deg, rgba(37,99,235,0.12), rgba(99,102,241,0.12))'; this.style.transform=''">
+                <i class="fa-solid fa-paper-plane text-xs"></i> <span>{{ _("Nusxa biriktirish") }}</span>
             </a>
             <a href="/books/add" onclick="showLoader(event,'/books/add')"
                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white whitespace-nowrap transition-all"

@@ -114,17 +114,215 @@ async def process_login(request: Request, db: Session = Depends(get_db)):
     )
 
 
-# ════════════ DC LOGIN (placeholder) ═════════
+# ════════════ DC LOGIN (OAuth2) ═════════
 @router.get("/login/dc", response_class=HTMLResponse)
-async def dc_login_page(request: Request, db: Session = Depends(get_db)):
+async def dc_login_redirect(request: Request, db: Session = Depends(get_db)):
+    """DC OAuth2 authorize sahifasiga yo'naltirish"""
+    from app.core.config import settings
+    import secrets
+    
     if get_session_user(request):
         return RedirectResponse(url="/", status_code=http_status.HTTP_302_FOUND)
     if not _has_any_user(db):
         return RedirectResponse(url="/setup", status_code=http_status.HTTP_302_FOUND)
-    return templates.TemplateResponse("login.html", {
-        "request": request, "next": "/",
-        "error": "DC integratsiyasi hali sozlanmagan. Parol bilan kiring.",
-    })
+    
+    if not settings.dc_enabled:
+        return templates.TemplateResponse("login.html", {
+            "request": request, "next": "/",
+            "error": "DC integratsiyasi sozlanmagan. Parol bilan kiring.",
+        })
+    
+    # State yaratish (CSRF himoyasi uchun)
+    state = secrets.token_urlsafe(32)
+    request.session["dc_oauth_state"] = state
+    
+    # DC authorize URL ga yo'naltirish
+    import urllib.parse
+    params = {
+        "client_id": settings.DC_CLIENT_ID,
+        "redirect_uri": settings.DC_REDIRECT_URI,
+        "response_type": "code",
+        "scope": "openid profile email",
+        "state": state,
+    }
+    auth_url = f"{settings.DC_AUTHORIZE_URL}?{urllib.parse.urlencode(params)}"
+    return RedirectResponse(url=auth_url, status_code=http_status.HTTP_302_FOUND)
+
+
+@router.get("/dc/login", response_class=HTMLResponse)
+async def dc_login_callback(request: Request, db: Session = Depends(get_db)):
+    """DC OAuth2 callback - token olish va foydalanuvchini kirgazish"""
+    from app.core.config import settings
+    import httpx
+    
+    if get_session_user(request):
+        return RedirectResponse(url="/", status_code=http_status.HTTP_302_FOUND)
+    
+    if not settings.dc_enabled:
+        return templates.TemplateResponse("login.html", {
+            "request": request, "next": "/",
+            "error": "DC integratsiyasi sozlanmagan.",
+        })
+    
+    # Query parametrlarni olish
+    code = request.query_params.get("code")
+    state = request.query_params.get("state")
+    error = request.query_params.get("error")
+    error_description = request.query_params.get("error_description", "")
+    
+    if error:
+        return templates.TemplateResponse("login.html", {
+            "request": request, "next": "/",
+            "error": f"DC xatosi: {error_description or error}",
+        })
+    
+    if not code:
+        return templates.TemplateResponse("login.html", {
+            "request": request, "next": "/",
+            "error": "DC dan kod olinmadi.",
+        })
+    
+    # State tekshirish (CSRF himoyasi)
+    saved_state = request.session.get("dc_oauth_state")
+    if state and saved_state and state != saved_state:
+        return templates.TemplateResponse("login.html", {
+            "request": request, "next": "/",
+            "error": "Xavfsizlik xatosi. Qayta urinib ko'ring.",
+        })
+    
+    try:
+        # Token olish
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            token_response = await client.post(
+                settings.DC_TOKEN_URL,
+                data={
+                    "grant_type": "authorization_code",
+                    "client_id": settings.DC_CLIENT_ID,
+                    "client_secret": settings.DC_CLIENT_SECRET,
+                    "code": code,
+                    "redirect_uri": settings.DC_REDIRECT_URI,
+                },
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+            )
+            
+            if token_response.status_code != 200:
+                return templates.TemplateResponse("login.html", {
+                    "request": request, "next": "/",
+                    "error": f"Token olishda xato: {token_response.text}",
+                })
+            
+            token_data = token_response.json()
+            access_token = token_data.get("access_token")
+            
+            if not access_token:
+                return templates.TemplateResponse("login.html", {
+                    "request": request, "next": "/",
+                    "error": "Access token olinmadi.",
+                })
+            
+            # Foydalanuvchi ma'lumotlarini olish
+            userinfo_response = await client.get(
+                settings.DC_USERINFO_URL,
+                headers={"Authorization": f"Bearer {access_token}"},
+            )
+            
+            if userinfo_response.status_code != 200:
+                return templates.TemplateResponse("login.html", {
+                    "request": request, "next": "/",
+                    "error": f"Foydalanuvchi ma'lumotlarini olishda xato: {userinfo_response.text}",
+                })
+            
+            userinfo = userinfo_response.json()
+    
+    except httpx.RequestError as e:
+        return templates.TemplateResponse("login.html", {
+            "request": request, "next": "/",
+            "error": f"DC serveriga ulanishda xato: {str(e)}",
+        })
+    except Exception as e:
+        return templates.TemplateResponse("login.html", {
+            "request": request, "next": "/",
+            "error": f"Xato yuz berdi: {str(e)}",
+        })
+    
+    # Foydalanuvchini topish yoki yaratish
+    dc_id = userinfo.get("sub") or userinfo.get("id")
+    email = userinfo.get("email", "")
+    username = userinfo.get("preferred_username") or userinfo.get("username") or email.split("@")[0] if email else ""
+    full_name = userinfo.get("name") or userinfo.get("full_name") or f"{userinfo.get('given_name', '')} {userinfo.get('family_name', '')}".strip()
+    
+    if not dc_id and not email and not username:
+        return templates.TemplateResponse("login.html", {
+            "request": request, "next": "/",
+            "error": "DC dan foydalanuvchi identifikatori olinmadi.",
+        })
+    
+    # Avval DC ID bo'yicha qidirish
+    user = None
+    if dc_id:
+        user = db.query(User).filter(User.hemis_id == str(dc_id)).first()
+    
+    # Email bo'yicha qidirish
+    if not user and email:
+        user = db.query(User).filter(User.email == email).first()
+    
+    # Username bo'yicha qidirish
+    if not user and username:
+        user = db.query(User).filter(User.username == username).first()
+    
+    if not user:
+        # Yangi foydalanuvchi yaratish
+        import secrets
+        random_password = secrets.token_urlsafe(16)
+        
+        # Username unique bo'lishi kerak
+        base_username = username or f"dc_user_{dc_id or secrets.token_hex(4)}"
+        final_username = base_username
+        counter = 1
+        while db.query(User).filter(User.username == final_username).first():
+            final_username = f"{base_username}_{counter}"
+            counter += 1
+        
+        user = User(
+            full_name=full_name or final_username,
+            username=final_username,
+            email=email or f"{final_username}@dc.local",
+            hashed_password=User.get_password_hash(random_password),
+            hemis_id=str(dc_id) if dc_id else None,
+            user_type=UserTypeEnum.user,
+            is_staff=False,
+            is_verified=False,
+            is_active=True,
+            menu_permissions=",".join(
+                default_menu_permissions(is_staff=False, is_verified=False)
+            ),
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    
+    if not user.is_active:
+        return templates.TemplateResponse("login.html", {
+            "request": request, "next": "/",
+            "error": "Ushbu hisob bloklangan. Administrator bilan bog'laning.",
+        })
+    
+    # DC ID ni yangilash (agar yo'q bo'lsa)
+    if dc_id and not user.hemis_id:
+        user.hemis_id = str(dc_id)
+    
+    # Session yaratish
+    set_session(request, user)
+    user.last_login = datetime.utcnow()
+    db.commit()
+    
+    # State ni tozalash
+    if "dc_oauth_state" in request.session:
+        del request.session["dc_oauth_state"]
+    
+    return RedirectResponse(url="/", status_code=http_status.HTTP_302_FOUND)
 
 
 @router.get("/setup", response_class=HTMLResponse)

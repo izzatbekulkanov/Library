@@ -7,7 +7,6 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from datetime import datetime, timedelta
 from app.api.routes import router
-from app.api.endpoints.external_books import shutdown_import_workers, startup_import_workers
 from app.core.auth import get_session_user
 from app.core.config import settings
 from app.core.database import SessionLocal, bootstrap_database_runtime
@@ -169,13 +168,3 @@ async def not_found_handler(request: Request, exc):
         },
         status_code=404,
     )
-
-
-@app.on_event("startup")
-async def _startup_external_import_workers():
-    await startup_import_workers()
-
-
-@app.on_event("shutdown")
-async def _shutdown_external_import_workers():
-    await shutdown_import_workers()

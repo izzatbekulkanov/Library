@@ -569,6 +569,146 @@ async def add_book(
         status_code=302
     )
 
+# ═══════════════════════════════════════════════════════════════════════
+#  INVENTAR JADVALI — kitoblarni inventar bo'yicha jadval ko'rinishida
+# ═══════════════════════════════════════════════════════════════════════
+
+def _compress_inventory_range(numbers: list[str], prefix: str) -> str:
+    """
+    Inventar raqamlarini diapazonga siqish.
+    Masalan: ['1/1','1/2','1/3','1/5'] -> '1/1-3, 1/5'
+    """
+    if not numbers:
+        return "-"
+
+    nums: list[int] = []
+    for inv in numbers:
+        parts = inv.split("/")
+        if len(parts) >= 2:
+            try:
+                nums.append(int(parts[-1]))
+            except ValueError:
+                pass
+        else:
+            try:
+                nums.append(int(inv))
+            except ValueError:
+                pass
+
+    if not nums:
+        return ", ".join(numbers)
+
+    nums.sort()
+
+    ranges: list[str] = []
+    start = nums[0]
+    end = nums[0]
+
+    for i in range(1, len(nums)):
+        if nums[i] == end + 1:
+            end = nums[i]
+        else:
+            if start == end:
+                ranges.append(f"{prefix}/{start}")
+            else:
+                ranges.append(f"{prefix}/{start}-{end}")
+            start = nums[i]
+            end = nums[i]
+
+    if start == end:
+        ranges.append(f"{prefix}/{start}")
+    else:
+        ranges.append(f"{prefix}/{start}-{end}")
+
+    return ", ".join(ranges)
+
+
+@router.get("/inventory", response_class=HTMLResponse)
+@router.get("/inventory/", response_class=HTMLResponse)
+async def book_inventory_table(
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    _guard(request)
+
+    libraries = db.query(Library).filter(Library.active == True).order_by(Library.name).all()  # noqa: E712
+
+    books = (
+        db.query(Book)
+        .filter(Book.total_copies > 0)
+        .order_by(Book.id)
+        .all()
+    )
+
+    all_copies = db.query(BookCopy).all()
+
+    book_copies_map: dict[int, list] = defaultdict(list)
+    for copy in all_copies:
+        if copy.original_book_id:
+            book_copies_map[copy.original_book_id].append(copy)
+
+    rows = []
+    row_index = 0
+    for book in books:
+        copies = book_copies_map.get(book.id, [])
+        if not copies:
+            continue
+
+        row_index += 1
+
+        bbk_code = book.bbk.code if book.bbk else "-"
+
+        inv_numbers = sorted([c.inventory_number for c in copies if c.inventory_number])
+        prefix = ""
+        if inv_numbers:
+            parts = inv_numbers[0].split("/")
+            if len(parts) >= 2:
+                prefix = parts[0]
+
+        inv_range = _compress_inventory_range(inv_numbers, prefix) if prefix else ", ".join(inv_numbers[:5]) + ("..." if len(inv_numbers) > 5 else "")
+
+        pub_year = f"T-{book.publication_year.year}" if book.publication_year else "-"
+        book_type_name = book.book_type.name if book.book_type else "-"
+        lang = (book.language or "uz").upper()
+
+        lib_counts: dict[int, int] = defaultdict(int)
+        unassigned_count = 0
+        for copy in copies:
+            if copy.library_id:
+                lib_counts[copy.library_id] += 1
+            else:
+                unassigned_count += 1
+
+        total_copies = len(copies)
+
+        rows.append({
+            "index": row_index,
+            "bbk_code": bbk_code,
+            "inv_range": inv_range,
+            "title": book.title,
+            "pub_year": pub_year,
+            "adad": book.adad or 0,
+            "pages": book.pages or 0,
+            "book_type": book_type_name,
+            "language": lang,
+            "unassigned": unassigned_count,
+            "lib_counts": lib_counts,
+            "total": total_copies,
+        })
+
+    return templates.TemplateResponse(
+        "books/inventory.html",
+        _ctx(
+            request,
+            title="Inventar jadvali",
+            active_menu="books",
+            rows=rows,
+            libraries=libraries,
+            total_books=len(rows),
+        ),
+    )
+
+
 # ══════════════════════════════════════════════════
 #  VIEW BOOK (Batafsil)
 # ══════════════════════════════════════════════════
@@ -881,6 +1021,12 @@ async def print_book_qr_codes(
     labels_per_page = cols * rows
 
     base_url = str(request.base_url).rstrip("/")
+    bbk_code = book.bbk.code if book.bbk else ""
+    
+    # Barcha nusxalarning tartib raqamlarini oldindan hisoblash
+    all_copies_sorted = sorted(book.copies or [], key=lambda x: (x.inventory_number or "", x.id or 0))
+    copy_seq_map = {c.id: idx + 1 for idx, c in enumerate(all_copies_sorted)}
+    
     for i, copy in enumerate(copies):
         local = i % labels_per_page
         row = local // cols
@@ -893,7 +1039,10 @@ async def print_book_qr_codes(
         p.rect(x, y, label_w, label_h)
 
         inv = (copy.inventory_number or f"COPY-{copy.id}").strip()
-        qr_data = f"{base_url}/books/{book.id}?copy_id={copy.id}&inv={urllib.parse.quote(inv)}"
+        # QR ichidagi kod: 451 + BBK + to'liq inventar raqami
+        qr_inv_code = f"451{bbk_code}{inv}"
+        # QR kodda faqat raqam bo'ladi (URL emas)
+        qr_data = qr_inv_code
         qr_code = qr.QrCodeWidget(qr_data)
         b = qr_code.getBounds()
         qr_w = b[2] - b[0]
@@ -906,7 +1055,9 @@ async def print_book_qr_codes(
         p.setFont(bold_font, 9)
         p.drawCentredString(x + label_w / 2, y + 1.2 * cm, inv[:45])
         p.setFont(normal_font, 8)
-        p.drawCentredString(x + label_w / 2, y + 0.8 * cm, f"Book #{book.id} | Copy #{copy.id}")
+        p.drawCentredString(x + label_w / 2, y + 0.8 * cm, bbk_code)
+        p.setFont(normal_font, 7)
+        p.drawCentredString(x + label_w / 2, y + 0.4 * cm, f"#{inv}")
 
         if (i + 1) % labels_per_page == 0 and (i + 1) < len(copies):
             p.showPage()
@@ -960,7 +1111,13 @@ async def print_single_copy_qr(book_id: int, copy_id: int, request: Request, db:
     normal_font, bold_font = _register_pdf_fonts()
     inv = (copy.inventory_number or f"COPY-{copy.id}").strip()
     base_url = str(request.base_url).rstrip("/")
-    qr_data = f"{base_url}/books/{book_id}?copy_id={copy.id}&inv={urllib.parse.quote(inv)}"
+    # QR ichidagi kod: 451 + BBK + to'liq inventar
+    book_obj = db.query(Book).filter(Book.id == book_id).first()
+    bbk_code = book_obj.bbk.code if (book_obj and book_obj.bbk) else ""
+    
+    qr_inv_code = f"451{bbk_code}{inv}"
+    # QR kodda faqat raqam bo'ladi (URL emas)
+    qr_data = qr_inv_code
 
     qr_code = qr.QrCodeWidget(qr_data)
     b = qr_code.getBounds()
@@ -976,7 +1133,9 @@ async def print_single_copy_qr(book_id: int, copy_id: int, request: Request, db:
     p.setFont(bold_font, 11)
     p.drawCentredString(page_w / 2, 2.2 * cm, inv[:42])
     p.setFont(normal_font, 8)
-    p.drawCentredString(page_w / 2, 1.7 * cm, f"Book #{book_id} | Copy #{copy.id}")
+    p.drawCentredString(page_w / 2, 1.7 * cm, bbk_code)
+    p.setFont(normal_font, 7)
+    p.drawCentredString(page_w / 2, 1.2 * cm, f"#{inv}")
     p.showPage()
     p.save()
 
@@ -1439,6 +1598,15 @@ async def copy_transfer_hub(
     )
 
     libraries = db.query(Library).order_by(Library.name).all()
+
+    # Har bir kutubxonaning small_librarians ro'yxatini JSON uchun tayyorlaymiz
+    library_staff_map: dict[int, list[dict]] = {}
+    for lib in libraries:
+        staff_list = []
+        for u in (lib.small_librarians or []):
+            staff_list.append({"id": u.id, "name": u.full_name or u.username or f"User #{u.id}"})
+        library_staff_map[lib.id] = staff_list
+
     book_types = db.query(BookType).order_by(BookType.name).all()
     bbks = db.query(BBK).order_by(BBK.code, BBK.name).all()
     authors = db.query(Author).order_by(Author.name).all()
@@ -1481,6 +1649,7 @@ async def copy_transfer_hub(
             active_menu="books",
             copies=copies,
             libraries=libraries,
+            library_staff_map=library_staff_map,
             book_types=book_types,
             bbks=bbks,
             authors=authors,
@@ -1587,6 +1756,7 @@ async def copy_transfer_execute(
                 unchanged_count += 1
                 continue
             copy.library_id = target_library.id
+            copy.status = "sent"
             moved_count += 1
 
         db.commit()
@@ -1623,5 +1793,136 @@ async def copy_transfer_execute(
                 flash_type="error",
                 flash_msg=f"Xatolik: {str(exc)}",
             ),
+            status_code=303,
+        )
+
+
+# ═══════════════════════════════════════════════════════════════════════
+#  KITOB QABUL QILISH (receive) — sent statusdagi nusxalarni qabul qilish
+# ═══════════════════════════════════════════════════════════════════════
+
+@router.get("/copies/receive", response_class=HTMLResponse)
+@router.get("/copies/receive/", response_class=HTMLResponse)
+async def copy_receive_page(
+    request: Request,
+    page: int = 1,
+    per_page: int = 60,
+    q: Optional[str] = None,
+    library_id: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    user = _guard(request)
+
+    per_page = min(max(int(per_page or 60), 20), 200)
+
+    # Faqat "sent" statusdagi nusxalarni ko'rsatamiz
+    query = db.query(BookCopy).join(Book, Book.id == BookCopy.original_book_id)
+    query = query.filter(BookCopy.status == "sent")
+
+    # Kutubxona bo'yicha filtr
+    try:
+        lib_filter = int(library_id) if library_id else None
+    except ValueError:
+        lib_filter = None
+
+    if lib_filter:
+        query = query.filter(BookCopy.library_id == lib_filter)
+
+    if q and q.strip():
+        pattern = f"%{q.strip()}%"
+        query = query.filter(
+            (BookCopy.inventory_number.ilike(pattern)) | (Book.title.ilike(pattern))
+        )
+
+    total = query.count()
+    total_pages = (total + per_page - 1) // per_page
+    if page < 1:
+        page = 1
+    if total_pages and page > total_pages:
+        page = total_pages
+
+    copies = (
+        query.order_by(BookCopy.id.desc())
+        .offset((page - 1) * per_page)
+        .limit(per_page)
+        .all()
+    )
+
+    libraries = db.query(Library).order_by(Library.name).all()
+
+    page_params: list[str] = []
+    if q and q.strip():
+        page_params.append(f"q={urllib.parse.quote(q.strip())}")
+    if lib_filter:
+        page_params.append(f"library_id={lib_filter}")
+    page_url_base = f"?{'&'.join(page_params)}&page=" if page_params else "?page="
+
+    return templates.TemplateResponse(
+        "books/receive.html",
+        _ctx(
+            request,
+            title="Kitob qabul qilish",
+            active_menu="books",
+            copies=copies,
+            libraries=libraries,
+            q=q or "",
+            library_id=lib_filter or "",
+            page=page,
+            per_page=per_page,
+            total_items=total,
+            total_pages=total_pages,
+            page_url_base=page_url_base,
+            status_labels=dict(COPY_STATUS_CHOICES),
+        ),
+    )
+
+
+@router.post("/copies/receive")
+@router.post("/copies/receive/")
+async def copy_receive_execute(
+    request: Request,
+    copy_ids: list[int] = Form(default=[]),
+    q: Optional[str] = Form(None),
+    library_id: Optional[str] = Form(None),
+    page: int = Form(1),
+    db: Session = Depends(get_db),
+):
+    _guard(request)
+
+    selected_ids = sorted({int(cid) for cid in copy_ids if int(cid) > 0})
+    if not selected_ids:
+        return RedirectResponse(
+            url="/books/copies/receive?flash_type=warning&flash_msg=Kamida%20bitta%20nusxani%20tanlang.",
+            status_code=303,
+        )
+
+    copies = db.query(BookCopy).filter(
+        BookCopy.id.in_(selected_ids),
+        BookCopy.status == "sent",
+    ).all()
+
+    if not copies:
+        return RedirectResponse(
+            url="/books/copies/receive?flash_type=error&flash_msg=Tanlangan%20nusxalar%20topilmadi.",
+            status_code=303,
+        )
+
+    accepted_count = 0
+    try:
+        for copy in copies:
+            copy.status = "accepted"
+            accepted_count += 1
+        db.commit()
+
+        msg = urllib.parse.quote(f"{accepted_count} ta nusxa qabul qilindi.")
+        return RedirectResponse(
+            url=f"/books/copies/receive?flash_type=success&flash_msg={msg}",
+            status_code=303,
+        )
+    except Exception as exc:
+        db.rollback()
+        msg = urllib.parse.quote(f"Xatolik: {str(exc)}")
+        return RedirectResponse(
+            url=f"/books/copies/receive?flash_type=error&flash_msg={msg}",
             status_code=303,
         )

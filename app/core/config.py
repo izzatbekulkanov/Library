@@ -38,9 +38,21 @@ class Settings(BaseSettings):
     APP_SESSION_HTTPS_ONLY: bool = Field(default=False)
     APP_SESSION_DOMAIN: str | None = Field(default=None)
 
+    # DC OAuth2 Integration
+    DC_CLIENT_ID: str = Field(default="")
+    DC_CLIENT_SECRET: str = Field(default="")
+    DC_AUTHORIZE_URL: str = Field(default="https://dc.namspi.uz/oauth/authorize")
+    DC_TOKEN_URL: str = Field(default="https://dc.namspi.uz/oauth/token")
+    DC_USERINFO_URL: str = Field(default="https://dc.namspi.uz/oauth/userinfo")
+    DC_REDIRECT_URI: str = Field(default="https://arm.namspi.uz/dc/login")
+
     @property
     def is_production(self) -> bool:
         return self.APP_ENV.strip().lower() in {"prod", "production"}
+
+    @property
+    def dc_enabled(self) -> bool:
+        return bool(self.DC_CLIENT_ID and self.DC_CLIENT_SECRET)
 
     @property
     def trusted_hosts(self) -> list[str]:
