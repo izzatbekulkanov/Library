@@ -68,8 +68,62 @@
         </table>
     </div>
 
-    <div class="p-4 border-t border-white/10 bg-black/10 text-xs text-white/40">
-        {{ _("Jami:") }} <span class="font-medium text-white/70">{{ total_books }}</span> {{ _("ta kitob") }}
+    <div class="p-4 border-t border-white/10 bg-black/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="text-xs text-white/40">
+            {{ _("Jami:") }} <span class="font-medium text-white/70">{{ total_books }}</span> {{ _("ta kitob") }}
+            {% if total_pages > 1 %}
+            <span class="mx-2">|</span>
+            {{ _("Sahifa:") }} <span class="font-medium text-white/70">{{ page }}</span> / {{ total_pages }}
+            {% endif %}
+        </div>
+        
+        {% if total_pages > 1 %}
+        <div class="flex items-center gap-1">
+            <!-- Birinchi sahifa -->
+            {% if page > 1 %}
+            <a href="?page=1" onclick="showLoader(event,'?page=1')"
+               class="w-8 h-8 flex items-center justify-center rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-all text-xs">
+                <i class="fa-solid fa-angles-left"></i>
+            </a>
+            <a href="?page={{ page - 1 }}" onclick="showLoader(event,'?page={{ page - 1 }}')"
+               class="w-8 h-8 flex items-center justify-center rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-all text-xs">
+                <i class="fa-solid fa-chevron-left"></i>
+            </a>
+            {% endif %}
+            
+            <!-- Sahifa raqamlari -->
+            {% set start_page = [1, page - 2]|max %}
+            {% set end_page = [total_pages, page + 2]|min %}
+            
+            {% if start_page > 1 %}
+            <span class="w-8 h-8 flex items-center justify-center text-white/30 text-xs">...</span>
+            {% endif %}
+            
+            {% for p in range(start_page, end_page + 1) %}
+            <a href="?page={{ p }}" onclick="showLoader(event,'?page={{ p }}')"
+               class="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-medium transition-all
+                      {% if p == page %}bg-purple-500/30 text-purple-300 border border-purple-500/30{% else %}text-white/50 hover:text-white hover:bg-white/10{% endif %}">
+                {{ p }}
+            </a>
+            {% endfor %}
+            
+            {% if end_page < total_pages %}
+            <span class="w-8 h-8 flex items-center justify-center text-white/30 text-xs">...</span>
+            {% endif %}
+            
+            <!-- Keyingi sahifa -->
+            {% if page < total_pages %}
+            <a href="?page={{ page + 1 }}" onclick="showLoader(event,'?page={{ page + 1 }}')"
+               class="w-8 h-8 flex items-center justify-center rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-all text-xs">
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+            <a href="?page={{ total_pages }}" onclick="showLoader(event,'?page={{ total_pages }}')"
+               class="w-8 h-8 flex items-center justify-center rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-all text-xs">
+                <i class="fa-solid fa-angles-right"></i>
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

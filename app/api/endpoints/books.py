@@ -627,6 +627,8 @@ def _compress_inventory_range(numbers: list[str], prefix: str) -> str:
 @router.get("/inventory/", response_class=HTMLResponse)
 async def book_inventory_table(
     request: Request,
+    page: int = 1,
+    per_page: int = 50,
     db: Session = Depends(get_db),
 ):
     _guard(request)
@@ -647,9 +649,6 @@ async def book_inventory_table(
         if copy.original_book_id:
             book_copies_map[copy.original_book_id].append(copy)
 
-    rows = []
-    row_index = 0
-    
     # Avval barcha qatorlarni yig'amiz
     all_rows = []
     
@@ -719,8 +718,21 @@ async def book_inventory_table(
     
     all_rows.sort(key=sort_row)
     
-    # Index qo'shish
-    for i, row in enumerate(all_rows, 1):
+    # Pagination
+    total_items = len(all_rows)
+    total_pages = (total_items + per_page - 1) // per_page
+    if page < 1:
+        page = 1
+    if total_pages and page > total_pages:
+        page = total_pages
+    
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
+    page_rows = all_rows[start_idx:end_idx]
+    
+    # Index qo'shish (global index)
+    rows = []
+    for i, row in enumerate(page_rows, start=start_idx + 1):
         row["index"] = i
         del row["prefix"]  # prefix ni olib tashlaymiz
         rows.append(row)
@@ -733,7 +745,10 @@ async def book_inventory_table(
             active_menu="books",
             rows=rows,
             libraries=libraries,
-            total_books=len(rows),
+            total_books=total_items,
+            page=page,
+            per_page=per_page,
+            total_pages=total_pages,
         ),
     )
 
