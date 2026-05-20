@@ -649,6 +649,10 @@ async def book_inventory_table(
 
     rows = []
     row_index = 0
+    
+    # Avval barcha qatorlarni yig'amiz
+    all_rows = []
+    
     for book in books:
         copies = book_copies_map.get(book.id, [])
         if not copies:
@@ -670,23 +674,8 @@ async def book_inventory_table(
             prefix_groups[prefix].append(copy)
 
         # Har bir prefix uchun alohida qator
-        # Tartiblash: avval oddiy raqamlar (1, 2, 3...), keyin harfli (74.2h, 66.03...)
-        def sort_prefix(p):
-            if not p:
-                return (2, 0, "")
-            # Faqat raqamdan iborat bo'lsa
-            if p.isdigit():
-                return (0, int(p), p)
-            # Raqam bilan boshlanib, harf bilan davom etsa
-            import re
-            match = re.match(r'^(\d+)', p)
-            if match:
-                return (1, int(match.group(1)), p)
-            return (2, 0, p)
-        
-        for prefix in sorted(prefix_groups.keys(), key=sort_prefix):
+        for prefix in prefix_groups.keys():
             group_copies = prefix_groups[prefix]
-            row_index += 1
 
             # Inventar diapazonini hisoblash
             inv_numbers = sorted([c.inventory_number for c in group_copies if c.inventory_number])
@@ -703,8 +692,8 @@ async def book_inventory_table(
 
             total_copies = len(group_copies)
 
-            rows.append({
-                "index": row_index,
+            all_rows.append({
+                "prefix": prefix,
                 "bbk_code": bbk_code,
                 "inv_range": inv_range,
                 "title": book.title,
@@ -717,6 +706,24 @@ async def book_inventory_table(
                 "lib_counts": lib_counts,
                 "total": total_copies,
             })
+    
+    # Tartiblash: avval oddiy raqamlar (1, 2, 3...), keyin harfli (74.2h, 66.03...)
+    def sort_row(row):
+        p = row["prefix"]
+        if not p:
+            return (2, 0, "")
+        # Faqat raqamdan iborat bo'lsa
+        if p.isdigit():
+            return (0, int(p), p)
+        return (1, 0, p)
+    
+    all_rows.sort(key=sort_row)
+    
+    # Index qo'shish
+    for i, row in enumerate(all_rows, 1):
+        row["index"] = i
+        del row["prefix"]  # prefix ni olib tashlaymiz
+        rows.append(row)
 
     return templates.TemplateResponse(
         "books/inventory.html",
