@@ -84,6 +84,30 @@
                         </div>
                     </div>
 
+                    <div>
+                        <label class="pro-label">Hemis ID</label>
+                        <div class="pro-input-wrap" style="display:flex; gap:0.5rem;">
+                            <span class="pro-icon"><i class="fa-solid fa-fingerprint"></i></span>
+                            <input type="text" name="hemis_id" id="hemisIdInput" class="pro-input" placeholder="Xodim ID raqami" style="flex:1;">
+                            <button type="button" onclick="searchHemis()" id="hemisSearchBtn"
+                                style="padding:0 1rem; background:linear-gradient(135deg,#3b82f6,#2563eb); color:#fff; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.8rem; display:flex; align-items:center; gap:0.4rem; transition:all 0.2s;"
+                                onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 4px 12px rgba(59,130,246,0.4)';"
+                                onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">
+                                <i class="fa-solid fa-magnifying-glass" id="hemisSearchIcon"></i>
+                                <span id="hemisSearchText">Qidirish</span>
+                            </button>
+                        </div>
+                        <p style="font-size:0.71rem; color:rgba(148,163,184,0.5); margin:0.3rem 0.2rem 0;">DC orqali kirish uchun kerak. Qidirish orqali ma'lumotlar avtomatik to'ldiriladi.</p>
+                    </div>
+
+                    <!-- Rasm preview (Hemis dan kelganda) -->
+                    <div id="hemisImagePreview" style="display:none;">
+                        <label class="pro-label">Rasm (Hemis)</label>
+                        <div style="width:80px; height:80px; border-radius:0.75rem; overflow:hidden; border:2px solid rgba(59,130,246,0.3); background:rgba(255,255,255,0.05);">
+                            <img id="hemisImage" src="" alt="Xodim rasmi" style="width:100%; height:100%; object-fit:cover;">
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- ─── ROL VA KATEGORIYA ─── -->
@@ -222,6 +246,108 @@ function togglePassword() {
         icon.classList.replace('fa-eye-slash', 'fa-eye');
     }
 }
+
+// Hemis API orqali qidirish
+async function searchHemis() {
+    const hemisId = document.getElementById('hemisIdInput').value.trim();
+    if (!hemisId || hemisId.length < 3) {
+        showNotification('Ogohlantirish', 'Kamida 3 ta belgi kiriting', 'warning');
+        return;
+    }
+    
+    const btn = document.getElementById('hemisSearchBtn');
+    const icon = document.getElementById('hemisSearchIcon');
+    const text = document.getElementById('hemisSearchText');
+    
+    // Loading holati
+    btn.disabled = true;
+    icon.className = 'fa-solid fa-spinner fa-spin';
+    text.textContent = 'Qidirilmoqda...';
+    
+    try {
+        const response = await fetch(`/users/api/hemis-search?q=${encodeURIComponent(hemisId)}`);
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            const data = result.data;
+            
+            // Formani to'ldirish
+            if (data.full_name) {
+                const fullNameInput = document.querySelector('input[name="full_name"]');
+                if (fullNameInput) fullNameInput.value = data.full_name;
+            }
+            
+            if (data.hemis_id) {
+                document.getElementById('hemisIdInput').value = data.hemis_id;
+            }
+            
+            // Username yaratish (familiya_ism formatida)
+            if (data.second_name && data.first_name) {
+                const usernameInput = document.querySelector('input[name="username"]');
+                if (usernameInput && !usernameInput.value) {
+                    const username = (data.second_name.toLowerCase() + '_' + data.first_name.toLowerCase().charAt(0)).replace(/[^a-z0-9_]/g, '');
+                    usernameInput.value = username;
+                }
+            }
+            
+            // Email yaratish
+            if (data.second_name && data.first_name) {
+                const emailInput = document.querySelector('input[name="email"]');
+                if (emailInput && !emailInput.value) {
+                    const email = (data.second_name.toLowerCase() + '.' + data.first_name.toLowerCase().charAt(0) + '@namspi.uz').replace(/[^a-z0-9.@_]/g, '');
+                    emailInput.value = email;
+                }
+            }
+            
+            // Jinsi
+            if (data.gender) {
+                const genderSelect = document.querySelector('select[name="gender"]');
+                if (genderSelect) {
+                    for (let opt of genderSelect.options) {
+                        if (opt.value === data.gender || opt.text === data.gender) {
+                            genderSelect.value = opt.value;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // Rasm
+            if (data.image) {
+                const preview = document.getElementById('hemisImagePreview');
+                const img = document.getElementById('hemisImage');
+                if (preview && img) {
+                    img.src = data.image;
+                    preview.style.display = 'block';
+                }
+            }
+            
+            showNotification('Muvaffaqiyat', `${data.full_name} ma'lumotlari yuklandi`, 'success');
+        } else {
+            showNotification('Xato', result.error || 'Xodim topilmadi', 'error');
+        }
+    } catch (error) {
+        showNotification('Xato', 'Tarmoq xatosi: ' + error.message, 'error');
+    } finally {
+        // Loading holatini qaytarish
+        btn.disabled = false;
+        icon.className = 'fa-solid fa-magnifying-glass';
+        text.textContent = 'Qidirish';
+    }
+}
+
+// Enter tugmasi bosilganda qidirish
+document.addEventListener('DOMContentLoaded', function() {
+    const hemisInput = document.getElementById('hemisIdInput');
+    if (hemisInput) {
+        hemisInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchHemis();
+            }
+        });
+    }
+});
 
 // Telefon raqam niqobi: +998 XX XXX XX XX
 (function() {

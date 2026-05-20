@@ -2,9 +2,10 @@ from datetime import date, datetime, timedelta
 import os
 import urllib.parse
 import uuid
+import httpx
 
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from app.core.i18n import I18nJinja2Templates as Jinja2Templates
 from sqlalchemy.orm import Session
 from starlette import status as http_status
@@ -21,6 +22,7 @@ from app.core.auth import (
     serialize_menu_permissions,
     set_session,
 )
+from app.core.config import settings
 from app.core.database import get_db
 from app.models.user import GenderEnum, User, UserTypeEnum
 
@@ -138,6 +140,78 @@ async def add_user_page(request: Request):
     return _add_page(request)
 
 
+@router.get("/api/hemis-search")
+async def hemis_search(request: Request, q: str = ""):
+    """Hemis API orqali xodim qidirish"""
+    g = _guard(request)
+    if g:
+        return JSONResponse({"success": False, "error": "Ruxsat yo'q"}, status_code=403)
+    
+    if not q or len(q) < 3:
+        return JSONResponse({"success": False, "error": "Kamida 3 ta belgi kiriting"})
+    
+    if not settings.HEMIS_API_TOKEN:
+        return JSONResponse({"success": False, "error": "Hemis API sozlanmagan"})
+    
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.get(
+                settings.HEMIS_API_URL,
+                params={"type": "all", "search": q},
+                headers={
+                    "accept": "application/json",
+                    "Authorization": f"Bearer {settings.HEMIS_API_TOKEN}",
+                },
+            )
+            
+            if response.status_code != 200:
+                return JSONResponse({"success": False, "error": f"Hemis xatosi: {response.status_code}"})
+            
+            data = response.json()
+            
+            if not data.get("success"):
+                return JSONResponse({"success": False, "error": data.get("error") or "Hemis xatosi"})
+            
+            items = data.get("data", {}).get("items", [])
+            if not items:
+                return JSONResponse({"success": False, "error": "Xodim topilmadi"})
+            
+            # Birinchi natijani olish
+            emp = items[0]
+            
+            # birth_date ni formatlash (Unix timestamp -> YYYY-MM-DD)
+            birth_date = ""
+            if emp.get("birth_date"):
+                try:
+                    birth_date = datetime.utcfromtimestamp(emp["birth_date"]).strftime("%Y-%m-%d")
+                except Exception:
+                    pass
+            
+            result = {
+                "success": True,
+                "data": {
+                    "hemis_id": str(emp.get("employee_id_number") or emp.get("id") or ""),
+                    "full_name": emp.get("full_name") or "",
+                    "short_name": emp.get("short_name") or "",
+                    "first_name": emp.get("first_name") or "",
+                    "second_name": emp.get("second_name") or "",
+                    "third_name": emp.get("third_name") or "",
+                    "gender": emp.get("gender", {}).get("name") or "",
+                    "birth_date": birth_date,
+                    "image": emp.get("image") or emp.get("image_full") or "",
+                    "year_of_enter": emp.get("year_of_enter") or "",
+                    "department": emp.get("department", {}).get("name") or "",
+                    "position": emp.get("staffPosition", {}).get("name") or "",
+                }
+            }
+            return JSONResponse(result)
+            
+    except httpx.RequestError as e:
+        return JSONResponse({"success": False, "error": f"Tarmoq xatosi: {str(e)}"})
+    except Exception as e:
+        return JSONResponse({"success": False, "error": f"Xato: {str(e)}"})
+
+
 @router.post("/add")
 async def process_add_user(request: Request, db: Session = Depends(get_db)):
     g = _guard(request)
@@ -173,6 +247,7 @@ async def process_add_user(request: Request, db: Session = Depends(get_db)):
             full_name=(form.get("full_name") or "").strip() or None,
             email=email,
             phone_number=(form.get("phone_number") or "").strip() or None,
+            hemis_id=(form.get("hemis_id") or "").strip() or None,
             gender=next((g for g in GenderEnum if g.value == gender_val), None),
             user_type=next((ut for ut in UserTypeEnum if ut.value == user_type_val), None),
             is_active=form.get("is_active") == "on",

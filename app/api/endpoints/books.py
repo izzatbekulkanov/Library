@@ -654,47 +654,55 @@ async def book_inventory_table(
         if not copies:
             continue
 
-        row_index += 1
-
         bbk_code = book.bbk.code if book.bbk else "-"
-
-        inv_numbers = sorted([c.inventory_number for c in copies if c.inventory_number])
-        prefix = ""
-        if inv_numbers:
-            parts = inv_numbers[0].split("/")
-            if len(parts) >= 2:
-                prefix = parts[0]
-
-        inv_range = _compress_inventory_range(inv_numbers, prefix) if prefix else ", ".join(inv_numbers[:5]) + ("..." if len(inv_numbers) > 5 else "")
-
         pub_year = f"T-{book.publication_year.year}" if book.publication_year else "-"
         book_type_name = book.book_type.name if book.book_type else "-"
         lang = (book.language or "uz").upper()
 
-        lib_counts: dict[int, int] = defaultdict(int)
-        unassigned_count = 0
+        # Nusxalarni prefix bo'yicha guruhlash
+        prefix_groups: dict[str, list] = defaultdict(list)
         for copy in copies:
-            if copy.library_id:
-                lib_counts[copy.library_id] += 1
+            inv = copy.inventory_number or ""
+            if "/" in inv:
+                prefix = inv.rsplit("/", 1)[0]
             else:
-                unassigned_count += 1
+                prefix = ""
+            prefix_groups[prefix].append(copy)
 
-        total_copies = len(copies)
+        # Har bir prefix uchun alohida qator
+        for prefix in sorted(prefix_groups.keys(), key=lambda x: (int(x) if x.isdigit() else 999, x)):
+            group_copies = prefix_groups[prefix]
+            row_index += 1
 
-        rows.append({
-            "index": row_index,
-            "bbk_code": bbk_code,
-            "inv_range": inv_range,
-            "title": book.title,
-            "pub_year": pub_year,
-            "adad": book.adad or 0,
-            "pages": book.pages or 0,
-            "book_type": book_type_name,
-            "language": lang,
-            "unassigned": unassigned_count,
-            "lib_counts": lib_counts,
-            "total": total_copies,
-        })
+            # Inventar diapazonini hisoblash
+            inv_numbers = sorted([c.inventory_number for c in group_copies if c.inventory_number])
+            inv_range = _compress_inventory_range(inv_numbers, prefix) if prefix else ", ".join(inv_numbers[:5]) + ("..." if len(inv_numbers) > 5 else "")
+
+            # Kutubxonalar bo'yicha hisoblash
+            lib_counts: dict[int, int] = defaultdict(int)
+            unassigned_count = 0
+            for copy in group_copies:
+                if copy.library_id:
+                    lib_counts[copy.library_id] += 1
+                else:
+                    unassigned_count += 1
+
+            total_copies = len(group_copies)
+
+            rows.append({
+                "index": row_index,
+                "bbk_code": bbk_code,
+                "inv_range": inv_range,
+                "title": book.title,
+                "pub_year": pub_year,
+                "adad": book.adad or 0,
+                "pages": book.pages or 0,
+                "book_type": book_type_name,
+                "language": lang,
+                "unassigned": unassigned_count,
+                "lib_counts": lib_counts,
+                "total": total_copies,
+            })
 
     return templates.TemplateResponse(
         "books/inventory.html",

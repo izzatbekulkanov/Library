@@ -46,6 +46,10 @@ class Settings(BaseSettings):
     DC_USERINFO_URL: str = Field(default="https://dc.namspi.uz/oauth/userinfo")
     DC_REDIRECT_URI: str = Field(default="https://arm.namspi.uz/dc/login")
 
+    # Hemis API Integration
+    HEMIS_API_URL: str = Field(default="https://student.namspi.uz/rest/v1/data/employee-list")
+    HEMIS_API_TOKEN: str = Field(default="")
+
     @property
     def is_production(self) -> bool:
         return self.APP_ENV.strip().lower() in {"prod", "production"}
