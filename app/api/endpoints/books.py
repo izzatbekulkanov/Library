@@ -670,7 +670,21 @@ async def book_inventory_table(
             prefix_groups[prefix].append(copy)
 
         # Har bir prefix uchun alohida qator
-        for prefix in sorted(prefix_groups.keys(), key=lambda x: (int(x) if x.isdigit() else 999, x)):
+        # Tartiblash: avval oddiy raqamlar (1, 2, 3...), keyin harfli (74.2h, 66.03...)
+        def sort_prefix(p):
+            if not p:
+                return (2, 0, "")
+            # Faqat raqamdan iborat bo'lsa
+            if p.isdigit():
+                return (0, int(p), p)
+            # Raqam bilan boshlanib, harf bilan davom etsa
+            import re
+            match = re.match(r'^(\d+)', p)
+            if match:
+                return (1, int(match.group(1)), p)
+            return (2, 0, p)
+        
+        for prefix in sorted(prefix_groups.keys(), key=sort_prefix):
             group_copies = prefix_groups[prefix]
             row_index += 1
 
