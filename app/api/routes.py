@@ -259,15 +259,15 @@ async def dc_login_callback(request: Request, db: Session = Depends(get_db)):
     
     if not user:
         # Foydalanuvchi tizimda yo'q - ruxsat berilmagan
-        return templates.TemplateResponse("login.html", {
-            "request": request, "next": "/",
-            "error": "Sizga tizimga kirishga ruxsat berilmagan. Administrator bilan bog'laning.",
+        return templates.TemplateResponse("access_denied.html", {
+            "request": request,
+            "message": "Sizga tizimga kirishga ruxsat berilmagan. Administrator bilan bog'laning.",
         })
     
     if not user.is_active:
-        return templates.TemplateResponse("login.html", {
-            "request": request, "next": "/",
-            "error": "Ushbu hisob bloklangan. Administrator bilan bog'laning.",
+        return templates.TemplateResponse("access_denied.html", {
+            "request": request,
+            "message": "Ushbu hisob bloklangan. Administrator bilan bog'laning.",
         })
     
     # Session yaratish
