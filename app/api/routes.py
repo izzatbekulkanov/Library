@@ -245,73 +245,30 @@ async def dc_login_callback(request: Request, db: Session = Depends(get_db)):
             "error": f"Xato yuz berdi: {str(e)}",
         })
     
-    # Foydalanuvchini topish yoki yaratish
-    dc_id = userinfo.get("sub") or userinfo.get("id")
-    email = userinfo.get("email", "")
-    username = userinfo.get("preferred_username") or userinfo.get("username") or email.split("@")[0] if email else ""
-    full_name = userinfo.get("name") or userinfo.get("full_name") or f"{userinfo.get('given_name', '')} {userinfo.get('family_name', '')}".strip()
+    # DC dan kelgan hemis_id ni olish
+    hemis_id = userinfo.get("sub") or userinfo.get("id") or userinfo.get("hemis_id")
     
-    if not dc_id and not email and not username:
+    if not hemis_id:
         return templates.TemplateResponse("login.html", {
             "request": request, "next": "/",
-            "error": "DC dan foydalanuvchi identifikatori olinmadi.",
+            "error": "DC dan foydalanuvchi identifikatori (hemis_id) olinmadi.",
         })
     
-    # Avval DC ID bo'yicha qidirish
-    user = None
-    if dc_id:
-        user = db.query(User).filter(User.hemis_id == str(dc_id)).first()
-    
-    # Email bo'yicha qidirish
-    if not user and email:
-        user = db.query(User).filter(User.email == email).first()
-    
-    # Username bo'yicha qidirish
-    if not user and username:
-        user = db.query(User).filter(User.username == username).first()
+    # Faqat hemis_id bo'yicha qidirish - tizimda mavjud foydalanuvchilar
+    user = db.query(User).filter(User.hemis_id == str(hemis_id)).first()
     
     if not user:
-        # Yangi foydalanuvchi yaratish
-        import secrets
-        random_password = secrets.token_urlsafe(16)
-        
-        # Username unique bo'lishi kerak
-        base_username = username or f"dc_user_{dc_id or secrets.token_hex(4)}"
-        final_username = base_username
-        counter = 1
-        while db.query(User).filter(User.username == final_username).first():
-            final_username = f"{base_username}_{counter}"
-            counter += 1
-        
-        user = User(
-            full_name=full_name or final_username,
-            username=final_username,
-            email=email or f"{final_username}@dc.local",
-            hashed_password=User.get_password_hash(random_password),
-            hemis_id=str(dc_id) if dc_id else None,
-            user_type=UserTypeEnum.user,
-            is_staff=False,
-            is_verified=False,
-            is_active=True,
-            menu_permissions=",".join(
-                default_menu_permissions(is_staff=False, is_verified=False)
-            ),
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow(),
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+        # Foydalanuvchi tizimda yo'q - ruxsat berilmagan
+        return templates.TemplateResponse("login.html", {
+            "request": request, "next": "/",
+            "error": "Sizga tizimga kirishga ruxsat berilmagan. Administrator bilan bog'laning.",
+        })
     
     if not user.is_active:
         return templates.TemplateResponse("login.html", {
             "request": request, "next": "/",
             "error": "Ushbu hisob bloklangan. Administrator bilan bog'laning.",
         })
-    
-    # DC ID ni yangilash (agar yo'q bo'lsa)
-    if dc_id and not user.hemis_id:
-        user.hemis_id = str(dc_id)
     
     # Session yaratish
     set_session(request, user)
